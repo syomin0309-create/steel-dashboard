@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go  # 新增：用於疊加自訂曲線
-import numpy as np                 # 新增：用於計算常態分佈數學公式
+import plotly.graph_objects as go
+import numpy as np
 
 st.set_page_config(page_title="鍍三線高階分析儀表板", layout="wide", page_icon="📈")
 
@@ -32,6 +32,7 @@ def load_and_clean_data(file):
         
     df.columns = df.columns.str.replace('\n', '', regex=False).str.replace('\r', '', regex=False).str.strip()
     
+    # 🛡️ 擴充白名單：把 X-Ray 的 6 個原始欄位加進來
     whitelist = [
         '產出鋼捲號碼', '生產日期', '試驗等級', '訂單厚度', '訂單寬度', 
         '熱軋材質', '產品規格代碼', 'RTF板溫', '線速度', 
@@ -39,11 +40,27 @@ def load_and_clean_data(file):
         '伸長率(EL)', '硬度HRB(原始)', '抗拉強度(TS)', '降伏強度(YS)', 
         '碳(%x100)', '錳(%x100)', '磷(%x1000)', '硫(%x1000)', 
         '矽(%x100)', '鋁(%x1000)', '銅(%x100)', '鎳(%x100)', 
-        '鉻(%x100)', '鉬(%x100)', '錫(%x1000)'
+        '鉻(%x100)', '鉬(%x100)', '錫(%x1000)',
+        'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S',  # 正面北中南
+        'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'   # 背面北中南
     ]
     target_cols = [col for col in whitelist if col in df.columns]
     df = df[target_cols]
     
+    # === 🚀 新增魔法：自動計算雙面總鍍層量 ===
+    xray_cols = ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S']
+    
+    # 檢查 Excel 裡面是不是真的有這 6 個欄位
+    if all(col in df.columns for col in xray_cols):
+        # 防呆機制：確保這 6 個欄位都是純數字，遇到奇怪的文字或空白會自動轉成空值 (NaN)
+        for col in xray_cols:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            
+        # 執行計算公式：(正面三點平均) + (背面三點平均)
+        df['雙面總鍍層量(AVG)'] = (df['XRAY_A_T_N'] + df['XRAY_A_T_C'] + df['XRAY_A_T_S']) / 3 + \
+                                (df['XRAY_A_B_N'] + df['XRAY_A_B_C'] + df['XRAY_A_B_S']) / 3
+    # ==========================================
+
     if '試驗等級' in df.columns:
         df = df.dropna(subset=['試驗等級']) 
         df = df[df['試驗等級'].astype(str).str.strip() != ''] 
@@ -101,7 +118,9 @@ if uploaded_file is not None:
     if f_mat:   df = df[df['熱軋材質'].isin(f_mat)]
     if f_spec:  df = df[df['產品規格代碼'].isin(f_spec)]
 
-    exclude_cols = ['產出鋼捲號碼', '試驗等級', '生產日期', '訂單厚度', '訂單寬度', '熱軋材質', '產品規格代碼', '比對群組', '生產年月'] 
+    # 把那 6 個原始單點數值排除在下拉選單外，以免版面太亂，我們只看計算出來的總和
+    exclude_cols = ['產出鋼捲號碼', '試驗等級', '生產日期', '訂單厚度', '訂單寬度', '熱軋材質', '產品規格代碼', '比對群組', '生產年月',
+                    'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'] 
     available_params = [col for col in df.columns if col not in exclude_cols]
     
     if available_params and not df.empty:
@@ -190,39 +209,30 @@ if uploaded_file is not None:
                 st.plotly_chart(fig_box, use_container_width=True)
 
             with tab3:
-                # 🌟 CPK 圖表優化：取消分組顏色，改為單一專業藍色；Y軸改為機率密度以吻合曲線
                 fig_hist = px.histogram(
                     plot_df, x=selected_param,
                     nbins=30, opacity=0.6, 
-                    histnorm='probability density', # 轉換為密度，才能跟曲線完美疊加
-                    color_discrete_sequence=['#4B8BBE'], # 統一使用質感藍色
+                    histnorm='probability density', 
+                    color_discrete_sequence=['#4B8BBE'], 
                     title=f"【{selected_param}】 數據常態分佈與 SPC 規格區間 (CPK 分析)"
                 )
                 
-                # 🌟 新增：計算並疊加完美的常態分佈曲線 (Bell Curve)
                 if std_val > 0:
                     x_min = min(plot_df[selected_param].min(), lsl)
                     x_max = max(plot_df[selected_param].max(), usl)
-                    # 稍微拉寬X軸範圍，讓曲線兩端延伸得更漂亮
                     x_curve = np.linspace(x_min - std_val, x_max + std_val, 200)
                     
-                    # 常態分佈數學公式 (PDF)
                     y_pdf = (1 / (std_val * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_curve - avg_val) / std_val) ** 2)
                     
                     fig_hist.add_trace(go.Scatter(
                         x=x_curve, y=y_pdf, mode='lines',
-                        line=dict(color='#FF2B2B', width=3), # 鮮紅色的曲線
+                        line=dict(color='#FF2B2B', width=3),
                         name='常態分佈曲線 (Bell Curve)'
                     ))
 
-                # 畫出 USL 與 LSL
                 fig_hist.add_vline(x=usl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"USL: {usl:.2f}", annotation_position="top right")
                 fig_hist.add_vline(x=lsl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"LSL: {lsl:.2f}", annotation_position="top left")
-                
-                # 畫出 Target (目標中心)
                 fig_hist.add_vline(x=target, line_dash="solid", line_color="#00CC96", annotation_text=f"Target: {target:.2f}", annotation_position="top right")
-                
-                # 畫出實際平均值 (虛線)
                 fig_hist.add_vline(x=avg_val, line_dash="dash", line_color="blue", annotation_text=f"實際平均: {avg_val:.2f}", annotation_position="bottom right")
 
                 fig_hist.update_layout(height=500, yaxis_title="機率密度 (Probability Density)")
