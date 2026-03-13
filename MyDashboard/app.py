@@ -167,32 +167,61 @@ if uploaded_file is not None:
 
     # ============ 側邊欄：篩選器 ============
     with st.sidebar:
-        st.subheader("🎯 快速篩選 (層峰版)")
+        st.subheader("🎯 Excel風格篩選器")
+        st.caption("💡 灰色項目表示無數據 | 數字表示該條件下的鋼捲數")
         
         file_key = uploaded_file.name
         
-        def create_filter(col_name):
-            if col_name in df.columns:
-                try:
-                    options = df[col_name].dropna().astype(str).unique().tolist()
-                    if not options:
-                        return []
-                    return st.multiselect(f"📌 {col_name}", options, key=f"filter_{file_key}_{col_name}")
-                except Exception as e:
-                    st.warning(f"⚠️ {col_name} 讀取失敗")
+        def create_excel_filter(col_name, current_df):
+            """
+            Excel風格篩選器：顯示每個選項的數據量
+            灰顯無數據項，允許多選
+            """
+            if col_name not in current_df.columns:
+                return []
+            
+            try:
+                # 獲取所有可能的選項及其計數
+                all_options = current_df[col_name].dropna().astype(str).unique()
+                option_counts = current_df[col_name].astype(str).value_counts().to_dict()
+                
+                # 建立顯示文本（帶數據量）
+                display_options = {}
+                for opt in sorted(all_options):
+                    count = option_counts.get(opt, 0)
+                    if count > 0:
+                        display_options[f"✓ {opt} ({count})"] = opt
+                    else:
+                        display_options[f"✗ {opt} (0)"] = opt  # 灰顯
+                
+                if not display_options:
+                    st.warning(f"⚠️ {col_name} 無可用選項")
                     return []
-            return []
+                
+                # 使用自訂的多選框，顯示數據量
+                selected = st.multiselect(
+                    f"🔹 {col_name}",
+                    options=list(display_options.keys()),
+                    key=f"filter_{file_key}_{col_name}"
+                )
+                
+                # 返回實際的值（不含計數和符號）
+                return [display_options[s] for s in selected]
+            
+            except Exception as e:
+                st.error(f"⚠️ {col_name} 讀取失敗：{str(e)}")
+                return []
         
         # 關鍵篩選項
-        st.markdown("**關鍵篩選條件：**")
-        f_month = create_filter('生產年月')
-        f_thick = create_filter('訂單厚度')
-        f_width = create_filter('訂單寬度')
-        f_mat   = create_filter('熱軋材質')
-        f_spec  = create_filter('產品規格代碼')
+        st.markdown("**📍 關鍵篩選條件：**")
+        f_month = create_excel_filter('生產年月', df)
+        f_thick = create_excel_filter('訂單厚度', df)
+        f_width = create_excel_filter('訂單寬度', df)
+        f_mat   = create_excel_filter('熱軋材質', df)
+        f_spec  = create_excel_filter('產品規格代碼', df)
         
-        st.markdown("**其他篩選：**")
-        f_up_coat = create_filter('上鍍層')
+        st.markdown("**📍 其他篩選：**")
+        f_up_coat = create_excel_filter('上鍍層', df)
         
     # 應用篩選
     filtered_df = df.copy()
@@ -431,47 +460,63 @@ if uploaded_file is not None:
                 df_a_all = filtered_df[filtered_df['生產年月'].isin(period_a_months)]
                 df_b_all = filtered_df[filtered_df['生產年月'].isin(period_b_months)]
                 
-                # 獲取兩個時段都存在的規格（交集）
-                thick_options_a = sorted(df_a_all['訂單厚度'].dropna().unique()) if '訂單厚度' in df_a_all.columns else []
-                thick_options_b = sorted(df_b_all['訂單厚度'].dropna().unique()) if '訂單厚度' in df_b_all.columns else []
-                thick_options = sorted(list(set(thick_options_a) & set(thick_options_b))) if thick_options_a and thick_options_b else sorted(list(set(thick_options_a) | set(thick_options_b)))
+                st.markdown("**精確規格篩選 (Excel風格) - ✨ 顯示數據量，灰色表示無數據**")
                 
-                width_options_a = sorted(df_a_all['訂單寬度'].dropna().unique()) if '訂單寬度' in df_a_all.columns else []
-                width_options_b = sorted(df_b_all['訂單寬度'].dropna().unique()) if '訂單寬度' in df_b_all.columns else []
-                width_options = sorted(list(set(width_options_a) & set(width_options_b))) if width_options_a and width_options_b else sorted(list(set(width_options_a) | set(width_options_b)))
+                # ========== Excel 風格的動態篩選函數 ==========
+                def create_dynamic_excel_filter(col_name, df_a, df_b, period_a, period_b):
+                    """
+                    動態 Excel 風格篩選器：
+                    - 顯示時段A中該選項的數據量
+                    - 顯示時段B中該選項的數據量
+                    - 灰顯無數據的選項
+                    """
+                    if col_name not in df_a.columns or col_name not in df_b.columns:
+                        return []
+                    
+                    try:
+                        # 獲取兩個時段的所有選項及計數
+                        options_a = df_a[col_name].dropna().astype(str).value_counts().to_dict()
+                        options_b = df_b[col_name].dropna().astype(str).value_counts().to_dict()
+                        
+                        # 合併所有選項
+                        all_options = sorted(set(options_a.keys()) | set(options_b.keys()))
+                        
+                        # 建立顯示文本
+                        display_options = {}
+                        for opt in all_options:
+                            count_a = options_a.get(opt, 0)
+                            count_b = options_b.get(opt, 0)
+                            total = count_a + count_b
+                            
+                            if total > 0:
+                                label = f"✓ {opt} (A:{count_a} | B:{count_b})"
+                                display_options[label] = opt
+                            else:
+                                label = f"✗ {opt} (無)"
+                                display_options[label] = opt
+                        
+                        if not display_options:
+                            st.warning(f"⚠️ {col_name} 無可用選項")
+                            return []
+                        
+                        # 多選框
+                        selected = st.multiselect(
+                            f"🔹 {col_name}",
+                            options=list(display_options.keys()),
+                            key=f"comp_{col_name}_{period_a}_{period_b}"
+                        )
+                        
+                        return [display_options[s] for s in selected]
+                    
+                    except Exception as e:
+                        st.error(f"⚠️ {col_name} 讀取失敗：{str(e)}")
+                        return []
                 
-                mat_options_a = sorted(df_a_all['熱軋材質'].dropna().unique()) if '熱軋材質' in df_a_all.columns else []
-                mat_options_b = sorted(df_b_all['熱軋材質'].dropna().unique()) if '熱軋材質' in df_b_all.columns else []
-                mat_options = sorted(list(set(mat_options_a) & set(mat_options_b))) if mat_options_a and mat_options_b else sorted(list(set(mat_options_a) | set(mat_options_b)))
-                
-                spec_options_a = sorted(df_a_all['產品規格代碼'].dropna().unique()) if '產品規格代碼' in df_a_all.columns else []
-                spec_options_b = sorted(df_b_all['產品規格代碼'].dropna().unique()) if '產品規格代碼' in df_b_all.columns else []
-                spec_options = sorted(list(set(spec_options_a) & set(spec_options_b))) if spec_options_a and spec_options_b else sorted(list(set(spec_options_a) | set(spec_options_b)))
-                
-                # 對比規格篩選
-                st.markdown("**精確規格篩選 (可選) - ✨ 自動過濾：只顯示所選時段中存在的條件**")
-                
-                comp_filter_col1, comp_filter_col2, comp_filter_col3, comp_filter_col4 = st.columns(4)
-                
-                with comp_filter_col1:
-                    comp_thick = st.multiselect(f"訂單厚度 ({len(thick_options)}種)", 
-                                               thick_options,
-                                               key="comp_thick")
-                
-                with comp_filter_col2:
-                    comp_width = st.multiselect(f"訂單寬度 ({len(width_options)}種)",
-                                               width_options,
-                                               key="comp_width")
-                
-                with comp_filter_col3:
-                    comp_mat = st.multiselect(f"熱軋材質 ({len(mat_options)}種)",
-                                             mat_options,
-                                             key="comp_mat")
-                
-                with comp_filter_col4:
-                    comp_spec = st.multiselect(f"產品規格代碼 ({len(spec_options)}種)",
-                                              spec_options,
-                                              key="comp_spec")
+                # 應用動態 Excel 風格篩選
+                comp_thick = create_dynamic_excel_filter('訂單厚度', df_a_all, df_b_all, period_a_months, period_b_months)
+                comp_width = create_dynamic_excel_filter('訂單寬度', df_a_all, df_b_all, period_a_months, period_b_months)
+                comp_mat = create_dynamic_excel_filter('熱軋材質', df_a_all, df_b_all, period_a_months, period_b_months)
+                comp_spec = create_dynamic_excel_filter('產品規格代碼', df_a_all, df_b_all, period_a_months, period_b_months)
                 
                 # 篩選數據
                 df_a = filtered_df[filtered_df['生產年月'].isin(period_a_months)].copy()
