@@ -108,7 +108,6 @@ if uploaded_file is not None:
         plot_df = df.dropna(subset=[selected_param])
         
         if not plot_df.empty:
-            # === 計算核心統計量 (Mean, Standard Deviation) ===
             avg_val = plot_df[selected_param].mean()
             std_val = plot_df[selected_param].std()
             
@@ -120,7 +119,6 @@ if uploaded_file is not None:
             st.markdown("### 📐 SPC 規格設定 (用於計算 Cpk)")
             st.caption("💡 請依照實際產品規範，輸入該參數的上限與下限。系統預設填入 ±4σ 作為參考。")
             
-            # 讓使用者動態輸入 USL, LSL (預設為 +- 4個標準差避免一開始沒有數值)
             col_usl, col_tar, col_lsl = st.columns(3)
             with col_usl:
                 usl = st.number_input("規格上限 (USL)", value=float(avg_val + 4 * std_val) if std_val else float(avg_val + 10))
@@ -129,14 +127,8 @@ if uploaded_file is not None:
             with col_tar:
                 target = st.number_input("規格中心值 (Target)", value=float((usl + lsl) / 2))
                 
-            # === 計算製程能力指標 ===
-            # Cp (Capability of Precision) 精密度
             cp = (usl - lsl) / (6 * std_val) if std_val > 0 else 0
-            
-            # Ca (Capability of Accuracy) 準確度 (百分比)
             ca = (avg_val - target) / ((usl - lsl) / 2) * 100 if usl != lsl else 0
-            
-            # Cpk (Process Capability Index) 綜合能力
             cpk = min((usl - avg_val) / (3 * std_val), (avg_val - lsl) / (3 * std_val)) if std_val > 0 else 0
             
             st.markdown("### 📊 製程能力 (Capability) 診斷結果")
@@ -145,12 +137,10 @@ if uploaded_file is not None:
             c2.metric("Cp (精密度: 變異大小)", f"{cp:.2f}")
             c3.metric("Ca (準確度: 偏離中心)", f"{ca:.1f} %")
             
-            # 依據 Cpk 水準給予不同提示
             cpk_status = "🟢 優良 (等級A)" if cpk >= 1.33 else ("🟡 尚可 (等級B)" if cpk >= 1.0 else "🔴 需改善 (等級C)")
             c4.metric("Cpk (綜合製程能力)", f"{cpk:.2f}", cpk_status)
             st.markdown("---")
             
-            # === 畫圖與顏色設定 ===
             unique_groups = plot_df['比對群組'].unique()
             color_map = {}
             for i, group in enumerate(unique_groups):
@@ -159,7 +149,8 @@ if uploaded_file is not None:
                 else:
                     color_map[group] = px.colors.qualitative.Set1[i % len(px.colors.qualitative.Set1)]
             
-            tab1, tab2 = st.tabs(["📈 趨勢折線圖 (+3σ 管制線)", "📦 箱型圖對比"])
+            # 🌟 新增第三個分頁：CPK 直方圖
+            tab1, tab2, tab3 = st.tabs(["📈 趨勢折線圖 (SPC 管制圖)", "📦 箱型圖對比", "📊 CPK 製程能力分佈圖"])
             
             with tab1:
                 fig_line = px.line(
@@ -168,15 +159,20 @@ if uploaded_file is not None:
                     title=f"【{selected_param}】 SPC 管制走勢圖"
                 )
                 
-                # 🌟 加入 ±3σ 管制線與平均線
-                fig_line.add_hline(y=ucl, line_dash="dash", line_color="#FF4B4B", 
-                                   annotation_text=f"UCL (+3σ): {ucl:.2f}", annotation_position="top right")
-                fig_line.add_hline(y=avg_val, line_dash="solid", line_color="#00CC96", 
-                                   annotation_text=f"Mean: {avg_val:.2f}", annotation_position="bottom right")
-                fig_line.add_hline(y=lcl, line_dash="dash", line_color="#FF4B4B", 
-                                   annotation_text=f"LCL (-3σ): {lcl:.2f}", annotation_position="bottom right")
+                fig_line.add_hrect(
+                    y0=lcl, y1=ucl, 
+                    line_width=0, fillcolor="#00CC96", opacity=0.08,
+                    annotation_text="±3σ 正常變異範圍", annotation_position="top left"
+                )
+
+                # 🌟 平均線改為綠色虛線 (dash)
+                fig_line.add_hline(y=avg_val, line_dash="dash", line_color="green", 
+                                   annotation_text=f"平均: {avg_val:.3f}", annotation_position="bottom right")        
+                fig_line.add_hline(y=ucl, line_dash="dot", line_color="red", 
+                                   annotation_text=f"+3σ: {ucl:.3f}", annotation_position="top right")        
+                fig_line.add_hline(y=lcl, line_dash="dot", line_color="red", 
+                                   annotation_text=f"-3σ: {lcl:.3f}", annotation_position="bottom right") 
                 
-                # 隱藏 X 軸文字，保持乾淨
                 fig_line.update_xaxes(
                     categoryorder='array', 
                     categoryarray=plot_df['產出鋼捲號碼'].unique(),
@@ -184,7 +180,7 @@ if uploaded_file is not None:
                     title_text="生產順序 (將游標移至點上可查看詳細鋼捲號碼)" 
                 )
                 fig_line.update_traces(connectgaps=True)
-                fig_line.update_layout(plot_bgcolor="rgba(0,0,0,0.03)", height=500)
+                fig_line.update_layout(plot_bgcolor="rgba(0,0,0,0.02)", height=500)
                 st.plotly_chart(fig_line, use_container_width=True)
                 
             with tab2:
@@ -194,6 +190,30 @@ if uploaded_file is not None:
                     title=f"【{selected_param}】 數據分佈對比"
                 )
                 st.plotly_chart(fig_box, use_container_width=True)
+
+            with tab3:
+                # 🌟 新增：CPK 直方圖 (常態分佈分佈圖)
+                fig_hist = px.histogram(
+                    plot_df, x=selected_param, color="比對群組",
+                    color_discrete_map=color_map,
+                    nbins=30, opacity=0.7, barmode="overlay",
+                    title=f"【{selected_param}】 數據常態分佈與 SPC 規格區間 (CPK 分析)"
+                )
+                
+                # 畫出 USL (規格上限) 與 LSL (規格下限) - 絕對不能超出的紅線
+                fig_hist.add_vline(x=usl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"USL: {usl:.2f}", annotation_position="top right")
+                fig_hist.add_vline(x=lsl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"LSL: {lsl:.2f}", annotation_position="top left")
+                
+                # 畫出 Target (目標中心) - 理想狀態的綠線
+                fig_hist.add_vline(x=target, line_dash="solid", line_color="#00CC96", annotation_text=f"Target: {target:.2f}", annotation_position="top right")
+                
+                # 畫出實際生產平均值 - 藍色點線，方便和 Target 比對看偏移量 (Ca)
+                fig_hist.add_vline(x=avg_val, line_dash="dot", line_color="blue", annotation_text=f"實際平均: {avg_val:.2f}", annotation_position="bottom right")
+
+                fig_hist.update_layout(height=500)
+                st.plotly_chart(fig_hist, use_container_width=True)
+                
+                st.caption("💡 **直方圖判讀秘訣：** <br>1. **看 Ca (準確度)：** 藍色虛線（實際平均）距離綠色實線（目標 Target）越近越好。<br>2. **看 Cp (精密度)：** 彩色的柱狀分佈圖越集中越好，絕對不能溢出左右兩邊的紅色實線 (USL/LSL)。", unsafe_allow_html=True)
                 
         else:
             st.warning(f"⚠️ 這些篩選出來的鋼捲中，沒有任何一顆擁有【{selected_param}】的數據！")
