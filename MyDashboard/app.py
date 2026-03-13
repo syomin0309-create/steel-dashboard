@@ -167,70 +167,104 @@ if uploaded_file is not None:
 
     # ============ 側邊欄：篩選器 ============
     with st.sidebar:
-        st.subheader("🎯 Excel風格篩選器")
-        st.caption("💡 灰色項目表示無數據 | 數字表示該條件下的鋼捲數")
+        st.subheader("🎯 智能級聯篩選器")
+        st.caption("💡 只顯示實際存在的選項 | 自動根據上級條件動態更新")
         
         file_key = uploaded_file.name
         
-        def create_excel_filter(col_name, current_df):
+        def create_cascading_excel_filter(col_name, current_df):
             """
-            Excel風格篩選器：顯示每個選項的數據量
-            灰顯無數據項，允許多選
+            級聯式 Excel 風格篩選器：
+            - 只顯示該數據集中實際存在的選項
+            - 根據上級篩選自動更新
+            - 隱藏無數據項（不顯示0的選項）
             """
             if col_name not in current_df.columns:
                 return []
             
             try:
-                # 獲取所有可能的選項及其計數
+                # 獲取該數據集中實際存在的選項及其計數
                 all_options = current_df[col_name].dropna().astype(str).unique()
                 option_counts = current_df[col_name].astype(str).value_counts().to_dict()
                 
-                # 建立顯示文本（帶數據量）
+                # 建立顯示文本（只包含有數據的項目）
                 display_options = {}
                 for opt in sorted(all_options):
                     count = option_counts.get(opt, 0)
-                    if count > 0:
+                    if count > 0:  # ← 【關鍵】只有 count > 0 的才會顯示
                         display_options[f"✓ {opt} ({count})"] = opt
-                    else:
-                        display_options[f"✗ {opt} (0)"] = opt  # 灰顯
                 
                 if not display_options:
                     st.warning(f"⚠️ {col_name} 無可用選項")
                     return []
                 
-                # 使用自訂的多選框，顯示數據量
+                # 多選框
                 selected = st.multiselect(
                     f"🔹 {col_name}",
                     options=list(display_options.keys()),
                     key=f"filter_{file_key}_{col_name}"
                 )
                 
-                # 返回實際的值（不含計數和符號）
+                # 返回實際的值
                 return [display_options[s] for s in selected]
             
             except Exception as e:
                 st.error(f"⚠️ {col_name} 讀取失敗：{str(e)}")
                 return []
         
-        # 關鍵篩選項
-        st.markdown("**📍 關鍵篩選條件：**")
-        f_month = create_excel_filter('生產年月', df)
-        f_thick = create_excel_filter('訂單厚度', df)
-        f_width = create_excel_filter('訂單寬度', df)
-        f_mat   = create_excel_filter('熱軋材質', df)
-        f_spec  = create_excel_filter('產品規格代碼', df)
+        # ========== 第1層：生產年月（基礎層，不變） ==========
+        st.markdown("**📍 第 1 層 - 生產年月：**")
+        f_month = create_cascading_excel_filter('生產年月', df)
+        
+        # ========== 第2層：根據月份動態更新其他條件 ==========
+        df_filtered_by_month = df.copy()
+        if f_month:
+            df_filtered_by_month = df_filtered_by_month[df_filtered_by_month['生產年月'].isin(f_month)]
+        
+        st.markdown("**📍 第 2 層 - 根據月份動態更新：**")
+        f_thick = create_cascading_excel_filter('訂單厚度', df_filtered_by_month)
+        
+        # ========== 第3層：根據月份 + 厚度動態更新 ==========
+        df_filtered_by_month_thick = df_filtered_by_month.copy()
+        if f_thick:
+            df_filtered_by_month_thick = df_filtered_by_month_thick[df_filtered_by_month_thick['訂單厚度'].isin(f_thick)]
+        
+        f_width = create_cascading_excel_filter('訂單寬度', df_filtered_by_month_thick)
+        
+        # ========== 第4層：根據月份 + 厚度 + 寬度動態更新 ==========
+        df_filtered_by_month_thick_width = df_filtered_by_month_thick.copy()
+        if f_width:
+            df_filtered_by_month_thick_width = df_filtered_by_month_thick_width[df_filtered_by_month_thick_width['訂單寬度'].isin(f_width)]
+        
+        f_mat = create_cascading_excel_filter('熱軋材質', df_filtered_by_month_thick_width)
+        
+        # ========== 第5層：根據前面所有條件動態更新 ==========
+        df_filtered_partial = df_filtered_by_month_thick_width.copy()
+        if f_mat:
+            df_filtered_partial = df_filtered_partial[df_filtered_partial['熱軋材質'].isin(f_mat)]
+        
+        f_spec = create_cascading_excel_filter('產品規格代碼', df_filtered_partial)
         
         st.markdown("**📍 其他篩選：**")
-        f_up_coat = create_excel_filter('上鍍層', df)
+        # 最後一層不需要級聯，但也用相同邏輯
+        f_up_coat = create_cascading_excel_filter('上鍍層', df)
         
-    # 應用篩選
+    # 應用級聯篩選
     filtered_df = df.copy()
-    if f_month: filtered_df = filtered_df[filtered_df['生產年月'].isin(f_month)]
-    if f_thick: filtered_df = filtered_df[filtered_df['訂單厚度'].isin(f_thick)]
-    if f_width: filtered_df = filtered_df[filtered_df['訂單寬度'].isin(f_width)]
-    if f_mat:   filtered_df = filtered_df[filtered_df['熱軋材質'].isin(f_mat)]
-    if f_spec:  filtered_df = filtered_df[filtered_df['產品規格代碼'].isin(f_spec)]
-    if f_up_coat: filtered_df = filtered_df[filtered_df['上鍍層'].isin(f_up_coat)]
+    
+    # 按順序應用篩選
+    if f_month: 
+        filtered_df = filtered_df[filtered_df['生產年月'].isin(f_month)]
+    if f_thick: 
+        filtered_df = filtered_df[filtered_df['訂單厚度'].isin(f_thick)]
+    if f_width: 
+        filtered_df = filtered_df[filtered_df['訂單寬度'].isin(f_width)]
+    if f_mat:   
+        filtered_df = filtered_df[filtered_df['熱軋材質'].isin(f_mat)]
+    if f_spec:  
+        filtered_df = filtered_df[filtered_df['產品規格代碼'].isin(f_spec)]
+    if f_up_coat: 
+        filtered_df = filtered_df[filtered_df['上鍍層'].isin(f_up_coat)]
 
     if filtered_df.empty:
         st.warning("⚠️ 目前篩選條件下沒有找到任何數據，請調整篩選條件")
