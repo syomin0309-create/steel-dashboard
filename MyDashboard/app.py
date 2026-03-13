@@ -54,7 +54,7 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
     rename_mapping = [
         (['鋼捲號碼', 'COIL_NO'], '產出鋼捲號碼'),
         (['PRODUCTION_DATE'], '生產日期'),
-        (['QUALITY_CLASS', '投入等級'], '試驗等級'),
+        (['QUALITY_CLASS'], '試驗等級'),
         (['BASE_METAL_THICK'], '訂單厚度'),
         (['REAL_WIDTH'], '訂單寬度')
     ]
@@ -368,33 +368,39 @@ if uploaded_file is not None:
                         color_discrete_sequence=['#667eea'] # 統一藍色
                     )
                     
-                    # 2. 獨立把 7B (異常) 的點抓出來，用紅色大點點疊加覆蓋在原圖上
+                    # 2. 獨立把 7B (異常) 的點抓出來，用黃色大點點疊加覆蓋
                     if '試驗等級' in plot_df.columns:
-                        abnormal_df = plot_df[plot_df['試驗等級'].astype(str).str.contains('7B', na=False, case=False)]
+                        # 轉大寫去空白，100% 鎖定 7B
+                        abnormal_df = plot_df[plot_df['試驗等級'].astype(str).str.upper().str.replace(' ', '').str.contains('7B', na=False)]
                         if not abnormal_df.empty:
                             x_data_abnormal = abnormal_df["產出鋼捲號碼"] if "產出鋼捲號碼" in abnormal_df.columns else abnormal_df.index
                             fig_line.add_trace(go.Scatter(
                                 x=x_data_abnormal,
                                 y=abnormal_df[selected_param],
                                 mode='markers',
-                                marker=dict(color='#ff4444', size=12, symbol='circle', line=dict(color='white', width=2)),
+                                marker=dict(color='#FFD700', size=12, symbol='circle', line=dict(color='black', width=2)), # 黃色 + 黑邊框
                                 name='異常 (7B)',
                                 hovertemplate="數值: %{y}<br>等級: 7B<extra></extra>"
                             ))
                     
-                    # 畫出綠色安全區塊
+                    # 畫出綠色安全區塊與管制線
                     fig_line.add_hrect(y0=lsl, y1=usl, line_width=0, fillcolor="#00CC96", opacity=0.1)
-                    
-                    # 畫出中心線與上下限管制線
                     fig_line.add_hline(y=target, line_dash="dash", line_color="green", annotation_text="中心值")
                     fig_line.add_hline(y=usl, line_dash="solid", line_color="red", annotation_text="USL")
                     fig_line.add_hline(y=lsl, line_dash="solid", line_color="red", annotation_text="LSL")
                     
-                    # 隱藏 X 軸密密麻麻的文字
                     fig_line.update_xaxes(showticklabels=False, title_text="生產順序 (依照時間/鋼捲號碼)")
                     fig_line.update_layout(height=400)
-                    
                     st.plotly_chart(fig_line, use_container_width=True)
+
+                    # 🌟 貼心提示：直接告訴使用者有沒有抓到 7B
+                    if '試驗等級' in plot_df.columns:
+                        if not abnormal_df.empty:
+                            st.warning(f"⚠️ 在上方趨勢圖中，共標示了 **{len(abnormal_df)} 顆** 7B 異常鋼捲 (黃色點)。")
+                        else:
+                            st.success("✅ 目前顯示的鋼捲中，沒有出現 7B 等級。")
+                    else:
+                        st.info("ℹ️ 這份檔案沒有包含「試驗等級」欄位，因此不會有 7B 標示。")
 
         # ============ 標籤 2：多時段對比分析 ============
         with tab_comparison:
