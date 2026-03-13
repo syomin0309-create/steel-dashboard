@@ -66,7 +66,11 @@ if uploaded_file is not None:
         title=f"📈 【{selected_param}】 分布趨勢圖"
     )
     
-    # 讓線條在遇到沒有資料的點時也能連貫起來（模擬 Excel 的視覺效果）
+    # ---- 【新增這行：強制 X 軸鎖定為 Excel 裡的原始順序】 ----
+    fig.update_xaxes(categoryorder='array', categoryarray=df['產出鋼捲號碼'].unique())
+    # --------------------------------------------------------
+
+    # 讓線條在遇到沒有資料的點時也能連貫起來
     fig.update_traces(connectgaps=True)
     
     # 更新圖例標題
@@ -74,6 +78,3 @@ if uploaded_file is not None:
     
     # 顯示圖表
     st.plotly_chart(fig, use_container_width=True)
-
-else:
-    st.info("請先從上方上傳資料檔案，圖表就會自動生成囉！")
