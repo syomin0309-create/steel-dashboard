@@ -245,8 +245,7 @@ if uploaded_file is not None:
                     default_lsl = float(avg_val - 4 * std_val) if std_val > 0 else float(avg_val - 10)
                     default_usl = float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10)
                     
-                    # 🌟 神級防呆：將參數名稱與資料筆數綁定在 key 裡面。
-                    # 只要切換篩選條件或換參數，系統就會自動幫您填入最新的建議數值！
+                    # 🌟 加回神級防呆：動態 Key！只要參數或資料量改變，輸入框就會強制刷新成新數字
                     dynamic_key = f"{selected_param}_{len(plot_df)}"
                     
                     spec_col1, spec_col2, spec_col3 = st.columns(3)
