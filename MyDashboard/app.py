@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go  # 新增：用於疊加自訂曲線
+import numpy as np                 # 新增：用於計算常態分佈數學公式
 
 st.set_page_config(page_title="鍍三線高階分析儀表板", layout="wide", page_icon="📈")
 
@@ -111,13 +113,11 @@ if uploaded_file is not None:
             avg_val = plot_df[selected_param].mean()
             std_val = plot_df[selected_param].std()
             
-            # SPC 管制線 (Control Limits)
             ucl = avg_val + 3 * std_val
             lcl = avg_val - 3 * std_val
             
             st.markdown("---")
             st.markdown("### 📐 SPC 規格設定 (用於計算 Cpk)")
-            st.caption("💡 請依照實際產品規範，輸入該參數的上限與下限。系統預設填入 ±4σ 作為參考。")
             
             col_usl, col_tar, col_lsl = st.columns(3)
             with col_usl:
@@ -145,11 +145,10 @@ if uploaded_file is not None:
             color_map = {}
             for i, group in enumerate(unique_groups):
                 if "7B" in str(group):
-                    color_map[group] = "#FFD700"  # 鮮艷黃色凸顯異常
+                    color_map[group] = "#FFD700"  
                 else:
                     color_map[group] = px.colors.qualitative.Set1[i % len(px.colors.qualitative.Set1)]
             
-            # 🌟 新增第三個分頁：CPK 直方圖
             tab1, tab2, tab3 = st.tabs(["📈 趨勢折線圖 (SPC 管制圖)", "📦 箱型圖對比", "📊 CPK 製程能力分佈圖"])
             
             with tab1:
@@ -165,7 +164,6 @@ if uploaded_file is not None:
                     annotation_text="±3σ 正常變異範圍", annotation_position="top left"
                 )
 
-                # 🌟 平均線改為綠色虛線 (dash)
                 fig_line.add_hline(y=avg_val, line_dash="dash", line_color="green", 
                                    annotation_text=f"平均: {avg_val:.3f}", annotation_position="bottom right")        
                 fig_line.add_hline(y=ucl, line_dash="dot", line_color="red", 
@@ -192,28 +190,45 @@ if uploaded_file is not None:
                 st.plotly_chart(fig_box, use_container_width=True)
 
             with tab3:
-                # 🌟 新增：CPK 直方圖 (常態分佈分佈圖)
+                # 🌟 CPK 圖表優化：取消分組顏色，改為單一專業藍色；Y軸改為機率密度以吻合曲線
                 fig_hist = px.histogram(
-                    plot_df, x=selected_param, color="比對群組",
-                    color_discrete_map=color_map,
-                    nbins=30, opacity=0.7, barmode="overlay",
+                    plot_df, x=selected_param,
+                    nbins=30, opacity=0.6, 
+                    histnorm='probability density', # 轉換為密度，才能跟曲線完美疊加
+                    color_discrete_sequence=['#4B8BBE'], # 統一使用質感藍色
                     title=f"【{selected_param}】 數據常態分佈與 SPC 規格區間 (CPK 分析)"
                 )
                 
-                # 畫出 USL (規格上限) 與 LSL (規格下限) - 絕對不能超出的紅線
+                # 🌟 新增：計算並疊加完美的常態分佈曲線 (Bell Curve)
+                if std_val > 0:
+                    x_min = min(plot_df[selected_param].min(), lsl)
+                    x_max = max(plot_df[selected_param].max(), usl)
+                    # 稍微拉寬X軸範圍，讓曲線兩端延伸得更漂亮
+                    x_curve = np.linspace(x_min - std_val, x_max + std_val, 200)
+                    
+                    # 常態分佈數學公式 (PDF)
+                    y_pdf = (1 / (std_val * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_curve - avg_val) / std_val) ** 2)
+                    
+                    fig_hist.add_trace(go.Scatter(
+                        x=x_curve, y=y_pdf, mode='lines',
+                        line=dict(color='#FF2B2B', width=3), # 鮮紅色的曲線
+                        name='常態分佈曲線 (Bell Curve)'
+                    ))
+
+                # 畫出 USL 與 LSL
                 fig_hist.add_vline(x=usl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"USL: {usl:.2f}", annotation_position="top right")
                 fig_hist.add_vline(x=lsl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"LSL: {lsl:.2f}", annotation_position="top left")
                 
-                # 畫出 Target (目標中心) - 理想狀態的綠線
+                # 畫出 Target (目標中心)
                 fig_hist.add_vline(x=target, line_dash="solid", line_color="#00CC96", annotation_text=f"Target: {target:.2f}", annotation_position="top right")
                 
-                # 畫出實際生產平均值 - 藍色點線，方便和 Target 比對看偏移量 (Ca)
-                fig_hist.add_vline(x=avg_val, line_dash="dot", line_color="blue", annotation_text=f"實際平均: {avg_val:.2f}", annotation_position="bottom right")
+                # 畫出實際平均值 (虛線)
+                fig_hist.add_vline(x=avg_val, line_dash="dash", line_color="blue", annotation_text=f"實際平均: {avg_val:.2f}", annotation_position="bottom right")
 
-                fig_hist.update_layout(height=500)
+                fig_hist.update_layout(height=500, yaxis_title="機率密度 (Probability Density)")
                 st.plotly_chart(fig_hist, use_container_width=True)
                 
-                st.caption("💡 **直方圖判讀秘訣：** <br>1. **看 Ca (準確度)：** 藍色虛線（實際平均）距離綠色實線（目標 Target）越近越好。<br>2. **看 Cp (精密度)：** 彩色的柱狀分佈圖越集中越好，絕對不能溢出左右兩邊的紅色實線 (USL/LSL)。", unsafe_allow_html=True)
+                st.caption("💡 **直方圖判讀秘訣：** <br>1. **看 Ca (準確度)：** 藍色虛線（實際平均）距離綠色實線（目標 Target）越近越好。<br>2. **看 Cp (精密度)：** 藍色柱子與紅色曲線越瘦高越好，絕對不能溢出左右兩邊的紅色死線 (USL/LSL)。", unsafe_allow_html=True)
                 
         else:
             st.warning(f"⚠️ 這些篩選出來的鋼捲中，沒有任何一顆擁有【{selected_param}】的數據！")
