@@ -30,9 +30,10 @@ def load_and_clean_data(file):
     else:
         df = pd.read_excel(file)
         
+    # 統一將標題轉為大寫並去除隱藏空白
     df.columns = df.columns.astype(str).str.strip().str.upper()
     
-    # 📖 官方翻譯字典
+    # 📖 官方翻譯字典 (保留以兼容舊版資料庫)
     rename_dict = {
         'COIL_NO': '產出鋼捲號碼',
         '鋼捲號碼': '產出鋼捲號碼',
@@ -57,14 +58,29 @@ def load_and_clean_data(file):
     }
     df.rename(columns=rename_dict, inplace=True)
 
-    # 🚀 自動計算雙面總鍍層量 
-    coat_cols = ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
-    if all(col in df.columns for col in coat_cols):
-        for col in coat_cols:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-        df['雙面總鍍層量(AVG)'] = (df['北正面鍍層'] + df['中正面鍍層'] + df['南正面鍍層']) / 3 + \
-                                (df['北背面鍍層'] + df['中背面鍍層'] + df['南背面鍍層']) / 3
+    # ---------------------------------------------------------
+    # 🚀 自動計算雙面總鍍層量 (支援多種 XRAY 欄位命名格式)
+    # ---------------------------------------------------------
+    # 格式 1：經過字典翻譯後的簡稱
+    coat_cols_1 = ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
+    # 格式 2：您最新提供的超完整中文全稱
+    coat_cols_2 = ['鋼捲全板上板北側量側數據(XRAY設備)', '鋼捲全板上板中線量側數據(XRAY設備)', '鋼捲全板上板南側量側數據(XRAY設備)',
+                   '鋼捲全板下板北側量側數據(XRAY設備)', '鋼捲全板下板中線量側數據(XRAY設備)', '鋼捲全板下板南側量側數據(XRAY設備)']
+    
+    active_coat_cols = None
+    if all(col in df.columns for col in coat_cols_1):
+        active_coat_cols = coat_cols_1
+    elif all(col in df.columns for col in coat_cols_2):
+        active_coat_cols = coat_cols_2
 
+    if active_coat_cols:
+        for col in active_coat_cols:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        # 公式：(正面北中南/3) + (背面北中南/3)
+        df['雙面總鍍層量(AVG)'] = (df[active_coat_cols[0]] + df[active_coat_cols[1]] + df[active_coat_cols[2]]) / 3 + \
+                                (df[active_coat_cols[3]] + df[active_coat_cols[4]] + df[active_coat_cols[5]]) / 3
+
+    # 日期與群組處理
     def extract_year_month(date_val):
         try:
             dt = pd.to_datetime(date_val)
@@ -99,7 +115,7 @@ if uploaded_file is not None:
         st.success("✅ 已偵測到『試驗等級』，啟動【多維度旗艦分析模式】")
     else:
         df["比對群組"] = "全批次數據"
-        st.info("ℹ️ 未偵測到『試驗等級』，切換為【CPK 製程能力專用模式】")
+        st.info("ℹ️ 未偵測到『試驗等級』，切換為【CPK 鍍層能力專用模式】")
 
     with st.sidebar:
         st.markdown("---")
@@ -122,20 +138,36 @@ if uploaded_file is not None:
     if f_mat:   df = df[df['熱軋材質'].isin(f_mat)]
     if f_spec:  df = df[df['產品規格代碼'].isin(f_spec)]
 
+    # ---------------------------------------------------------
+    # 🎯 下拉選單智慧過濾器
+    # ---------------------------------------------------------
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-    exclude_sys = ['產出鋼捲號碼', '試驗等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO'] 
+    # 隱藏系統用欄位與原始單點 XRAY 數據，保持畫面乾淨
+    exclude_sys = ['產出鋼捲號碼', '試驗等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO',
+                   '北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層',
+                   '鋼捲全板上板北側量側數據(XRAY設備)', '鋼捲全板上板中線量側數據(XRAY設備)', '鋼捲全板上板南側量側數據(XRAY設備)',
+                   '鋼捲全板下板北側量側數據(XRAY設備)', '鋼捲全板下板中線量側數據(XRAY設備)', '鋼捲全板下板南側量側數據(XRAY設備)'] 
+    
     available_params = [col for col in numeric_cols if col not in exclude_sys]
     
-    if available_params and not df.empty:
+    # 🌟 專屬模式控制：CPK 專用模式下，強制只顯示「雙面總鍍層量(AVG)」
+    if not is_standard_mode:
+        if '雙面總鍍層量(AVG)' in available_params:
+            available_params = ['雙面總鍍層量(AVG)']
+        else:
+            available_params = [] # 如果檔案連鍍層量都算不出來，就清空防呆
+    else:
+        # 如果是旗艦模式，把所有數據列出，但把鍍層量置頂
         if '雙面總鍍層量(AVG)' in available_params:
             available_params = ['雙面總鍍層量(AVG)'] + [col for col in available_params if col != '雙面總鍍層量(AVG)']
-            
-        selected_param = st.selectbox("🔍 選擇分析參數 (自動過濾非數值欄位)", available_params)
+    
+    if available_params and not df.empty:
+        # 如果只有一個選項（CPK專用模式），使用者連選都不用選，直接看圖
+        selected_param = st.selectbox("🔍 選擇分析參數", available_params)
         plot_df = df.dropna(subset=[selected_param])
         
         if not plot_df.empty:
             try:
-                # 🛡️ 終極數值防呆：防止單一筆資料造成的 NaN (Not a Number) 崩潰
                 avg_val = plot_df[selected_param].mean()
                 std_val = plot_df[selected_param].std()
                 
@@ -170,7 +202,6 @@ if uploaded_file is not None:
                 c4.metric("Cpk (綜合製程能力)", f"{cpk:.2f}", cpk_status)
                 st.markdown("---")
                 
-                # 確保有可用來當 X 軸的欄位
                 x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else plot_df.index
                 
                 def draw_cpk_chart(data, param_name, c_color):
@@ -219,8 +250,7 @@ if uploaded_file is not None:
                         st.plotly_chart(draw_cpk_chart(plot_df, selected_param, '#4B8BBE'), use_container_width=True)
                         
             except Exception as e:
-                # 安全氣囊：如果真的還有預期外的報錯，會顯示友善的提示而不是死當
-                st.error(f"系統在處理這個參數時遇到問題 (錯誤代碼：{e})。這通常是因為該欄位的資料格式有誤，或是資料筆數太少。您可以嘗試從上方選單切換其他參數！")
+                st.error(f"系統在處理這個參數時遇到問題 (錯誤代碼：{e})。請檢查資料格式是否正確。")
                 
         else:
             st.warning(f"⚠️ 這些篩選出來的鋼捲中，沒有任何一顆擁有【{selected_param}】的有效數據！")
@@ -232,6 +262,8 @@ if uploaded_file is not None:
         
     elif df.empty:
         st.warning("⚠️ 目前的篩選條件下沒有找到任何鋼捲資料，請放寬左側的篩選條件！")
+    else:
+        st.warning("⚠️ 在您的檔案中找不到可以計算鍍層量所需的 XRAY 欄位！請確認您上傳的檔案包含正確的欄位名稱。")
 
 else:
     st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動判別檔案類型並產生圖表。")
