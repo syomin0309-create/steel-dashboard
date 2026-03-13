@@ -65,7 +65,7 @@ with st.sidebar:
     st.header("⚙️ 儀表板控制中心")
     uploaded_file = st.file_uploader("📂 上傳產線 RAW DATA", type=["xlsx", "csv"])
 
-st.title("📊 鍍三線鋼捲品質異常分析儀表板")
+st.title("📊 鍍三線品質與製程能力 (SPC) 儀表板")
 
 if uploaded_file is not None:
     raw_df = load_and_clean_data(uploaded_file)
@@ -107,70 +107,104 @@ if uploaded_file is not None:
         
         plot_df = df.dropna(subset=[selected_param])
         
-        st.markdown("### 📊 篩選結果總覽")
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("符合篩選之總鋼捲", f"{len(df)} 顆")
-        col2.metric(f"實際具備【{selected_param}】數據", f"{len(plot_df)} 顆", delta="畫在圖上的真實數量", delta_color="off")
-        
-        avg_val = plot_df[selected_param].mean() if not plot_df.empty else 0
-        col3.metric("有效數據平均值", f"{avg_val:.2f}" if not plot_df.empty else "無資料")
-        col4.metric("涵蓋規格數量", f"{plot_df['產品規格代碼'].nunique() if '產品規格代碼' in plot_df.columns else 0} 種")
-        st.markdown("---")
-        
         if not plot_df.empty:
+            # === 計算核心統計量 (Mean, Standard Deviation) ===
+            avg_val = plot_df[selected_param].mean()
+            std_val = plot_df[selected_param].std()
+            
+            # SPC 管制線 (Control Limits)
+            ucl = avg_val + 3 * std_val
+            lcl = avg_val - 3 * std_val
+            
+            st.markdown("---")
+            st.markdown("### 📐 SPC 規格設定 (用於計算 Cpk)")
+            st.caption("💡 請依照實際產品規範，輸入該參數的上限與下限。系統預設填入 ±4σ 作為參考。")
+            
+            # 讓使用者動態輸入 USL, LSL (預設為 +- 4個標準差避免一開始沒有數值)
+            col_usl, col_tar, col_lsl = st.columns(3)
+            with col_usl:
+                usl = st.number_input("規格上限 (USL)", value=float(avg_val + 4 * std_val) if std_val else float(avg_val + 10))
+            with col_lsl:
+                lsl = st.number_input("規格下限 (LSL)", value=float(avg_val - 4 * std_val) if std_val else float(avg_val - 10))
+            with col_tar:
+                target = st.number_input("規格中心值 (Target)", value=float((usl + lsl) / 2))
+                
+            # === 計算製程能力指標 ===
+            # Cp (Capability of Precision) 精密度
+            cp = (usl - lsl) / (6 * std_val) if std_val > 0 else 0
+            
+            # Ca (Capability of Accuracy) 準確度 (百分比)
+            ca = (avg_val - target) / ((usl - lsl) / 2) * 100 if usl != lsl else 0
+            
+            # Cpk (Process Capability Index) 綜合能力
+            cpk = min((usl - avg_val) / (3 * std_val), (avg_val - lsl) / (3 * std_val)) if std_val > 0 else 0
+            
+            st.markdown("### 📊 製程能力 (Capability) 診斷結果")
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("實際樣本數", f"{len(plot_df)} 顆")
+            c2.metric("Cp (精密度: 變異大小)", f"{cp:.2f}")
+            c3.metric("Ca (準確度: 偏離中心)", f"{ca:.1f} %")
+            
+            # 依據 Cpk 水準給予不同提示
+            cpk_status = "🟢 優良 (等級A)" if cpk >= 1.33 else ("🟡 尚可 (等級B)" if cpk >= 1.0 else "🔴 需改善 (等級C)")
+            c4.metric("Cpk (綜合製程能力)", f"{cpk:.2f}", cpk_status)
+            st.markdown("---")
+            
+            # === 畫圖與顏色設定 ===
             unique_groups = plot_df['比對群組'].unique()
             color_map = {}
             for i, group in enumerate(unique_groups):
-                # 🌟 顏色優化：將包含 7B 的群組設為鮮豔黃色，其餘為對比的藍灰色調
                 if "7B" in str(group):
-                    color_map[group] = "#FFD700"  # 鮮豔的警示黃色 (Gold)
+                    color_map[group] = "#FFD700"  # 鮮艷黃色凸顯異常
                 else:
                     color_map[group] = px.colors.qualitative.Set1[i % len(px.colors.qualitative.Set1)]
             
-            tab1, tab2 = st.tabs(["📈 趨勢折線圖 (看生產順序)", "📦 箱型圖對比 (看群組分佈與離群值)"])
+            tab1, tab2 = st.tabs(["📈 趨勢折線圖 (+3σ 管制線)", "📦 箱型圖對比"])
             
             with tab1:
                 fig_line = px.line(
                     plot_df, x="產出鋼捲號碼", y=selected_param, color="比對群組", 
                     markers=True, color_discrete_map=color_map,
-                    title=f"【{selected_param}】 跨區間分布趨勢圖"
+                    title=f"【{selected_param}】 SPC 管制走勢圖"
                 )
-                fig_line.add_hline(y=avg_val, line_dash="dash", line_color="green", 
-                                   annotation_text=f"全體平均: {avg_val:.2f}", annotation_position="bottom right")
                 
-                # 🌟 X軸優化：隱藏鋼捲號碼文字，讓畫面變乾淨，但保留順序與懸停顯示
+                # 🌟 加入 ±3σ 管制線與平均線
+                fig_line.add_hline(y=ucl, line_dash="dash", line_color="#FF4B4B", 
+                                   annotation_text=f"UCL (+3σ): {ucl:.2f}", annotation_position="top right")
+                fig_line.add_hline(y=avg_val, line_dash="solid", line_color="#00CC96", 
+                                   annotation_text=f"Mean: {avg_val:.2f}", annotation_position="bottom right")
+                fig_line.add_hline(y=lcl, line_dash="dash", line_color="#FF4B4B", 
+                                   annotation_text=f"LCL (-3σ): {lcl:.2f}", annotation_position="bottom right")
+                
+                # 隱藏 X 軸文字，保持乾淨
                 fig_line.update_xaxes(
                     categoryorder='array', 
                     categoryarray=plot_df['產出鋼捲號碼'].unique(),
-                    showticklabels=False,  # 隱藏刻度文字
-                    title_text="生產順序 (將游標移至點上可查看詳細鋼捲號碼)" # 改變 X 軸標題提示
+                    showticklabels=False,  
+                    title_text="生產順序 (將游標移至點上可查看詳細鋼捲號碼)" 
                 )
                 fig_line.update_traces(connectgaps=True)
-                
-                # 讓圖表背景稍微暗一點點，更能襯托出黃色的鮮豔度
-                fig_line.update_layout(plot_bgcolor="rgba(0,0,0,0.03)")
+                fig_line.update_layout(plot_bgcolor="rgba(0,0,0,0.03)", height=500)
                 st.plotly_chart(fig_line, use_container_width=True)
                 
             with tab2:
                 fig_box = px.box(
                     plot_df, x="比對群組", y=selected_param, color="比對群組",
-                    color_discrete_map=color_map,
-                    points="all", 
-                    title=f"【{selected_param}】 正常品 vs 異常品 (7B) 數據分佈對比"
+                    color_discrete_map=color_map, points="all", 
+                    title=f"【{selected_param}】 數據分佈對比"
                 )
                 st.plotly_chart(fig_box, use_container_width=True)
-                st.caption("💡 提示：箱型圖可一眼看出 7B 異常品的數值是否整體偏低/偏高，或是變異數(波動)過大。")
+                
         else:
             st.warning(f"⚠️ 這些篩選出來的鋼捲中，沒有任何一顆擁有【{selected_param}】的數據！")
             
         st.markdown("---")
         st.subheader("💾 篩選資料匯出")
-        
         csv_data = df.to_csv(index=False).encode('utf-8-sig')
         st.download_button(
             label="📥 下載目前篩選鋼捲完整資料 (CSV檔)",
             data=csv_data,
-            file_name='鍍三線_副總級篩選分析資料.csv',
+            file_name='鍍三線_SPC分析資料.csv',
             mime='text/csv'
         )
         
