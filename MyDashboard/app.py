@@ -378,6 +378,19 @@ if uploaded_file is not None:
                         color_discrete_sequence=['#667eea'] 
                     )
                     
+                    # 🌟 關鍵修正 1：重新排版藍線的提示框，把所有資訊整合在一個框框內
+                    if '試驗等級' in plot_df.columns:
+                        fig_line.update_traces(
+                            hovertemplate="<b>鋼捲號碼:</b> %{x}<br>" +
+                                          "<b>數值:</b> %{y}<br>" +
+                                          "<b>試驗等級:</b> %{customdata[0]}<extra></extra>"
+                        )
+                    else:
+                        fig_line.update_traces(
+                            hovertemplate="<b>鋼捲號碼:</b> %{x}<br>" +
+                                          "<b>數值:</b> %{y}<extra></extra>"
+                        )
+                    
                     # 獨立把 7B (異常) 的點抓出來，用黃色大點點疊加覆蓋
                     if '試驗等級' in plot_df.columns:
                         abnormal_df = plot_df[plot_df['試驗等級'].astype(str).str.upper().str.replace(' ', '').str.contains('7B', na=False)]
@@ -389,8 +402,8 @@ if uploaded_file is not None:
                                 mode='markers',
                                 marker=dict(color='#FFD700', size=12, symbol='circle', line=dict(color='black', width=2)),
                                 name='異常 (7B)',
-                                # 🌟 恢復黃點專屬的懸浮提示框！
-                                hovertemplate="數值: %{y}<br>等級: 7B<extra></extra>"
+                                # 🌟 關鍵修正 2：徹底關閉黃點的滑鼠感應 (讓滑鼠直接穿透到下方的藍線)
+                                hoverinfo='skip' 
                             ))
                     
                     # 畫出綠色安全區塊與管制線
@@ -401,7 +414,7 @@ if uploaded_file is not None:
                     
                     fig_line.update_xaxes(showticklabels=False, title_text="生產順序 (依照時間/鋼捲號碼)")
                     
-                    # 🌟 取消 x unified 的黑線，改回最乾淨的 closest (精準指向)
+                    # 保持 closest 模式，沒有醜黑線，且只有唯一一個乾淨的提示框
                     fig_line.update_layout(height=400, hovermode="closest")
                     
                     st.plotly_chart(fig_line, use_container_width=True)
