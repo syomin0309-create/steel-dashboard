@@ -243,14 +243,19 @@ if uploaded_file is not None:
                     st.markdown("### 📐 SPC 規格設定")
                     
                     default_lsl = float(avg_val - 4 * std_val) if std_val > 0 else float(avg_val - 10)
+                    default_usl = float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10)
+                    
+                    # 🌟 神級防呆：將參數名稱與資料筆數綁定在 key 裡面。
+                    # 只要切換篩選條件或換參數，系統就會自動幫您填入最新的建議數值！
+                    dynamic_key = f"{selected_param}_{len(plot_df)}"
                     
                     spec_col1, spec_col2, spec_col3 = st.columns(3)
                     with spec_col1:
-                        lsl = st.number_input("規格下限 (LSL)", value=default_lsl, key="lsl_single")
+                        lsl = st.number_input("規格下限 (LSL)", value=default_lsl, key=f"lsl_{dynamic_key}")
                     with spec_col2:
-                        usl = st.number_input("規格上限 (USL)", value=float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10), key="usl_single")
+                        usl = st.number_input("規格上限 (USL)", value=default_usl, key=f"usl_{dynamic_key}")
                     with spec_col3:
-                        target = st.number_input("規格中心值 (Target)", value=float((avg_val + lsl) / 2), key="target_single")
+                        target = st.number_input("規格中心值 (Target)", value=float((default_usl + default_lsl) / 2), key=f"tar_{dynamic_key}")
                     
                     cp = (usl - lsl) / (6 * std_val) if std_val > 0 else 0
                     ca = (avg_val - target) / ((usl - lsl) / 2) * 100 if usl != lsl else 0
