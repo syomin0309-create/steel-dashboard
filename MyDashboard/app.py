@@ -501,21 +501,47 @@ if uploaded_file is not None:
                         st.markdown("---")
                         st.markdown("### 📊 對比結果")
                         
+                        # 🌟 先在外面把字串算好，徹底避開 f-string 引號衝突
+                        str_period_a = " + ".join(period_a_months)
+                        str_period_b = " + ".join(period_b_months)
+                        
                         comp_card_col1, comp_card_col2, comp_card_col3 = st.columns(3)
                         
                         with comp_card_col1:
                             st.markdown(f"""
                             <div class="compare-section">
                                 <h4>時段 A</h4>
-                                <strong>{" + ".join(period_a_months)}</strong><br><br>
+                                <strong>{str_period_a}</strong><br><br>
                                 🔹 樣本數: <strong>{stats_a['count']}</strong><br>
                                 🔹 平均值: <strong>{stats_a['mean']:.4f}</strong><br>
                                 🔹 標準差: <strong>{stats_a['std']:.4f}</strong>
-                            </div>""", unsafe_allow_html=True)
+                            </div>
+                            """, unsafe_allow_html=True)
                         
                         with comp_card_col2:
                             mean_diff = stats_b['mean'] - stats_a['mean']
                             mean_diff_pct = (mean_diff / stats_a['mean'] * 100) if stats_a['mean'] != 0 else 0
                             diff_color = "🔴" if abs(mean_diff_pct) > 5 else "🟡" if abs(mean_diff_pct) > 2 else "🟢"
                             
-                            <strong>{' + '.join(period_a_months)}</strong>
+                            std_ratio = (stats_b['std']/stats_a['std']) if stats_a['std']!=0 else 0
+                            
+                            st.markdown(f"""
+                            <div class="compare-section" style="background: #f0f7ff;">
+                                <h4>變化 (B vs A)</h4>
+                                <strong>{diff_color} 平均值差異</strong><br><br>
+                                差值: <strong>{mean_diff:+.4f}</strong><br>
+                                變化率: <strong>{mean_diff_pct:+.2f}%</strong><br>
+                                標準差比: <strong>{std_ratio:.2f}x</strong>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with comp_card_col3:
+                            st.markdown(f"""
+                            <div class="compare-section">
+                                <h4>時段 B</h4>
+                                <strong>{str_period_b}</strong><br><br>
+                                🔹 樣本數: <strong>{stats_b['count']}</strong><br>
+                                🔹 平均值: <strong>{stats_b['mean']:.4f}</strong><br>
+                                🔹 標準差: <strong>{stats_b['std']:.4f}</strong>
+                            </div>
+                            """, unsafe_allow_html=True)
