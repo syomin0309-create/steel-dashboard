@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from scipy import stats
 import io
 
@@ -143,39 +142,6 @@ if uploaded_file is not None:
         st.warning("⚠️ 找不到數值欄位，請檢查資料來源。")
         st.stop()
 
-    # 資料健康度
-    with st.expander("🩺 資料健康度報告", expanded=False):
-        total_raw = len(raw_df)
-        total_filtered = len(df)
-
-        hc1, hc2, hc3, hc4 = st.columns(4)
-        hc1.metric("原始筆數", f"{total_raw:,}")
-        hc2.metric("篩選後筆數", f"{total_filtered:,}")
-
-        if '試驗等級' in df.columns and abnormal_keyword:
-            abnormal_count = df['試驗等級'].astype(str).str.contains(abnormal_keyword).sum()
-            hc3.metric(f"異常品數 ({abnormal_keyword})", f"{abnormal_count:,}",
-                       delta=f"{abnormal_count/total_filtered*100:.1f}%", delta_color="inverse")
-
-        if '生產日期' in raw_df.columns:
-            try:
-                date_range = pd.to_datetime(df['生產日期'], errors='coerce')
-                hc4.metric("日期範圍",
-                           f"{date_range.min().strftime('%Y/%m/%d')} ~ {date_range.max().strftime('%Y/%m/%d')}")
-            except Exception:
-                pass
-
-        missing = df[available_params].isnull().mean().mul(100).round(1)
-        missing = missing[missing > 0]
-        if not missing.empty:
-            st.markdown("**⚠️ 以下欄位存在缺值：**")
-            st.dataframe(
-                missing.rename("缺值率(%)").reset_index().rename(columns={"index": "欄位"}),
-                use_container_width=True, hide_index=True
-            )
-        else:
-            st.success("✅ 所有數值欄位均無缺值。")
-
     selected_param = st.selectbox("🔍 選擇分析參數（Y 軸）", available_params)
 
     st.markdown("### 📊 篩選結果總覽")
@@ -191,13 +157,13 @@ if uploaded_file is not None:
 
     st.markdown("---")
 
-    # 顏色對應（7B 為黃色）
+    # 顏色對應
     unique_groups = df['比對群組'].unique()
     color_map = {}
     palette = px.colors.qualitative.Set1
     for i, group in enumerate(unique_groups):
         if abnormal_keyword and abnormal_keyword in str(group):
-            color_map[group] = "#FFD700"  # 黃色標示異常品
+            color_map[group] = "#FFD700"
         else:
             color_map[group] = palette[i % len(palette)]
 
@@ -205,12 +171,7 @@ if uploaded_file is not None:
     df_normal   = df[~is_abnormal][selected_param].dropna()
     df_abnormal = df[is_abnormal][selected_param].dropna()
 
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "📈 趨勢折線圖",
-        "📦 箱型圖對比",
-        "🌡️ 相關性熱力圖",
-        "📐 統計顯著性"
-    ])
+    tab1, tab2, tab3 = st.tabs(["📈 趨勢折線圖", "📦 箱型圖對比", "📐 統計顯著性"])
 
     with tab1:
         fig_line = px.line(
@@ -221,7 +182,6 @@ if uploaded_file is not None:
         fig_line.update_xaxes(categoryorder='array', categoryarray=df['產出鋼捲號碼'].unique())
         fig_line.update_traces(connectgaps=True)
 
-        # 去除重複圖例
         seen_names = set()
         for trace in fig_line.data:
             if trace.name in seen_names:
@@ -253,31 +213,6 @@ if uploaded_file is not None:
         st.caption("💡 箱型圖可一眼看出異常品數值是否整體偏移，或變異數（波動）過大。")
 
     with tab3:
-        numeric_df = df[available_params].select_dtypes(include='number')
-        if len(numeric_df.columns) >= 2:
-            corr_matrix = numeric_df.corr()
-            fig_corr = px.imshow(
-                corr_matrix, text_auto=".2f", color_continuous_scale="RdBu_r",
-                zmin=-1, zmax=1, title="數值參數相關性矩陣（Pearson 相關係數）", aspect="auto"
-            )
-            fig_corr.update_layout(height=600)
-            st.plotly_chart(fig_corr, use_container_width=True)
-            st.caption("💡 數值接近 +1 表示正相關，接近 -1 表示負相關，接近 0 表示無線性關係。")
-
-            if selected_param in corr_matrix.columns:
-                top_corr = (
-                    corr_matrix[selected_param].drop(selected_param)
-                    .abs().sort_values(ascending=False).head(5)
-                )
-                st.markdown(f"**🔗 與【{selected_param}】相關性最高的參數：**")
-                st.dataframe(
-                    top_corr.rename("相關係數(絕對值)").reset_index().rename(columns={"index": "參數"}),
-                    use_container_width=True, hide_index=True
-                )
-        else:
-            st.info("需要至少 2 個數值欄位才能繪製相關性矩陣。")
-
-    with tab4:
         if abnormal_keyword and len(df_normal) > 1 and len(df_abnormal) > 1:
             t_stat, p_val = stats.ttest_ind(df_normal, df_abnormal, equal_var=False)
 
@@ -336,27 +271,3 @@ if uploaded_file is not None:
 
 else:
     st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動進行清洗與分析。")
-    st.markdown("---")
-    st.markdown("### 📋 本儀表板功能說明")
-    fc1, fc2, fc3 = st.columns(3)
-    with fc1:
-        st.markdown("""
-        **📈 趨勢折線圖**
-        - 顯示各鋼捲的數值走勢
-        - 內建 ±3σ SPC 管制線
-        - 超出管制界限的點一目了然
-        """)
-    with fc2:
-        st.markdown("""
-        **📦 箱型圖對比**
-        - 正常品 vs 異常品分佈比較
-        - 顯示中位數、四分位距、離群值
-        - 快速判斷整體偏移或變異過大
-        """)
-    with fc3:
-        st.markdown("""
-        **📐 統計顯著性分析**
-        - Welch's t-test 統計檢定
-        - 量化正常品與異常品差異
-        - 提供具統計依據的分析結論
-        """)
