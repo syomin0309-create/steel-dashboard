@@ -32,54 +32,50 @@ def load_and_clean_data(file):
         
     df.columns = df.columns.astype(str).str.strip().str.upper()
     
-    # 📖 終極翻譯字典 (已將「投入等級」還原，保留「試驗等級」的獨立性)
+    # 📖 終極翻譯字典 (預防您自己加上去的欄位名稱不同)
     rename_dict = {
         'COIL_NO': '產出鋼捲號碼',
         '鋼捲號碼': '產出鋼捲號碼',
         'PRODUCTION_DATE': '生產日期',
-        
-        # 英文系統中的品質等級對應回試驗等級
         'QUALITY_CLASS': '試驗等級',
-        
         'BASE_METAL_THICK': '訂單厚度',
         'REAL_WIDTH': '訂單寬度',
         '投入厚度': '訂單厚度',
         '實測寬度': '訂單寬度',
-        
-        # 解決下限管制值名稱差異
         'COAT_STD_MIN': '鍍層下限管制值',
         'MIN_COAT_WEIGHT': '鍍層下限管制值',
         '鍍層下限': '鍍層下限管制值',
         '理論鍍層重': '鍍層下限管制值',
-        '鍍層下限值': '鍍層下限管制值' 
+        '鍍層下限值': '鍍層下限管制值',
+        # 如果您在 Excel 自己手算，叫這些名字也會被系統承認
+        '總鍍層量': '雙面總鍍層量(AVG)',
+        'AVG': '雙面總鍍層量(AVG)'
     }
     df.rename(columns=rename_dict, inplace=True)
 
     # ---------------------------------------------------------
-    # 🚀 自動計算雙面總鍍層量 (精簡版，只抓最準確的 XRAY)
+    # 🚀 暴力運算引擎：只要找到欄位，不囉嗦直接算！
     # ---------------------------------------------------------
-    xray_sets = [
-        ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'],
-        ['NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
-         'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT']
-    ]
-    
-    best_set = None
-    max_valid = -1
-    
-    for cols in xray_sets:
-        if all(col in df.columns for col in cols):
-            valid_count = df[cols].apply(pd.to_numeric, errors='coerce').notna().sum().sum()
-            if valid_count > max_valid:
-                max_valid = valid_count
-                best_set = cols
+    # 確保如果 Excel 裡面沒有算好，系統才會自己算
+    if '雙面總鍍層量(AVG)' not in df.columns:
+        xray_sets = [
+            ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'],
+            ['NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
+             'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT'],
+            ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
+        ]
+        
+        for cols in xray_sets:
+            # 只要確認這 6 個標題存在
+            if all(col in df.columns for col in cols):
+                for col in cols:
+                    # 強制轉為數字，無法轉換的空值直接變 NaN
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
                 
-    if best_set and max_valid > 0:
-        for col in best_set:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-        # 公式：(正面北+中+南)/3 + (背面北+中+南)/3
-        df['雙面總鍍層量(AVG)'] = (df[best_set[0]] + df[best_set[1]] + df[best_set[2]]) / 3 + \
-                                (df[best_set[3]] + df[best_set[4]] + df[best_set[5]]) / 3
+                # 直接硬生生地產生欄位！
+                df['雙面總鍍層量(AVG)'] = (df[cols[0]] + df[cols[1]] + df[cols[2]]) / 3 + \
+                                        (df[cols[3]] + df[cols[4]] + df[cols[5]]) / 3
+                break # 算完就收工跳出
 
     def extract_year_month(date_val):
         try:
@@ -106,15 +102,16 @@ if uploaded_file is not None:
     raw_df = load_and_clean_data(uploaded_file)
     df = raw_df.copy()
 
-    # 🧠 無論有沒有試驗等級，統一賦予群組名稱，不阻擋分析！
-    if '試驗等級' in df.columns and not df['試驗等級'].dropna().empty:
+    # 🧠 模式判定
+    is_standard_mode = '試驗等級' in df.columns and not df['試驗等級'].dropna().empty
+    if is_standard_mode:
         df = df[df['試驗等級'].astype(str).str.strip() != ''] 
         df = df[df['試驗等級'].astype(str).str.lower() != 'nan']
         df["比對群組"] = df["生產年月"] + " - " + df["試驗等級"].astype(str)
-        st.success("✅ 已載入含有『試驗等級』的標準檢驗資料")
+        st.success("✅ 已偵測到『試驗等級』，啟動【多維度旗艦分析模式】")
     else:
         df["比對群組"] = "全批次數據"
-        st.info("ℹ️ 目前為【單一群組分析模式】(資料無試驗等級區分)")
+        st.info("ℹ️ 未偵測到『試驗等級』，切換為【單一群組模式】")
 
     with st.sidebar:
         st.markdown("---")
@@ -133,7 +130,6 @@ if uploaded_file is not None:
         f_up_coat = create_filter('上鍍層')
         f_coat_limit = create_filter('鍍層下限管制值')
         
-    # 套用過濾條件
     if f_month: df = df[df['生產年月'].isin(f_month)]
     if f_thick: df = df[df['訂單厚度'].isin(f_thick)]
     if f_width: df = df[df['訂單寬度'].isin(f_width)]
@@ -142,22 +138,20 @@ if uploaded_file is not None:
     if f_up_coat: df = df[df['上鍍層'].isin(f_up_coat)]
     if f_coat_limit: df = df[df['鍍層下限管制值'].isin(f_coat_limit)]
 
-    # 建立選單
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
     
-    # 隱藏那些我們用來算的原始 XRAY 單點數值
-    exclude_sys = ['產出鋼捲號碼', '試驗等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO', '鍍層下限管制值',
+    # 隱藏系統用欄位
+    exclude_sys = ['產出鋼捲號碼', '試驗等級', '投入等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO', '鍍層下限管制值',
+                   '北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層',
                    'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S',
                    'NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
                    'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT'] 
     
     available_params = [col for col in numeric_cols if col not in exclude_sys]
     
-    # 🌟 絕對強勢置頂：只要 df 裡面有算出來的 '雙面總鍍層量(AVG)'，就直接塞到選單第一項！
-    if '雙面總鍍層量(AVG)' in df.columns:
-        if '雙面總鍍層量(AVG)' in available_params:
-            available_params.remove('雙面總鍍層量(AVG)')
-        available_params.insert(0, '雙面總鍍層量(AVG)')
+    # 🌟 100% 絕對防呆寫法：只要有這個欄位，就推到選單第一位
+    if '雙面總鍍層量(AVG)' in available_params:
+        available_params = ['雙面總鍍層量(AVG)'] + [x for x in available_params if x != '雙面總鍍層量(AVG)']
     
     if available_params and not df.empty:
         selected_param = st.selectbox("🔍 選擇分析參數", available_params)
@@ -177,7 +171,6 @@ if uploaded_file is not None:
                 st.markdown("---")
                 st.markdown("### 📐 SPC 規格設定 (用於計算 Cpk)")
                 
-                # 自動帶入過濾器選擇的下限值
                 default_lsl = float(avg_val - 4 * std_val) if std_val > 0 else float(avg_val - 10)
                 if f_coat_limit and len(f_coat_limit) == 1:
                     try:
@@ -209,22 +202,16 @@ if uploaded_file is not None:
                 
                 x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else plot_df.index
                 
-                # 繪製圖表
-                unique_groups = plot_df['比對群組'].unique()
-                color_map = {grp: "#FFD700" if "7B" in str(grp) else px.colors.qualitative.Set1[i % len(px.colors.qualitative.Set1)] for i, grp in enumerate(unique_groups)}
-                
-                tab1, tab2, tab3 = st.tabs(["📊 CPK 製程能力分佈圖", "📈 趨勢折線圖", "📦 箱型圖對比"])
-                
-                with tab1:
+                def draw_cpk_chart(data, param_name, c_color):
                     fig = px.histogram(
-                        plot_df, x=selected_param, nbins=30, opacity=0.6, 
+                        data, x=param_name, nbins=30, opacity=0.6, 
                         histnorm='probability density', 
-                        color_discrete_sequence=['#4B8BBE'], 
-                        title=f"【{selected_param}】 數據常態分佈與 SPC 規格區間 (CPK 分析)"
+                        color_discrete_sequence=[c_color], 
+                        title=f"【{param_name}】 數據常態分佈與 SPC 規格區間 (CPK 分析)"
                     )
                     if std_val > 0:
-                        x_min = min(plot_df[selected_param].min(), lsl)
-                        x_max = max(plot_df[selected_param].max(), usl)
+                        x_min = min(data[param_name].min(), lsl)
+                        x_max = max(data[param_name].max(), usl)
                         x_curve = np.linspace(x_min - std_val, x_max + std_val, 200)
                         y_pdf = (1 / (std_val * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_curve - avg_val) / std_val) ** 2)
                         fig.add_trace(go.Scatter(x=x_curve, y=y_pdf, mode='lines', line=dict(color='#FF2B2B', width=3), name='常態分佈曲線'))
@@ -234,21 +221,31 @@ if uploaded_file is not None:
                     fig.add_vline(x=target, line_dash="solid", line_color="#00CC96", annotation_text=f"Target: {target:.2f}", annotation_position="top right")
                     fig.add_vline(x=avg_val, line_dash="dash", line_color="blue", annotation_text=f"實際平均: {avg_val:.2f}", annotation_position="bottom right")
                     fig.update_layout(height=500, yaxis_title="機率密度")
-                    st.plotly_chart(fig, use_container_width=True)
+                    return fig
 
-                with tab2:
-                    fig_line = px.line(plot_df, x=x_axis_col, y=selected_param, color="比對群組", markers=True, color_discrete_map=color_map, title=f"【{selected_param}】 SPC 管制走勢圖")
-                    fig_line.add_hrect(y0=lcl, y1=ucl, line_width=0, fillcolor="#00CC96", opacity=0.08)
-                    fig_line.add_hline(y=avg_val, line_dash="dash", line_color="green")        
-                    fig_line.add_hline(y=ucl, line_dash="dot", line_color="red")        
-                    fig_line.add_hline(y=lcl, line_dash="dot", line_color="red") 
-                    fig_line.update_xaxes(showticklabels=False, title_text="生產順序")
-                    fig_line.update_traces(connectgaps=True)
-                    st.plotly_chart(fig_line, use_container_width=True)
+                if is_standard_mode:
+                    unique_groups = plot_df['比對群組'].unique()
+                    color_map = {grp: "#FFD700" if "7B" in str(grp) else px.colors.qualitative.Set1[i % len(px.colors.qualitative.Set1)] for i, grp in enumerate(unique_groups)}
                     
-                with tab3:
-                    fig_box = px.box(plot_df, x="比對群組", y=selected_param, color="比對群組", color_discrete_map=color_map, points="all")
-                    st.plotly_chart(fig_box, use_container_width=True)
+                    tab1, tab2, tab3 = st.tabs(["📊 CPK 製程能力分佈圖", "📈 趨勢折線圖", "📦 箱型圖對比"])
+                    with tab1:
+                        st.plotly_chart(draw_cpk_chart(plot_df, selected_param, '#4B8BBE'), use_container_width=True)
+                    with tab2:
+                        fig_line = px.line(plot_df, x=x_axis_col, y=selected_param, color="比對群組", markers=True, color_discrete_map=color_map, title=f"【{selected_param}】 SPC 管制走勢圖")
+                        fig_line.add_hrect(y0=lcl, y1=ucl, line_width=0, fillcolor="#00CC96", opacity=0.08)
+                        fig_line.add_hline(y=avg_val, line_dash="dash", line_color="green")        
+                        fig_line.add_hline(y=ucl, line_dash="dot", line_color="red")        
+                        fig_line.add_hline(y=lcl, line_dash="dot", line_color="red") 
+                        fig_line.update_xaxes(showticklabels=False, title_text="生產順序")
+                        fig_line.update_traces(connectgaps=True)
+                        st.plotly_chart(fig_line, use_container_width=True)
+                    with tab3:
+                        fig_box = px.box(plot_df, x="比對群組", y=selected_param, color="比對群組", color_discrete_map=color_map, points="all")
+                        st.plotly_chart(fig_box, use_container_width=True)
+                else:
+                    tab1, = st.tabs(["📊 CPK 製程能力分佈圖 (專用模式)"])
+                    with tab1:
+                        st.plotly_chart(draw_cpk_chart(plot_df, selected_param, '#4B8BBE'), use_container_width=True)
                         
             except Exception as e:
                 st.error(f"系統在處理這個參數時遇到問題 (錯誤代碼：{e})。請檢查資料格式是否正確。")
