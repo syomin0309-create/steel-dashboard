@@ -30,37 +30,49 @@ def load_and_clean_data(file):
     else:
         df = pd.read_excel(file)
         
+    # 基本清洗：去除標題的換行與空白
     df.columns = df.columns.str.replace('\n', '', regex=False).str.replace('\r', '', regex=False).str.strip()
     
-    # 🛡️ 擴充白名單：把 X-Ray 的 6 個原始欄位加進來
-    whitelist = [
-        '產出鋼捲號碼', '生產日期', '試驗等級', '訂單厚度', '訂單寬度', 
-        '熱軋材質', '產品規格代碼', 'RTF板溫', '線速度', 
-        '硬度HRB', 'YPE', '抗拉強度(原始)', '降伏強度(原始)', 
-        '伸長率(EL)', '硬度HRB(原始)', '抗拉強度(TS)', '降伏強度(YS)', 
-        '碳(%x100)', '錳(%x100)', '磷(%x1000)', '硫(%x1000)', 
-        '矽(%x100)', '鋁(%x1000)', '銅(%x100)', '鎳(%x100)', 
-        '鉻(%x100)', '鉬(%x100)', '錫(%x1000)',
-        'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S',  # 正面北中南
-        'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'   # 背面北中南
-    ]
-    target_cols = [col for col in whitelist if col in df.columns]
-    df = df[target_cols]
+    # ---------------------------------------------------------
+    # 🧠 萬用升級 1：同義詞翻譯字典 (解決中英文夾雜問題)
+    # ---------------------------------------------------------
+    # 將所有可能的異體字對應到我們系統標準的名稱
+    alias_dict = {
+        '產出鋼捲號碼': ['coil_no', 'coil no', '鋼捲號碼', '鋼捲編號', '產出鋼捲號碼'],
+        '生產日期': ['prod_date', 'date', '生產日期', '日期'],
+        '試驗等級': ['test_class', 'class', '試驗等級', '等級', '判定等級'],
+        '訂單厚度': ['thick', 'thickness', '訂單厚度', '厚度'],
+        '訂單寬度': ['width', '訂單寬度', '寬度'],
+        '熱軋材質': ['mat_code', 'material', '熱軋材質', '材質'],
+        '產品規格代碼': ['spec_code', 'spec', '產品規格代碼', '規格代碼', '規格']
+    }
     
-    # === 🚀 新增魔法：自動計算雙面總鍍層量 ===
+    # 建立反向查詢字典
+    lookup = {}
+    for target, aliases in alias_dict.items():
+        for alias in aliases:
+            lookup[alias.lower()] = target
+            
+    # 執行欄位名稱翻譯 (不分大小寫比對)
+    new_cols = []
+    for col in df.columns:
+        cleaned_col = col.lower().strip()
+        if cleaned_col in lookup:
+            new_cols.append(lookup[cleaned_col])
+        else:
+            new_cols.append(col) # 如果字典裡沒有，就保留原本的英文或中文名字
+    df.columns = new_cols
+    # ---------------------------------------------------------
+
+    # 🚀 自動計算雙面總鍍層量 (如果檔案裡剛好有這 6 個欄位才會觸發)
     xray_cols = ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S']
-    
-    # 檢查 Excel 裡面是不是真的有這 6 個欄位
     if all(col in df.columns for col in xray_cols):
-        # 防呆機制：確保這 6 個欄位都是純數字，遇到奇怪的文字或空白會自動轉成空值 (NaN)
         for col in xray_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-            
-        # 執行計算公式：(正面三點平均) + (背面三點平均)
         df['雙面總鍍層量(AVG)'] = (df['XRAY_A_T_N'] + df['XRAY_A_T_C'] + df['XRAY_A_T_S']) / 3 + \
                                 (df['XRAY_A_B_N'] + df['XRAY_A_B_C'] + df['XRAY_A_B_S']) / 3
-    # ==========================================
 
+    # 清洗掉試驗等級為空白的資料
     if '試驗等級' in df.columns:
         df = df.dropna(subset=['試驗等級']) 
         df = df[df['試驗等級'].astype(str).str.strip() != ''] 
@@ -94,8 +106,7 @@ if uploaded_file is not None:
         st.markdown("---")
         st.subheader("🎯 規格交叉比對 (可多選)")
         
-        with st.expander("🛠️ 找不到篩選？點我看系統讀到的真實欄位名"):
-            st.write("目前白名單成功抓到的欄位有：")
+        with st.expander("🛠️ 點我看系統轉換後的欄位清單"):
             st.write(df.columns.tolist())
             
         def create_filter(col_name):
@@ -103,9 +114,10 @@ if uploaded_file is not None:
                 options = df[col_name].dropna().unique().tolist()
                 return st.multiselect(f"過濾 {col_name}", options)
             else:
-                st.error(f"找不到欄位：{col_name}")
+                st.warning(f"檔案中找不到：{col_name}，已略過此篩選")
             return []
             
+        # 即使原本是英文，翻譯字典已經把它們轉成標準中文了，所以這邊可以放心抓
         f_month = create_filter('生產年月')
         f_thick = create_filter('訂單厚度')
         f_width = create_filter('訂單寬度')
@@ -118,13 +130,21 @@ if uploaded_file is not None:
     if f_mat:   df = df[df['熱軋材質'].isin(f_mat)]
     if f_spec:  df = df[df['產品規格代碼'].isin(f_spec)]
 
-    # 把那 6 個原始單點數值排除在下拉選單外，以免版面太亂，我們只看計算出來的總和
-    exclude_cols = ['產出鋼捲號碼', '試驗等級', '生產日期', '訂單厚度', '訂單寬度', '熱軋材質', '產品規格代碼', '比對群組', '生產年月',
-                    'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'] 
-    available_params = [col for col in df.columns if col not in exclude_cols]
+    # ---------------------------------------------------------
+    # 🧠 萬用升級 2：自動偵測數值欄位 (取代白名單)
+    # ---------------------------------------------------------
+    # 找出所有包含「數字」的欄位
+    numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+    
+    # 排除掉系統專用的欄位，剩下的通通丟進下拉選單！
+    exclude_sys = ['產出鋼捲號碼', '試驗等級', '生產日期', '訂單厚度', '訂單寬度', '熱軋材質', '產品規格代碼', '比對群組', '生產年月',
+                   'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'] 
+    
+    available_params = [col for col in numeric_cols if col not in exclude_sys]
+    # ---------------------------------------------------------
     
     if available_params and not df.empty:
-        selected_param = st.selectbox("🔍 選擇分析參數 (Y軸)", available_params)
+        selected_param = st.selectbox("🔍 選擇分析參數 (自動列出檔案中所有數值欄位)", available_params)
         
         plot_df = df.dropna(subset=[selected_param])
         
@@ -238,8 +258,6 @@ if uploaded_file is not None:
                 fig_hist.update_layout(height=500, yaxis_title="機率密度 (Probability Density)")
                 st.plotly_chart(fig_hist, use_container_width=True)
                 
-                st.caption("💡 **直方圖判讀秘訣：** <br>1. **看 Ca (準確度)：** 藍色虛線（實際平均）距離綠色實線（目標 Target）越近越好。<br>2. **看 Cp (精密度)：** 藍色柱子與紅色曲線越瘦高越好，絕對不能溢出左右兩邊的紅色死線 (USL/LSL)。", unsafe_allow_html=True)
-                
         else:
             st.warning(f"⚠️ 這些篩選出來的鋼捲中，沒有任何一顆擁有【{selected_param}】的數據！")
             
@@ -256,7 +274,7 @@ if uploaded_file is not None:
     elif df.empty:
         st.warning("⚠️ 目前的篩選條件下沒有找到任何鋼捲資料，請放寬左側的篩選條件！")
     else:
-        st.warning("⚠️ 找不到數值欄位，請檢查資料來源。")
+        st.warning("⚠️ 無法找到可用於分析的數值欄位，請檢查檔案格式。")
 
 else:
     st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動進行清洗與分析。")
