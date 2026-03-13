@@ -92,10 +92,19 @@ if uploaded_file is not None:
         st.markdown("---")
         st.subheader("🎯 規格交叉比對 (可多選)")
         
+        # 💡 【新增這段：除錯小工具】讓您隨時檢查系統到底讀到了哪些名字
+        with st.expander("🛠️ 找不到篩選？點我看系統讀到的真實欄位名"):
+            st.write("目前白名單成功抓到的欄位有：")
+            st.write(df.columns.tolist())
+            st.caption("如果您的欄位沒出現在這裡，請檢查原始 Excel 的標題是不是有改名、多空白，並去修改 whitelist 裡面的字！")
+        
         def create_filter(col_name):
             if col_name in df.columns:
                 options = df[col_name].dropna().unique().tolist()
                 return st.multiselect(f"過濾 {col_name}", options)
+            else:
+                # 💡 【新增這行：防呆警告】如果找不到，會直接顯示紅字提醒您！
+                st.error(f"找不到欄位：{col_name}")
             return []
             
         f_month = create_filter('生產年月')
@@ -167,3 +176,4 @@ if uploaded_file is not None:
 
 else:
     st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動進行清洗與分析。")
+
