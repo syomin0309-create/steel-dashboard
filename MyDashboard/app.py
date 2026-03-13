@@ -32,7 +32,7 @@ def load_and_clean_data(file):
         
     df.columns = df.columns.astype(str).str.strip().str.upper()
     
-    # 📖 終極翻譯字典 (已將「投入等級」還原，保留「試驗等級」的獨立性)
+    # 📖 終極翻譯字典
     rename_dict = {
         'COIL_NO': '產出鋼捲號碼',
         '鋼捲號碼': '產出鋼捲號碼',
@@ -55,13 +55,13 @@ def load_and_clean_data(file):
     }
     df.rename(columns=rename_dict, inplace=True)
 
-    # 🚀 自動計算雙面總鍍層量
+    # ---------------------------------------------------------
+    # 🚀 自動計算雙面總鍍層量 (已移除多餘的超長中文欄位)
+    # ---------------------------------------------------------
     xray_sets = [
         ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'],
         ['NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
          'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT'],
-        ['鋼捲全板上板北側量側數據(XRAY設備)', '鋼捲全板上板中線量側數據(XRAY設備)', '鋼捲全板上板南側量側數據(XRAY設備)',
-         '鋼捲全板下板北側量側數據(XRAY設備)', '鋼捲全板下板中線量側數據(XRAY設備)', '鋼捲全板下板南側量側數據(XRAY設備)'],
         ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
     ]
     
@@ -132,14 +132,9 @@ if uploaded_file is not None:
         f_width = create_filter('訂單寬度')
         f_mat   = create_filter('熱軋材質')
         f_spec  = create_filter('產品規格代碼')
-        
-        # 🌟 新增：上鍍層規格過濾 (方便篩選 AZM150, Z27, G60 等)
         f_up_coat = create_filter('上鍍層')
-        
-        # 保留鍍層下限管制值篩選
         f_coat_limit = create_filter('鍍層下限管制值')
         
-    # 套用過濾條件
     if f_month: df = df[df['生產年月'].isin(f_month)]
     if f_thick: df = df[df['訂單厚度'].isin(f_thick)]
     if f_width: df = df[df['訂單寬度'].isin(f_width)]
@@ -150,18 +145,16 @@ if uploaded_file is not None:
 
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
     
-    # 隱藏系統用欄位
+    # 隱藏系統用欄位 (已移除多餘的超長中文欄位)
     exclude_sys = ['產出鋼捲號碼', '試驗等級', '投入等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO', '鍍層下限管制值',
                    '北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層',
                    'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S',
                    'NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
-                   'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT',
-                   '鋼捲全板上板北側量側數據(XRAY設備)', '鋼捲全板上板中線量側數據(XRAY設備)', '鋼捲全板上板南側量側數據(XRAY設備)',
-                   '鋼捲全板下板北側量側數據(XRAY設備)', '鋼捲全板下板中線量側數據(XRAY設備)', '鋼捲全板下板南側量側數據(XRAY設備)'] 
+                   'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT'] 
     
     available_params = [col for col in numeric_cols if col not in exclude_sys]
     
-    # 釋放選單：把算出來的 AVG 推到第一位，但保留其他分析數據！
+    # 🌟 100% 安全防呆：把算出來的 AVG 推到第一位，絕對不會再報錯
     if '雙面總鍍層量(AVG)' in available_params:
         available_params = ['雙面總鍍層量(AVG)'] + [col for col in available_params if col != '雙面總鍍層量(AVG)']
     
