@@ -105,11 +105,9 @@ if uploaded_file is not None:
     if available_params and not df.empty:
         selected_param = st.selectbox("🔍 選擇分析參數 (Y軸)", available_params)
         
-        # 🌟 關鍵邏輯：過濾掉該參數是「空白」的鋼捲，準備畫圖專用的乾淨資料！
         plot_df = df.dropna(subset=[selected_param])
         
         st.markdown("### 📊 篩選結果總覽")
-        # 將 KPI 擴充為 4 格，讓數據對比更透明
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("符合篩選之總鋼捲", f"{len(df)} 顆")
         col2.metric(f"實際具備【{selected_param}】數據", f"{len(plot_df)} 顆", delta="畫在圖上的真實數量", delta_color="off")
@@ -123,15 +121,15 @@ if uploaded_file is not None:
             unique_groups = plot_df['比對群組'].unique()
             color_map = {}
             for i, group in enumerate(unique_groups):
+                # 🌟 顏色優化：將包含 7B 的群組設為鮮豔黃色，其餘為對比的藍灰色調
                 if "7B" in str(group):
-                    color_map[group] = "#ff4b4b"  
+                    color_map[group] = "#FFD700"  # 鮮豔的警示黃色 (Gold)
                 else:
                     color_map[group] = px.colors.qualitative.Set1[i % len(px.colors.qualitative.Set1)]
             
             tab1, tab2 = st.tabs(["📈 趨勢折線圖 (看生產順序)", "📦 箱型圖對比 (看群組分佈與離群值)"])
             
             with tab1:
-                # 注意：現在全部改用 plot_df 來畫圖，確保圖表和 KPI 卡片第二格的數字完全吻合！
                 fig_line = px.line(
                     plot_df, x="產出鋼捲號碼", y=selected_param, color="比對群組", 
                     markers=True, color_discrete_map=color_map,
@@ -140,11 +138,18 @@ if uploaded_file is not None:
                 fig_line.add_hline(y=avg_val, line_dash="dash", line_color="green", 
                                    annotation_text=f"全體平均: {avg_val:.2f}", annotation_position="bottom right")
                 
-                # 強制使用原始順序
-                fig_line.update_xaxes(categoryorder='array', categoryarray=plot_df['產出鋼捲號碼'].unique())
+                # 🌟 X軸優化：隱藏鋼捲號碼文字，讓畫面變乾淨，但保留順序與懸停顯示
+                fig_line.update_xaxes(
+                    categoryorder='array', 
+                    categoryarray=plot_df['產出鋼捲號碼'].unique(),
+                    showticklabels=False,  # 隱藏刻度文字
+                    title_text="生產順序 (將游標移至點上可查看詳細鋼捲號碼)" # 改變 X 軸標題提示
+                )
                 fig_line.update_traces(connectgaps=True)
+                
+                # 讓圖表背景稍微暗一點點，更能襯托出黃色的鮮豔度
+                fig_line.update_layout(plot_bgcolor="rgba(0,0,0,0.03)")
                 st.plotly_chart(fig_line, use_container_width=True)
-                st.caption("💡 如果覺得 X 軸號碼太少，是因為系統會自動隱藏部分文字避免重疊；您可以試著用滑鼠『框選』圖表放大，就能看到每一顆鋼捲的號碼了！")
                 
             with tab2:
                 fig_box = px.box(
@@ -161,7 +166,6 @@ if uploaded_file is not None:
         st.markdown("---")
         st.subheader("💾 篩選資料匯出")
         
-        # 匯出時，還是給您完整的 df (保留所有測試項目，不僅限於您現在正在看的項目)
         csv_data = df.to_csv(index=False).encode('utf-8-sig')
         st.download_button(
             label="📥 下載目前篩選鋼捲完整資料 (CSV檔)",
