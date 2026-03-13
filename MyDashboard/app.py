@@ -199,11 +199,7 @@ if uploaded_file is not None:
         if f_up_coat:
             df_f6 = df_f6[df_f6['上鍍層'].astype(str).isin(f_up_coat)]
             
-        f_coat_limit = create_cascading_filter('鍍層下限管制值', df_f6)
-        
     filtered_df = df_f6.copy()
-    if f_coat_limit:
-        filtered_df = filtered_df[filtered_df['鍍層下限管制值'].astype(str).isin(f_coat_limit)]
 
     if filtered_df.empty:
         st.warning("⚠️ 目前篩選條件下沒有找到任何數據，請放寬左側的篩選條件！")
@@ -243,20 +239,16 @@ if uploaded_file is not None:
                     if pd.isna(std_val): std_val = 0.0
                     
                     # SPC 規格設定
+                    # SPC 規格設定
                     st.markdown("### 📐 SPC 規格設定")
                     
                     default_lsl = float(avg_val - 4 * std_val) if std_val > 0 else float(avg_val - 10)
-                    if f_coat_limit and len(f_coat_limit) == 1:
-                        try:
-                            default_lsl = float(f_coat_limit[0])
-                        except:
-                            pass
                     
                     spec_col1, spec_col2, spec_col3 = st.columns(3)
                     with spec_col1:
                         lsl = st.number_input("規格下限 (LSL)", value=default_lsl, key="lsl_single")
                     with spec_col2:
-                        usl = st.number_input("規格上限 (USL)", value=float(lsl + 40) if f_coat_limit else (float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10)), key="usl_single")
+                        usl = st.number_input("規格上限 (USL)", value=float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10), key="usl_single")
                     with spec_col3:
                         target = st.number_input("規格中心值 (Target)", value=float((avg_val + lsl) / 2), key="target_single")
                     
