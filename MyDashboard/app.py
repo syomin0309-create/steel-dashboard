@@ -351,20 +351,36 @@ if uploaded_file is not None:
                         fig_pie.update_layout(height=450)
                         st.plotly_chart(fig_pie, use_container_width=True)
 
-                    # 🌟 新增：生產順序異常監控圖 (單一連線、有安全綠帶)
+                    
+                   # 🌟 新增：生產順序異常監控圖 (單一連線、有安全綠帶、7B紅色警示)
                     st.markdown("---")
                     st.markdown("### 📈 生產順序異常監控圖")
                     
                     x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else plot_df.index
                     
+                    # 1. 先畫出完整的藍色連線與標點，保證線條不斷裂
                     fig_line = px.line(
                         plot_df, 
                         x=x_axis_col, 
                         y=selected_param, 
                         markers=True, 
                         title=f"【{selected_param}】 單一趨勢管制圖",
-                        color_discrete_sequence=['#667eea'] # 統一使用藍色線條，不分群組
+                        color_discrete_sequence=['#667eea'] # 統一藍色
                     )
+                    
+                    # 2. 獨立把 7B (異常) 的點抓出來，用紅色大點點疊加覆蓋在原圖上
+                    if '試驗等級' in plot_df.columns:
+                        abnormal_df = plot_df[plot_df['試驗等級'].astype(str).str.contains('7B', na=False, case=False)]
+                        if not abnormal_df.empty:
+                            x_data_abnormal = abnormal_df["產出鋼捲號碼"] if "產出鋼捲號碼" in abnormal_df.columns else abnormal_df.index
+                            fig_line.add_trace(go.Scatter(
+                                x=x_data_abnormal,
+                                y=abnormal_df[selected_param],
+                                mode='markers',
+                                marker=dict(color='#ff4444', size=12, symbol='circle', line=dict(color='white', width=2)),
+                                name='異常 (7B)',
+                                hovertemplate="數值: %{y}<br>等級: 7B<extra></extra>"
+                            ))
                     
                     # 畫出綠色安全區塊
                     fig_line.add_hrect(y0=lsl, y1=usl, line_width=0, fillcolor="#00CC96", opacity=0.1)
