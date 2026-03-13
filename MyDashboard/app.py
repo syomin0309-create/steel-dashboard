@@ -356,6 +356,54 @@ if uploaded_file is not None:
                         fig_pie.update_layout(height=450)
                         st.plotly_chart(fig_pie, use_container_width=True)
 
+        with chart_col2:
+                        outside_usl = len(plot_df[plot_df[selected_param] > usl])
+                        outside_lsl = len(plot_df[plot_df[selected_param] < lsl])
+                        inside = len(plot_df) - outside_usl - outside_lsl
+                        
+                        fig_pie = px.pie(
+                            values=[inside, outside_usl, outside_lsl],
+                            names=['符合規格', '超過上限', '低於下限'],
+                            color_discrete_sequence=['#28a745', '#ff6b6b', '#ffc107'],
+                            title="規格符合率"
+                        )
+                        fig_pie.update_layout(height=450)
+                        st.plotly_chart(fig_pie, use_container_width=True)
+
+                    # 👇 👇 👇 請從這裡開始貼上這段 👇 👇 👇 
+                    
+                    st.markdown("---")
+                    st.markdown("### 📈 生產順序異常監控圖")
+                    
+                    # 決定 X 軸要用什麼 (優先使用鋼捲號碼，否則用原始順序)
+                    x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else plot_df.index
+                    
+                    # 統一顏色不分群組，以凸顯趨勢與異常
+                    fig_line = px.line(
+                        plot_df, 
+                        x=x_axis_col, 
+                        y=selected_param, 
+                        markers=True, 
+                        title=f"【{selected_param}】 單一趨勢管制圖",
+                        color_discrete_sequence=['#667eea'] # 統一使用藍色線條
+                    )
+                    
+                    # 畫出綠色安全區塊
+                    fig_line.add_hrect(y0=lsl, y1=usl, line_width=0, fillcolor="#00CC96", opacity=0.1)
+                    
+                    # 畫出中心線與上下限管制線
+                    fig_line.add_hline(y=target, line_dash="dash", line_color="green", annotation_text="中心值")
+                    fig_line.add_hline(y=usl, line_dash="solid", line_color="red", annotation_text="USL")
+                    fig_line.add_hline(y=lsl, line_dash="solid", line_color="red", annotation_text="LSL")
+                    
+                    # 隱藏 X 軸密密麻麻的文字，保持畫面清爽
+                    fig_line.update_xaxes(showticklabels=False, title_text="生產順序 (依照時間/鋼捲號碼)")
+                    fig_line.update_layout(height=400)
+                    
+                    st.plotly_chart(fig_line, use_container_width=True)
+                    
+                    # 👆 👆 👆 貼到這裡為止 👆 👆 👆
+
         # ============ 標籤 2：多時段對比分析 ============
         with tab_comparison:
             st.markdown("### 🔄 多時段對比分析 (層峰決策版)")
