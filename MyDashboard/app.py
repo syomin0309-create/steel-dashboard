@@ -366,8 +366,6 @@ if uploaded_file is not None:
                     st.markdown("### 📈 生產順序異常監控圖")
                     
                     x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else plot_df.index
-                    
-                    # 🌟 關鍵 1：把「試驗等級」直接塞進原有的藍色線條提示框裡
                     hover_cols = ['試驗等級'] if '試驗等級' in plot_df.columns else None
                     
                     fig_line = px.line(
@@ -375,7 +373,7 @@ if uploaded_file is not None:
                         x=x_axis_col, 
                         y=selected_param, 
                         markers=True, 
-                        hover_data=hover_cols, # 讓藍線自帶等級資訊
+                        hover_data=hover_cols,
                         title=f"【{selected_param}】 單一趨勢管制圖",
                         color_discrete_sequence=['#667eea'] 
                     )
@@ -391,7 +389,8 @@ if uploaded_file is not None:
                                 mode='markers',
                                 marker=dict(color='#FFD700', size=12, symbol='circle', line=dict(color='black', width=2)),
                                 name='異常 (7B)',
-                                hoverinfo='skip' # 🌟 關鍵 2：直接關閉小黃點的提示框，避免兩層打架！
+                                # 🌟 恢復黃點專屬的懸浮提示框！
+                                hovertemplate="數值: %{y}<br>等級: 7B<extra></extra>"
                             ))
                     
                     # 畫出綠色安全區塊與管制線
@@ -402,8 +401,8 @@ if uploaded_file is not None:
                     
                     fig_line.update_xaxes(showticklabels=False, title_text="生產順序 (依照時間/鋼捲號碼)")
                     
-                    # 🌟 關鍵 3：開啟 x unified 垂直統一感應模式
-                    fig_line.update_layout(height=400, hovermode="x unified")
+                    # 🌟 取消 x unified 的黑線，改回最乾淨的 closest (精準指向)
+                    fig_line.update_layout(height=400, hovermode="closest")
                     
                     st.plotly_chart(fig_line, use_container_width=True)
 
@@ -415,7 +414,6 @@ if uploaded_file is not None:
                             st.success("✅ 目前顯示的鋼捲中，沒有出現 7B 等級。")
                     else:
                         st.info("ℹ️ 這份檔案沒有包含「試驗等級」欄位，因此不會有 7B 標示。")
-
         # ============ 標籤 2：多時段對比分析 ============
         with tab_comparison:
             st.markdown("### 🔄 多時段對比分析 (層峰決策版)")
