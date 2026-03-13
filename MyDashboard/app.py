@@ -254,26 +254,6 @@ if uploaded_file is not None:
     else:
         # ============ 核心儀表板 ============
         
-        # 📊 數據概覽卡片
-        st.markdown("### 📊 數據概覽")
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric("鋼捲總數", f"{len(filtered_df)} 顆", delta=f"+{len(filtered_df) - len(df) if len(filtered_df) < len(df) else 0}")
-        with col2:
-            prod_months = filtered_df['生產年月'].nunique() if '生產年月' in filtered_df.columns else 0
-            st.metric("生產月份", f"{prod_months} 個月")
-        with col3:
-            spec_count = filtered_df['產品規格代碼'].nunique() if '產品規格代碼' in filtered_df.columns else 0
-            st.metric("規格種類", f"{spec_count} 種")
-        with col4:
-            if '試驗等級' in filtered_df.columns:
-                grade_count = filtered_df['試驗等級'].nunique()
-                st.metric("試驗等級", f"{grade_count} 級")
-            else:
-                st.metric("試驗等級", "N/A")
-
-        st.markdown("---")
 
         # ============ 標籤頁：單一分析 vs 對比分析 ============
         tab_analysis, tab_comparison = st.tabs(["📈 單一參數分析", "🔄 多時段對比分析"])
@@ -436,22 +416,6 @@ if uploaded_file is not None:
                         )
                         fig_pie.update_layout(height=450)
                         st.plotly_chart(fig_pie, use_container_width=True)
-                    
-                    # 趨勢走勢圖
-                    st.markdown("### 📈 生產順序趨勢")
-                    x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else plot_df.index
-                    
-                    fig_line = px.line(plot_df, x=x_axis_col, y=selected_param, color="比對群組", 
-                                      markers=True, title=f"【{selected_param}】 SPC 管制走勢圖")
-                    
-                    fig_line.add_hrect(y0=lcl, y1=ucl, line_width=0, fillcolor="#00CC96", opacity=0.08)
-                    fig_line.add_hline(y=avg_val, line_dash="dash", line_color="green")
-                    fig_line.add_hline(y=ucl, line_dash="dot", line_color="red")
-                    fig_line.add_hline(y=lcl, line_dash="dot", line_color="red")
-                    fig_line.update_xaxes(showticklabels=False)
-                    fig_line.update_layout(height=400)
-                    
-                    st.plotly_chart(fig_line, use_container_width=True)
 
         # ============ 標籤 2：多時段對比分析 ============
         with tab_comparison:
