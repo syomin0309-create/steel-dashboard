@@ -14,24 +14,12 @@ st.markdown("""
         font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif !important;
         -webkit-font-smoothing: antialiased !important;
     }
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 24px;
-    }
-    .stTabs [aria-selected="true"] {
-        color: #667eea;
-        border-bottom: 3px solid #667eea;
-    }
     .metric-highlight {
         padding: 15px;
         border-radius: 8px;
         background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
         border-left: 4px solid #667eea;
-    }
-    .compare-section {
-        background: #f8f9ff;
-        padding: 20px;
-        border-radius: 8px;
-        margin: 15px 0;
+        margin-bottom: 15px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -54,7 +42,7 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
     rename_mapping = [
         (['鋼捲號碼', 'COIL_NO'], '產出鋼捲號碼'),
         (['PRODUCTION_DATE'], '生產日期'),
-        (['QUALITY_CLASS'], '試驗等級'),
+        (['QUALITY_CLASS'], '試驗等級'), # 已移除投入等級，避免誤判
         (['BASE_METAL_THICK'], '訂單厚度'),
         (['REAL_WIDTH'], '訂單寬度')
     ]
@@ -120,7 +108,7 @@ with col_logo:
     st.image("https://cdn-icons-png.flaticon.com/512/2040/2040504.png", width=60)
 with col_title:
     st.title("📊 鍍三線品質與製程能力儀表板")
-    st.markdown("**層峰決策版 · 多維度對比分析**")
+    st.markdown("**層峰決策版 · 智能 SPC 監控**")
 
 with st.sidebar:
     st.header("⚙️ 儀表板控制中心")
@@ -137,25 +125,17 @@ if uploaded_file is not None:
 
     # 🧠 模式判定與空值精準過濾
     if '試驗等級' in df.columns:
-        # 1. 物理消除真正的空值 (NaN)
         df = df.dropna(subset=['試驗等級'])
-        
-        # 2. 轉為字串並剃除前後隱藏空白
         df['試驗等級'] = df['試驗等級'].astype(str).str.strip()
-        
-        # 3. 殺掉長度為 0 的字串，或是被系統誤判成 'nan', 'null' 的無效資料
         df = df[df['試驗等級'] != '']
         df = df[~df['試驗等級'].str.lower().isin(['nan', 'null', 'none', 'na'])]
-        
-        # 4. 經過嚴格過濾後，將剩下的乾淨資料建立群組
         df["比對群組"] = df["生產年月"] + " - " + df["試驗等級"]
     else:
-        # 檔案若無「試驗等級」欄位，則順其自然不強制過濾，保留所有資料
         df["比對群組"] = "全批次數據"
 
     with st.sidebar:
         st.subheader("🎯 智能連動篩選器")
-        st.caption("💡 上方選擇後，下方選單將即時連動")
+        st.caption("💡 條件即時連動，支援跨月多選")
         
         file_key = uploaded_file.name
         
@@ -172,14 +152,10 @@ if uploaded_file is not None:
             if key_name in st.session_state:
                 st.session_state[key_name] = [x for x in st.session_state[key_name] if x in valid_opts]
             
-            selected = st.multiselect(
-                f"🔹 選擇 {col_name}",
-                options=valid_opts,
-                key=key_name
-            )
+            selected = st.multiselect(f"🔹 選擇 {col_name}", options=valid_opts, key=key_name)
             return selected
 
-        # 瀑布流連動過濾 (已移除鍍層下限)
+        # 瀑布流連動過濾
         f_month = create_cascading_filter('生產年月', df)
         df_f1 = df.copy()
         if f_month: df_f1 = df_f1[df_f1['生產年月'].astype(str).isin(f_month)]
@@ -209,329 +185,212 @@ if uploaded_file is not None:
     if filtered_df.empty:
         st.warning("⚠️ 目前篩選條件下沒有找到任何數據，請放寬左側的篩選條件！")
     else:
-        # ============ 標籤頁：單一分析 vs 對比分析 ============
-        tab_analysis, tab_comparison = st.tabs(["📈 單一參數分析", "🔄 多時段對比分析"])
-
-        # ============ 標籤 1：單一參數分析 ============
-        with tab_analysis:
-            st.markdown("### 選擇分析參數")
+        # ============ 移除 Tabs，直接顯示單一核心分析介面 ============
+        st.markdown("### 🔍 選擇分析參數")
+        
+        numeric_cols = filtered_df.select_dtypes(include=['number']).columns.tolist()
+        exclude_sys = ['產出鋼捲號碼', '試驗等級', '投入等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO', '鍍層下限管制值',
+                       '北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層',
+                       'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S',
+                       'NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
+                       'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT']
+        
+        available_params = [col for col in numeric_cols if col not in exclude_sys]
+        
+        if '雙面總鍍層量(AVG)' in available_params:
+            available_params = ['雙面總鍍層量(AVG)'] + [x for x in available_params if x != '雙面總鍍層量(AVG)']
+        
+        if available_params:
+            col_select, col_info = st.columns([3, 1])
+            with col_select:
+                selected_param = st.selectbox("請選擇要查看的指標", available_params, key=f"param_{uploaded_file.name}", label_visibility="collapsed")
             
-            numeric_cols = filtered_df.select_dtypes(include=['number']).columns.tolist()
-            exclude_sys = ['產出鋼捲號碼', '試驗等級', '投入等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO', '鍍層下限管制值',
-                           '北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層',
-                           'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S',
-                           'NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
-                           'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT']
+            plot_df = filtered_df.dropna(subset=[selected_param])
             
-            available_params = [col for col in numeric_cols if col not in exclude_sys]
-            
-            if '雙面總鍍層量(AVG)' in available_params:
-                available_params = ['雙面總鍍層量(AVG)'] + [x for x in available_params if x != '雙面總鍍層量(AVG)']
-            
-            if available_params:
-                col_select, col_info = st.columns([3, 1])
-                with col_select:
-                    selected_param = st.selectbox("🔍 選擇分析參數", available_params, key=f"param_{uploaded_file.name}")
+            if not plot_df.empty:
+                avg_val = plot_df[selected_param].mean()
+                std_val = plot_df[selected_param].std()
+                median_val = plot_df[selected_param].median()
                 
-                plot_df = filtered_df.dropna(subset=[selected_param])
+                if pd.isna(avg_val): avg_val = 0.0
+                if pd.isna(std_val): std_val = 0.0
                 
-                if not plot_df.empty:
-                    avg_val = plot_df[selected_param].mean()
-                    std_val = plot_df[selected_param].std()
-                    median_val = plot_df[selected_param].median()
-                    
-                    if pd.isna(avg_val): avg_val = 0.0
-                    if pd.isna(std_val): std_val = 0.0
-                    
-                    # SPC 規格設定
-                    st.markdown("### 📐 SPC 規格設定")
-                    
-                    # 🌟 動態鑰匙：讓數字框會隨著參數切換自動更新
-                    dynamic_key = f"{selected_param}_{len(plot_df)}"
-                    
-                    default_lsl = float(avg_val - 4 * std_val) if std_val > 0 else float(avg_val - 10)
-                    default_usl = float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10)
-                    
-                    spec_col1, spec_col2, spec_col3 = st.columns(3)
-                    with spec_col1:
-                        lsl = st.number_input("規格下限 (LSL)", value=default_lsl, key=f"lsl_{dynamic_key}")
-                    with spec_col2:
-                        usl = st.number_input("規格上限 (USL)", value=default_usl, key=f"usl_{dynamic_key}")
-                    with spec_col3:
-                        target = st.number_input("規格中心值 (Target)", value=float((default_usl + default_lsl) / 2), key=f"tar_{dynamic_key}")
-                    
-                    cp = (usl - lsl) / (6 * std_val) if std_val > 0 else 0
-                    ca = (avg_val - target) / ((usl - lsl) / 2) * 100 if usl != lsl else 0
-                    cpk = min((usl - avg_val) / (3 * std_val), (avg_val - lsl) / (3 * std_val)) if std_val > 0 else 0
-                    
-                    st.markdown("### 📊 製程能力指標")
-                    metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
-                    
-                    with metric_col1:
-                        st.markdown(f"""
-                        <div class="metric-highlight">
-                            <strong>樣本數</strong><br>
-                            <h2>{len(plot_df)} 顆</h2>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with metric_col2:
-                        st.markdown(f"""
-                        <div class="metric-highlight">
-                            <strong>Cp (精密度)</strong><br>
-                            <h2>{cp:.2f}</h2>
-                            <small>變異大小</small>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with metric_col3:
-                        st.markdown(f"""
-                        <div class="metric-highlight">
-                            <strong>Ca (準確度)</strong><br>
-                            <h2>{abs(ca):.1f}%</h2>
-                            <small>偏離中心值</small>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    cpk_color = "🟢" if cpk >= 1.33 else ("🟡" if cpk >= 1.0 else "🔴")
-                    cpk_status = "優良(A)" if cpk >= 1.33 else ("尚可(B)" if cpk >= 1.0 else "需改善(C)")
-                    
-                    with metric_col4:
-                        st.markdown(f"""
-                        <div class="metric-highlight">
-                            <strong>Cpk {cpk_color}</strong><br>
-                            <h2>{cpk:.2f}</h2>
-                            <small>{cpk_status}</small>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    st.markdown("---")
-                    
-                    stats_col1, stats_col2, stats_col3 = st.columns(3)
-                    with stats_col1:
-                        st.write(f"**平均值**: {avg_val:.4f}")
-                        st.write(f"**中位數**: {median_val:.4f}")
-                    with stats_col2:
-                        st.write(f"**標準差**: {std_val:.4f}")
-                        st.write(f"**變異係數**: {(std_val/avg_val*100) if avg_val != 0 else 0:.2f}%")
-                    with stats_col3:
-                        st.write(f"**最小值**: {plot_df[selected_param].min():.4f}")
-                        st.write(f"**最大值**: {plot_df[selected_param].max():.4f}")
-                    
-                    st.markdown("---")
-                    
-                    st.markdown("### 📉 視覺分析")
-                    chart_col1, chart_col2 = st.columns([1.5, 1])
-                    
-                    with chart_col1:
-                        fig_hist = px.histogram(
-                            plot_df, x=selected_param, nbins=30, opacity=0.7,
-                            histnorm='probability density',
-                            color_discrete_sequence=['#667eea'],
-                            title=f"【{selected_param}】常態分佈與規格區間"
-                        )
-                        
-                        if std_val > 0:
-                            x_min = min(plot_df[selected_param].min(), lsl)
-                            x_max = max(plot_df[selected_param].max(), usl)
-                            x_curve = np.linspace(x_min - std_val, x_max + std_val, 200)
-                            y_pdf = (1 / (std_val * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_curve - avg_val) / std_val) ** 2)
-                            fig_hist.add_trace(go.Scatter(x=x_curve, y=y_pdf, mode='lines', 
-                                                         line=dict(color='#FF2B2B', width=3), name='常態分佈'))
-                        
-                        fig_hist.add_vline(x=usl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"USL: {usl:.2f}")
-                        fig_hist.add_vline(x=lsl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"LSL: {lsl:.2f}")
-                        fig_hist.add_vline(x=target, line_dash="solid", line_color="#00CC96", annotation_text=f"目標: {target:.2f}")
-                        
-                        fig_hist.update_layout(height=450)
-                        st.plotly_chart(fig_hist, use_container_width=True)
-                    
-                    with chart_col2:
-                        outside_usl = len(plot_df[plot_df[selected_param] > usl])
-                        outside_lsl = len(plot_df[plot_df[selected_param] < lsl])
-                        inside = len(plot_df) - outside_usl - outside_lsl
-                        
-                        fig_pie = px.pie(
-                            values=[inside, outside_usl, outside_lsl],
-                            names=['符合規格', '超過上限', '低於下限'],
-                            color_discrete_sequence=['#28a745', '#ff6b6b', '#ffc107'],
-                            title="規格符合率"
-                        )
-                        fig_pie.update_layout(height=450)
-                        st.plotly_chart(fig_pie, use_container_width=True)
-
-                    
-                  # 🌟 新增：生產順序異常監控圖 (單一連線、有安全綠帶)
-                    st.markdown("---")
-                    st.markdown("### 📈 生產順序異常監控圖")
-                    
-                    x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else plot_df.index
-                    hover_cols = ['試驗等級'] if '試驗等級' in plot_df.columns else None
-                    
-                    fig_line = px.line(
-                        plot_df, 
-                        x=x_axis_col, 
-                        y=selected_param, 
-                        markers=True, 
-                        hover_data=hover_cols,
-                        title=f"【{selected_param}】 單一趨勢管制圖",
-                        color_discrete_sequence=['#667eea'] 
-                    )
-                    
-                    # 🌟 關鍵修正 1：重新排版藍線的提示框，把所有資訊整合在一個框框內
-                    if '試驗等級' in plot_df.columns:
-                        fig_line.update_traces(
-                            hovertemplate="<b>鋼捲號碼:</b> %{x}<br>" +
-                                          "<b>數值:</b> %{y}<br>" +
-                                          "<b>試驗等級:</b> %{customdata[0]}<extra></extra>"
-                        )
-                    else:
-                        fig_line.update_traces(
-                            hovertemplate="<b>鋼捲號碼:</b> %{x}<br>" +
-                                          "<b>數值:</b> %{y}<extra></extra>"
-                        )
-                    
-                    # 獨立把 7B (異常) 的點抓出來，用黃色大點點疊加覆蓋
-                    if '試驗等級' in plot_df.columns:
-                        abnormal_df = plot_df[plot_df['試驗等級'].astype(str).str.upper().str.replace(' ', '').str.contains('7B', na=False)]
-                        if not abnormal_df.empty:
-                            x_data_abnormal = abnormal_df["產出鋼捲號碼"] if "產出鋼捲號碼" in abnormal_df.columns else abnormal_df.index
-                            fig_line.add_trace(go.Scatter(
-                                x=x_data_abnormal,
-                                y=abnormal_df[selected_param],
-                                mode='markers',
-                                marker=dict(color='#FFD700', size=12, symbol='circle', line=dict(color='black', width=2)),
-                                name='異常 (7B)',
-                                # 🌟 關鍵修正 2：徹底關閉黃點的滑鼠感應 (讓滑鼠直接穿透到下方的藍線)
-                                hoverinfo='skip' 
-                            ))
-                    
-                    # 畫出綠色安全區塊與管制線
-                    fig_line.add_hrect(y0=lsl, y1=usl, line_width=0, fillcolor="#00CC96", opacity=0.1)
-                    fig_line.add_hline(y=target, line_dash="dash", line_color="green", annotation_text="中心值")
-                    fig_line.add_hline(y=usl, line_dash="solid", line_color="red", annotation_text="USL")
-                    fig_line.add_hline(y=lsl, line_dash="solid", line_color="red", annotation_text="LSL")
-                    
-                    fig_line.update_xaxes(showticklabels=False, title_text="生產順序 (依照時間/鋼捲號碼)")
-                    
-                    # 保持 closest 模式，沒有醜黑線，且只有唯一一個乾淨的提示框
-                    fig_line.update_layout(height=400, hovermode="closest")
-                    
-                    st.plotly_chart(fig_line, use_container_width=True)
-
-                    # 貼心提示：直接告訴使用者有沒有抓到 7B
-                    if '試驗等級' in plot_df.columns:
-                        if not abnormal_df.empty:
-                            st.warning(f"⚠️ 在上方趨勢圖中，共標示了 **{len(abnormal_df)} 顆** 7B 異常鋼捲 (黃色點)。")
-                        else:
-                            st.success("✅ 目前顯示的鋼捲中，沒有出現 7B 等級。")
-                    else:
-                        st.info("ℹ️ 這份檔案沒有包含「試驗等級」欄位，因此不會有 7B 標示。")
-        # ============ 標籤 2：多時段對比分析 ============
-        with tab_comparison:
-            st.markdown("### 🔄 多時段對比分析 (層峰決策版)")
-            
-            comp_col1, comp_col2 = st.columns(2)
-            
-            with comp_col1:
-                period_a_months = st.multiselect("📅 選擇時段 A 的月份", sorted(filtered_df['生產年月'].astype(str).unique()), key="comp_a_m")
-            
-            with comp_col2:
-                period_b_months = st.multiselect("📅 選擇時段 B 的月份", sorted(filtered_df['生產年月'].astype(str).unique()), key="comp_b_m")
-            
-            if period_a_months and period_b_months:
-                df_a = filtered_df[filtered_df['生產年月'].astype(str).isin(period_a_months)].copy()
-                df_b = filtered_df[filtered_df['生產年月'].astype(str).isin(period_b_months)].copy()
+                # SPC 規格設定
+                st.markdown("### 📐 SPC 規格設定")
                 
-                numeric_cols_comp = filtered_df.select_dtypes(include=['number']).columns.tolist()
-                available_params_comp = [col for col in numeric_cols_comp if col not in exclude_sys]
-                if '雙面總鍍層量(AVG)' in available_params_comp:
-                    available_params_comp = ['雙面總鍍層量(AVG)'] + [x for x in available_params_comp if x != '雙面總鍍層量(AVG)']
+                dynamic_key = f"{selected_param}_{len(plot_df)}"
+                default_lsl = float(avg_val - 4 * std_val) if std_val > 0 else float(avg_val - 10)
+                default_usl = float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10)
+                
+                spec_col1, spec_col2, spec_col3 = st.columns(3)
+                with spec_col1:
+                    lsl = st.number_input("規格下限 (LSL)", value=default_lsl, key=f"lsl_{dynamic_key}")
+                with spec_col2:
+                    usl = st.number_input("規格上限 (USL)", value=default_usl, key=f"usl_{dynamic_key}")
+                with spec_col3:
+                    target = st.number_input("規格中心值 (Target)", value=float((default_usl + default_lsl) / 2), key=f"tar_{dynamic_key}")
+                
+                cp = (usl - lsl) / (6 * std_val) if std_val > 0 else 0
+                ca = (avg_val - target) / ((usl - lsl) / 2) * 100 if usl != lsl else 0
+                cpk = min((usl - avg_val) / (3 * std_val), (avg_val - lsl) / (3 * std_val)) if std_val > 0 else 0
+                
+                st.markdown("### 📊 製程能力指標")
+                metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
+                
+                with metric_col1:
+                    st.markdown(f"""
+                    <div class="metric-highlight">
+                        <strong>樣本數</strong><br>
+                        <h2>{len(plot_df)} 顆</h2>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with metric_col2:
+                    st.markdown(f"""
+                    <div class="metric-highlight">
+                        <strong>Cp (精密度)</strong><br>
+                        <h2>{cp:.2f}</h2>
+                        <small>變異大小</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with metric_col3:
+                    st.markdown(f"""
+                    <div class="metric-highlight">
+                        <strong>Ca (準確度)</strong><br>
+                        <h2>{abs(ca):.1f}%</h2>
+                        <small>偏離中心值</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                cpk_color = "🟢" if cpk >= 1.33 else ("🟡" if cpk >= 1.0 else "🔴")
+                cpk_status = "優良(A)" if cpk >= 1.33 else ("尚可(B)" if cpk >= 1.0 else "需改善(C)")
+                
+                with metric_col4:
+                    st.markdown(f"""
+                    <div class="metric-highlight">
+                        <strong>Cpk {cpk_color}</strong><br>
+                        <h2>{cpk:.2f}</h2>
+                        <small>{cpk_status}</small>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
                 st.markdown("---")
-                selected_param_comp = st.selectbox("🔍 選擇要對比的參數", available_params_comp, key="param_comp")
                 
-                if selected_param_comp and not df_a.empty and not df_b.empty:
-                    df_a_clean = df_a.dropna(subset=[selected_param_comp])
-                    df_b_clean = df_b.dropna(subset=[selected_param_comp])
+                stats_col1, stats_col2, stats_col3 = st.columns(3)
+                with stats_col1:
+                    st.write(f"**平均值**: {avg_val:.4f}")
+                    st.write(f"**中位數**: {median_val:.4f}")
+                with stats_col2:
+                    st.write(f"**標準差**: {std_val:.4f}")
+                    st.write(f"**變異係數**: {(std_val/avg_val*100) if avg_val != 0 else 0:.2f}%")
+                with stats_col3:
+                    st.write(f"**最小值**: {plot_df[selected_param].min():.4f}")
+                    st.write(f"**最大值**: {plot_df[selected_param].max():.4f}")
+                
+                st.markdown("---")
+                
+                st.markdown("### 📉 視覺分析")
+                chart_col1, chart_col2 = st.columns([1.5, 1])
+                
+                with chart_col1:
+                    fig_hist = px.histogram(
+                        plot_df, x=selected_param, nbins=30, opacity=0.7,
+                        histnorm='probability density',
+                        color_discrete_sequence=['#667eea'],
+                        title=f"【{selected_param}】常態分佈與規格區間"
+                    )
                     
-                    if len(df_a_clean) > 0 and len(df_b_clean) > 0:
-                        stats_a = {
-                            'mean': df_a_clean[selected_param_comp].mean(),
-                            'std': df_a_clean[selected_param_comp].std(),
-                            'median': df_a_clean[selected_param_comp].median(),
-                            'count': len(df_a_clean)
-                        }
-                        
-                        stats_b = {
-                            'mean': df_b_clean[selected_param_comp].mean(),
-                            'std': df_b_clean[selected_param_comp].std(),
-                            'median': df_b_clean[selected_param_comp].median(),
-                            'count': len(df_b_clean)
-                        }
-                        
-                        st.markdown("---")
-                        st.markdown("### 📊 對比結果")
-                        
-                        str_period_a = " + ".join(period_a_months)
-                        str_period_b = " + ".join(period_b_months)
-                        
-                        comp_card_col1, comp_card_col2, comp_card_col3 = st.columns(3)
-                        
-                        with comp_card_col1:
-                            st.markdown(f"""
-                            <div class="compare-section">
-                                <h4>時段 A</h4>
-                                <strong>{str_period_a}</strong><br><br>
-                                🔹 樣本數: <strong>{stats_a['count']}</strong><br>
-                                🔹 平均值: <strong>{stats_a['mean']:.4f}</strong><br>
-                                🔹 標準差: <strong>{stats_a['std']:.4f}</strong>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        with comp_card_col2:
-                            mean_diff = stats_b['mean'] - stats_a['mean']
-                            mean_diff_pct = (mean_diff / stats_a['mean'] * 100) if stats_a['mean'] != 0 else 0
-                            diff_color = "🔴" if abs(mean_diff_pct) > 5 else "🟡" if abs(mean_diff_pct) > 2 else "🟢"
-                            std_ratio = (stats_b['std']/stats_a['std']) if stats_a['std']!=0 else 0
-                            
-                            st.markdown(f"""
-                            <div class="compare-section" style="background: #f0f7ff;">
-                                <h4>變化 (B vs A)</h4>
-                                <strong>{diff_color} 平均值差異</strong><br><br>
-                                差值: <strong>{mean_diff:+.4f}</strong><br>
-                                變化率: <strong>{mean_diff_pct:+.2f}%</strong><br>
-                                標準差比: <strong>{std_ratio:.2f}x</strong>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        with comp_card_col3:
-                            st.markdown(f"""
-                            <div class="compare-section">
-                                <h4>時段 B</h4>
-                                <strong>{str_period_b}</strong><br><br>
-                                🔹 樣本數: <strong>{stats_b['count']}</strong><br>
-                                🔹 平均值: <strong>{stats_b['mean']:.4f}</strong><br>
-                                🔹 標準差: <strong>{stats_b['std']:.4f}</strong>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        st.markdown("---")
-                        chart_col1, chart_col2 = st.columns(2)
-                        
-                        with chart_col1:
-                            fig_comp_hist = go.Figure()
-                            fig_comp_hist.add_trace(go.Histogram(x=df_a_clean[selected_param_comp], name="時段A", opacity=0.7, marker_color='#667eea'))
-                            fig_comp_hist.add_trace(go.Histogram(x=df_b_clean[selected_param_comp], name="時段B", opacity=0.7, marker_color='#ff6b6b'))
-                            fig_comp_hist.update_layout(barmode='overlay', height=400, title=f"【{selected_param_comp}】分佈對比")
-                            st.plotly_chart(fig_comp_hist, use_container_width=True)
-                        
-                        with chart_col2:
-                            df_comparison = pd.concat([df_a_clean.assign(時段='A'), df_b_clean.assign(時段='B')])
-                            fig_box_comp = px.box(df_comparison, x='時段', y=selected_param_comp, color='時段', 
-                                                 color_discrete_map={'A': '#667eea', 'B': '#ff6b6b'}, title=f"箱型圖對比")
-                            fig_box_comp.update_layout(height=400, showlegend=False)
-                            st.plotly_chart(fig_box_comp, use_container_width=True)
+                    if std_val > 0:
+                        x_min = min(plot_df[selected_param].min(), lsl)
+                        x_max = max(plot_df[selected_param].max(), usl)
+                        x_curve = np.linspace(x_min - std_val, x_max + std_val, 200)
+                        y_pdf = (1 / (std_val * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_curve - avg_val) / std_val) ** 2)
+                        fig_hist.add_trace(go.Scatter(x=x_curve, y=y_pdf, mode='lines', 
+                                                     line=dict(color='#FF2B2B', width=3), name='常態分佈'))
+                    
+                    fig_hist.add_vline(x=usl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"USL: {usl:.2f}")
+                    fig_hist.add_vline(x=lsl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"LSL: {lsl:.2f}")
+                    fig_hist.add_vline(x=target, line_dash="solid", line_color="#00CC96", annotation_text=f"目標: {target:.2f}")
+                    
+                    fig_hist.update_layout(height=450)
+                    st.plotly_chart(fig_hist, use_container_width=True)
+                
+                with chart_col2:
+                    outside_usl = len(plot_df[plot_df[selected_param] > usl])
+                    outside_lsl = len(plot_df[plot_df[selected_param] < lsl])
+                    inside = len(plot_df) - outside_usl - outside_lsl
+                    
+                    fig_pie = px.pie(
+                        values=[inside, outside_usl, outside_lsl],
+                        names=['符合規格', '超過上限', '低於下限'],
+                        color_discrete_sequence=['#28a745', '#ff6b6b', '#ffc107'],
+                        title="規格符合率"
+                    )
+                    fig_pie.update_layout(height=450)
+                    st.plotly_chart(fig_pie, use_container_width=True)
+
+                # 🌟 生產順序異常監控圖
+                st.markdown("---")
+                st.markdown("### 📈 生產順序異常監控圖")
+                
+                x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else plot_df.index
+                hover_cols = ['試驗等級'] if '試驗等級' in plot_df.columns else None
+                
+                fig_line = px.line(
+                    plot_df, x=x_axis_col, y=selected_param, markers=True, hover_data=hover_cols,
+                    title=f"【{selected_param}】 單一趨勢管制圖", color_discrete_sequence=['#667eea'] 
+                )
+                
+                if '試驗等級' in plot_df.columns:
+                    fig_line.update_traces(hovertemplate="<b>鋼捲號碼:</b> %{x}<br><b>數值:</b> %{y}<br><b>試驗等級:</b> %{customdata[0]}<extra></extra>")
+                else:
+                    fig_line.update_traces(hovertemplate="<b>鋼捲號碼:</b> %{x}<br><b>數值:</b> %{y}<extra></extra>")
+                
+                if '試驗等級' in plot_df.columns:
+                    abnormal_df = plot_df[plot_df['試驗等級'].astype(str).str.upper().str.replace(' ', '').str.contains('7B', na=False)]
+                    if not abnormal_df.empty:
+                        x_data_abnormal = abnormal_df["產出鋼捲號碼"] if "產出鋼捲號碼" in abnormal_df.columns else abnormal_df.index
+                        fig_line.add_trace(go.Scatter(
+                            x=x_data_abnormal, y=abnormal_df[selected_param], mode='markers',
+                            marker=dict(color='#FFD700', size=12, symbol='circle', line=dict(color='black', width=2)),
+                            name='異常 (7B)', hoverinfo='skip' 
+                        ))
+                
+                fig_line.add_hrect(y0=lsl, y1=usl, line_width=0, fillcolor="#00CC96", opacity=0.1)
+                fig_line.add_hline(y=target, line_dash="dash", line_color="green", annotation_text="中心值")
+                fig_line.add_hline(y=usl, line_dash="solid", line_color="red", annotation_text="USL")
+                fig_line.add_hline(y=lsl, line_dash="solid", line_color="red", annotation_text="LSL")
+                fig_line.update_xaxes(showticklabels=False, title_text="生產順序 (依照時間/鋼捲號碼)")
+                fig_line.update_layout(height=400, hovermode="closest")
+                st.plotly_chart(fig_line, use_container_width=True)
+
+                if '試驗等級' in plot_df.columns:
+                    if not abnormal_df.empty:
+                        st.warning(f"⚠️ 在上方趨勢圖中，共標示了 **{len(abnormal_df)} 顆** 7B 異常鋼捲 (黃色點)。")
+                    else:
+                        st.success("✅ 目前顯示的鋼捲中，沒有出現 7B 等級。")
+
+                # 🌟 新增：群組數據分佈箱型圖
+                st.markdown("---")
+                st.markdown("### 📦 群組數據分佈箱型圖")
+                st.caption("將篩選後的資料依照「月份與等級」分群對比，可直觀看出不同群組的變異程度與極端值。")
+                
+                fig_box = px.box(
+                    plot_df, 
+                    x="比對群組", 
+                    y=selected_param, 
+                    color="比對群組",
+                    title=f"【{selected_param}】 群組箱型圖對比",
+                    points="outliers" # 顯示極端值
+                )
+                
+                fig_box.add_hline(y=target, line_dash="dash", line_color="green", annotation_text="中心值")
+                fig_box.add_hline(y=usl, line_dash="solid", line_color="red", annotation_text="USL")
+                fig_box.add_hline(y=lsl, line_dash="solid", line_color="red", annotation_text="LSL")
+                fig_box.update_layout(height=450, showlegend=False, xaxis_title="群組分類")
+                
+                st.plotly_chart(fig_box, use_container_width=True)
 
         # ============ 數據匯出 ============
         st.markdown("---")
