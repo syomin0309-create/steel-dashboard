@@ -30,34 +30,36 @@ def load_and_clean_data(file):
     else:
         df = pd.read_excel(file)
         
-    # 統一將標題轉為大寫並去除隱藏空白
     df.columns = df.columns.astype(str).str.strip().str.upper()
     
-    # 📖 官方翻譯字典 (只翻譯系統標準欄位，避開 XRAY 名稱衝突)
+    # 📖 終極翻譯字典 (已將「投入等級」還原，保留「試驗等級」的獨立性)
     rename_dict = {
         'COIL_NO': '產出鋼捲號碼',
         '鋼捲號碼': '產出鋼捲號碼',
         'PRODUCTION_DATE': '生產日期',
+        
+        # 英文系統中的品質等級對應回試驗等級
         'QUALITY_CLASS': '試驗等級',
+        
         'BASE_METAL_THICK': '訂單厚度',
         'REAL_WIDTH': '訂單寬度',
         '投入厚度': '訂單厚度',
         '實測寬度': '訂單寬度',
-        # 🌟 鍍層下限管制值 (支援新版檔案的 COAT_STD_MIN)
+        
+        # 解決下限管制值名稱差異
         'COAT_STD_MIN': '鍍層下限管制值',
         'MIN_COAT_WEIGHT': '鍍層下限管制值',
         '鍍層下限': '鍍層下限管制值',
-        '理論鍍層重': '鍍層下限管制值'
+        '理論鍍層重': '鍍層下限管制值',
+        '鍍層下限值': '鍍層下限管制值' 
     }
     df.rename(columns=rename_dict, inplace=True)
 
-    # ---------------------------------------------------------
-    # 🚀 智慧運算核心：自動尋找數據最完整的 XRAY 欄位組合
-    # ---------------------------------------------------------
+    # 🚀 自動計算雙面總鍍層量
     xray_sets = [
+        ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'],
         ['NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
          'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT'],
-        ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'],
         ['鋼捲全板上板北側量側數據(XRAY設備)', '鋼捲全板上板中線量側數據(XRAY設備)', '鋼捲全板上板南側量側數據(XRAY設備)',
          '鋼捲全板下板北側量側數據(XRAY設備)', '鋼捲全板下板中線量側數據(XRAY設備)', '鋼捲全板下板南側量側數據(XRAY設備)'],
         ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
@@ -66,7 +68,6 @@ def load_and_clean_data(file):
     best_set = None
     max_valid = -1
     
-    # 掃描所有可能的組合，找出裡面「真正有數字」最多的一組！
     for cols in xray_sets:
         if all(col in df.columns for col in cols):
             valid_count = df[cols].apply(pd.to_numeric, errors='coerce').notna().sum().sum()
@@ -115,7 +116,7 @@ if uploaded_file is not None:
         st.success("✅ 已偵測到『試驗等級』，啟動【多維度旗艦分析模式】")
     else:
         df["比對群組"] = "全批次數據"
-        st.info("ℹ️ 未偵測到『試驗等級』，切換為【CPK 鍍層能力專用模式】")
+        st.info("ℹ️ 未偵測到『試驗等級』，切換為【單一群組模式】")
 
     with st.sidebar:
         st.markdown("---")
@@ -131,19 +132,26 @@ if uploaded_file is not None:
         f_width = create_filter('訂單寬度')
         f_mat   = create_filter('熱軋材質')
         f_spec  = create_filter('產品規格代碼')
+        
+        # 🌟 新增：上鍍層規格過濾 (方便篩選 AZM150, Z27, G60 等)
+        f_up_coat = create_filter('上鍍層')
+        
+        # 保留鍍層下限管制值篩選
         f_coat_limit = create_filter('鍍層下限管制值')
         
+    # 套用過濾條件
     if f_month: df = df[df['生產年月'].isin(f_month)]
     if f_thick: df = df[df['訂單厚度'].isin(f_thick)]
     if f_width: df = df[df['訂單寬度'].isin(f_width)]
     if f_mat:   df = df[df['熱軋材質'].isin(f_mat)]
     if f_spec:  df = df[df['產品規格代碼'].isin(f_spec)]
+    if f_up_coat: df = df[df['上鍍層'].isin(f_up_coat)]
     if f_coat_limit: df = df[df['鍍層下限管制值'].isin(f_coat_limit)]
 
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
     
     # 隱藏系統用欄位
-    exclude_sys = ['產出鋼捲號碼', '試驗等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO', '鍍層下限管制值',
+    exclude_sys = ['產出鋼捲號碼', '試驗等級', '投入等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO', '鍍層下限管制值',
                    '北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層',
                    'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S',
                    'NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
@@ -153,14 +161,9 @@ if uploaded_file is not None:
     
     available_params = [col for col in numeric_cols if col not in exclude_sys]
     
-    if not is_standard_mode:
-        if '雙面總鍍層量(AVG)' in available_params:
-            available_params = ['雙面總鍍層量(AVG)']
-        else:
-            available_params = [] 
-    else:
-        if '雙面總鍍層量(AVG)' in available_params:
-            available_params = ['雙面總鍍層量(AVG)'] + [col for col in available_params if col != '雙面總鍍層量(AVG)']
+    # 釋放選單：把算出來的 AVG 推到第一位，但保留其他分析數據！
+    if '雙面總鍍層量(AVG)' in available_params:
+        available_params = ['雙面總鍍層量(AVG)'] + [col for col in available_params if col != '雙面總鍍層量(AVG)']
     
     if available_params and not df.empty:
         selected_param = st.selectbox("🔍 選擇分析參數", available_params)
@@ -271,7 +274,7 @@ if uploaded_file is not None:
     elif df.empty:
         st.warning("⚠️ 目前的篩選條件下沒有找到任何鋼捲資料，請放寬左側的篩選條件！")
     else:
-        st.warning("⚠️ 在您的檔案中找不到可以計算鍍層量所需的 XRAY 欄位！請確認您上傳的檔案包含正確的欄位名稱。")
+        st.warning("⚠️ 在您的檔案中找不到可以分析的數值欄位。")
 
 else:
     st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動判別檔案類型並產生圖表。")
