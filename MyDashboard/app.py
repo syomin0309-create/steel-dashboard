@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # 設定網頁為寬螢幕模式，標題設定
-st.set_page_config(page_title="鍍三線高階分析儀表板", layout="wide", page_icon="📈")
+st.set_page_config(page_title="高階分析儀表板", layout="wide", page_icon="📈")
 
 # ---------------------------------------------------------
 # 🎛️ 左側邊欄 (Sidebar) - 專屬控制與篩選區
@@ -16,7 +16,7 @@ with st.sidebar:
 # ---------------------------------------------------------
 # 📊 主畫面 (Main Area)
 # ---------------------------------------------------------
-st.title("📊 鍍三線鋼捲品質異常分析儀表板")
+st.title("📊 鋼捲品質異常分析儀表板")
 
 if uploaded_file is not None:
     # 讀取檔案與自動清洗換行符號
@@ -139,4 +139,5 @@ if uploaded_file is not None:
 else:
     # 尚未上傳檔案時的歡迎畫面
     st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動進行清洗與分析。")
+
 
