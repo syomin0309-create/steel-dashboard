@@ -146,16 +146,17 @@ if uploaded_file is not None:
     if f_spec:  df = df[df['產品規格代碼'].isin(f_spec)]
 
     # ---------------------------------------------------------
-    # 自動抓取數值欄位 (把翻譯完的英文原始欄位保留，但過濾掉系統用的)
+    # 自動抓取數值欄位 (過濾掉系統用的)
     # ---------------------------------------------------------
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
     exclude_sys = ['產出鋼捲號碼', '試驗等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO'] 
     available_params = [col for col in numeric_cols if col not in exclude_sys]
     
     if available_params and not df.empty:
-        # 如果有算好總鍍層，強勢置頂第一順位！
+        # 🌟 修正點：使用最安全的陣列重組方式，避免 .index() 找不到報錯
         if '雙面總鍍層量(AVG)' in available_params:
-            available_params.insert(0, available_params.pop(available_params.index('雙面總鍍層量(AVG)')))
+            # 把「雙面總鍍層量(AVG)」強制放到陣列第一個，其餘的依序接在後面
+            available_params = ['雙面總鍍層量(AVG)'] + [col for col in available_params if col != '雙面總鍍層量(AVG)']
             
         selected_param = st.selectbox("🔍 選擇分析參數 (自動過濾非數值欄位)", available_params)
         plot_df = df.dropna(subset=[selected_param])
