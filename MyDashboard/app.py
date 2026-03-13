@@ -127,7 +127,6 @@ if uploaded_file is not None:
         except Exception as e:
             st.warning(f"無法載入 {col_name} 的篩選選項：{e}")
             return []
-    return []
             
         f_month = create_filter('生產年月')
         f_thick = create_filter('訂單厚度')
@@ -271,5 +270,6 @@ if uploaded_file is not None:
 
 else:
     st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動判別檔案類型並產生圖表。")
+
 
 
