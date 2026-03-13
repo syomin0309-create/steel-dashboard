@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
+import re
 
 st.set_page_config(page_title="鍍三線高階分析儀表板", layout="wide", page_icon="📈", initial_sidebar_state="expanded")
 
@@ -46,16 +47,16 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
     else:
         df = pd.read_excel(io.BytesIO(file_bytes))
         
-    # 🌟 終極殺手鐧：徹底清除欄位名稱中的所有「空白、換行、不可見字元」
+    # 🌟 徹底清除欄位名稱中的所有「空白、換行、不可見字元」
     df.columns = df.columns.astype(str).str.replace(r'\s+', '', regex=True).str.upper()
     
+    # 📖 欄位對應字典
     rename_mapping = [
         (['鋼捲號碼', 'COIL_NO'], '產出鋼捲號碼'),
         (['PRODUCTION_DATE'], '生產日期'),
         (['QUALITY_CLASS', '投入等級'], '試驗等級'),
         (['BASE_METAL_THICK'], '訂單厚度'),
-        (['REAL_WIDTH'], '訂單寬度'),
-        (['COAT_STD_MIN', 'MIN_COAT_WEIGHT', '鍍層下限', '理論鍍層重', '鍍層下限值'], '鍍層下限管制值')
+        (['REAL_WIDTH'], '訂單寬度')
     ]
     
     rename_dict = {}
@@ -74,6 +75,7 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
             for idx in indices[1:]:
                 df = df.drop(df.columns[idx], axis=1)
 
+    # 🚀 自動計算雙面總鍍層量 
     xray_sets = [
         ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'],
         ['NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
@@ -153,7 +155,6 @@ if uploaded_file is not None:
                 return []
             
             valid_opts = sorted(current_df[col_name].dropna().astype(str).unique())
-            
             if not valid_opts:
                 return []
             
@@ -169,36 +170,31 @@ if uploaded_file is not None:
             )
             return selected
 
+        # 瀑布流連動過濾 (已移除鍍層下限)
         f_month = create_cascading_filter('生產年月', df)
         df_f1 = df.copy()
-        if f_month:
-            df_f1 = df_f1[df_f1['生產年月'].astype(str).isin(f_month)]
+        if f_month: df_f1 = df_f1[df_f1['生產年月'].astype(str).isin(f_month)]
             
         f_thick = create_cascading_filter('訂單厚度', df_f1)
         df_f2 = df_f1.copy()
-        if f_thick:
-            df_f2 = df_f2[df_f2['訂單厚度'].astype(str).isin(f_thick)]
+        if f_thick: df_f2 = df_f2[df_f2['訂單厚度'].astype(str).isin(f_thick)]
             
         f_width = create_cascading_filter('訂單寬度', df_f2)
         df_f3 = df_f2.copy()
-        if f_width:
-            df_f3 = df_f3[df_f3['訂單寬度'].astype(str).isin(f_width)]
+        if f_width: df_f3 = df_f3[df_f3['訂單寬度'].astype(str).isin(f_width)]
             
         f_mat = create_cascading_filter('熱軋材質', df_f3)
         df_f4 = df_f3.copy()
-        if f_mat:
-            df_f4 = df_f4[df_f4['熱軋材質'].astype(str).isin(f_mat)]
+        if f_mat: df_f4 = df_f4[df_f4['熱軋材質'].astype(str).isin(f_mat)]
             
         f_spec = create_cascading_filter('產品規格代碼', df_f4)
         df_f5 = df_f4.copy()
-        if f_spec:
-            df_f5 = df_f5[df_f5['產品規格代碼'].astype(str).isin(f_spec)]
+        if f_spec: df_f5 = df_f5[df_f5['產品規格代碼'].astype(str).isin(f_spec)]
             
         f_up_coat = create_cascading_filter('上鍍層', df_f5)
         df_f6 = df_f5.copy()
-        if f_up_coat:
-            df_f6 = df_f6[df_f6['上鍍層'].astype(str).isin(f_up_coat)]
-            
+        if f_up_coat: df_f6 = df_f6[df_f6['上鍍層'].astype(str).isin(f_up_coat)]
+        
     filtered_df = df_f6.copy()
 
     if filtered_df.empty:
@@ -239,14 +235,13 @@ if uploaded_file is not None:
                     if pd.isna(std_val): std_val = 0.0
                     
                     # SPC 規格設定
-                    # SPC 規格設定
                     st.markdown("### 📐 SPC 規格設定")
+                    
+                    # 🌟 動態鑰匙：讓數字框會隨著參數切換自動更新
+                    dynamic_key = f"{selected_param}_{len(plot_df)}"
                     
                     default_lsl = float(avg_val - 4 * std_val) if std_val > 0 else float(avg_val - 10)
                     default_usl = float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10)
-                    
-                    # 🌟 加回神級防呆：動態 Key！只要參數或資料量改變，輸入框就會強制刷新成新數字
-                    dynamic_key = f"{selected_param}_{len(plot_df)}"
                     
                     spec_col1, spec_col2, spec_col3 = st.columns(3)
                     with spec_col1:
@@ -356,36 +351,19 @@ if uploaded_file is not None:
                         fig_pie.update_layout(height=450)
                         st.plotly_chart(fig_pie, use_container_width=True)
 
-        with chart_col2:
-                        outside_usl = len(plot_df[plot_df[selected_param] > usl])
-                        outside_lsl = len(plot_df[plot_df[selected_param] < lsl])
-                        inside = len(plot_df) - outside_usl - outside_lsl
-                        
-                        fig_pie = px.pie(
-                            values=[inside, outside_usl, outside_lsl],
-                            names=['符合規格', '超過上限', '低於下限'],
-                            color_discrete_sequence=['#28a745', '#ff6b6b', '#ffc107'],
-                            title="規格符合率"
-                        )
-                        fig_pie.update_layout(height=450)
-                        st.plotly_chart(fig_pie, use_container_width=True)
-
-                    # 👇 👇 👇 請從這裡開始貼上這段 👇 👇 👇 
-                    
+                    # 🌟 新增：生產順序異常監控圖 (單一連線、有安全綠帶)
                     st.markdown("---")
                     st.markdown("### 📈 生產順序異常監控圖")
                     
-                    # 決定 X 軸要用什麼 (優先使用鋼捲號碼，否則用原始順序)
                     x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else plot_df.index
                     
-                    # 統一顏色不分群組，以凸顯趨勢與異常
                     fig_line = px.line(
                         plot_df, 
                         x=x_axis_col, 
                         y=selected_param, 
                         markers=True, 
                         title=f"【{selected_param}】 單一趨勢管制圖",
-                        color_discrete_sequence=['#667eea'] # 統一使用藍色線條
+                        color_discrete_sequence=['#667eea'] # 統一使用藍色線條，不分群組
                     )
                     
                     # 畫出綠色安全區塊
@@ -396,13 +374,11 @@ if uploaded_file is not None:
                     fig_line.add_hline(y=usl, line_dash="solid", line_color="red", annotation_text="USL")
                     fig_line.add_hline(y=lsl, line_dash="solid", line_color="red", annotation_text="LSL")
                     
-                    # 隱藏 X 軸密密麻麻的文字，保持畫面清爽
+                    # 隱藏 X 軸密密麻麻的文字
                     fig_line.update_xaxes(showticklabels=False, title_text="生產順序 (依照時間/鋼捲號碼)")
                     fig_line.update_layout(height=400)
                     
                     st.plotly_chart(fig_line, use_container_width=True)
-                    
-                    # 👆 👆 👆 貼到這裡為止 👆 👆 👆
 
         # ============ 標籤 2：多時段對比分析 ============
         with tab_comparison:
