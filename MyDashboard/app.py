@@ -5,11 +5,32 @@ import plotly.express as px
 st.set_page_config(page_title="高階分析儀表板", layout="wide", page_icon="📈")
 
 # ---------------------------------------------------------
-# 🚀 效能超級引擎：加入快取記憶體 (Cache)
+# ✨ 視覺優化補丁：解決中文字體模糊問題
+# ---------------------------------------------------------
+st.markdown("""
+<style>
+    /* 強制使用微軟正黑體，並優化字體邊緣渲染 */
+    html, body, [class*="css"] {
+        font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif !important;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+    }
+    /* 針對下拉選單的字體加粗、放大、增強對比 */
+    div[data-baseweb="select"] {
+        font-size: 16px !important;
+        font-weight: 600 !important;
+    }
+    div[data-baseweb="popover"] {
+        font-family: 'Microsoft JhengHei', sans-serif !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------------------------------------------------
+# 🚀 快取記憶體引擎
 # ---------------------------------------------------------
 @st.cache_data
 def load_and_clean_data(file):
-    # 讀取檔案
     if file.name.endswith('.csv'):
         try:
             df = pd.read_csv(file, encoding='utf-8')
@@ -20,7 +41,6 @@ def load_and_clean_data(file):
         
     df.columns = df.columns.str.replace('\n', '', regex=False).str.replace('\r', '', regex=False).str.strip()
     
-    # 🛡️ 您的專屬擴充白名單
     whitelist = [
         '產出鋼捲號碼', '生產日期', '試驗等級', '訂單厚度', '訂單寬度', 
         '熱軋材質', '產品規格代碼', 'RTF板溫', '線速度', 
@@ -30,7 +50,6 @@ def load_and_clean_data(file):
         '矽(%x100)', '鋁(%x1000)', '銅(%x100)', '鎳(%x100)', 
         '鉻(%x100)', '鉬(%x100)', '錫(%x1000)'
     ]
-    
     target_cols = [col for col in whitelist if col in df.columns]
     df = df[target_cols]
     
@@ -66,7 +85,6 @@ with st.sidebar:
 st.title("📊 鋼捲品質異常分析儀表板")
 
 if uploaded_file is not None:
-    # 載入並快取資料
     raw_df = load_and_clean_data(uploaded_file)
     df = raw_df.copy()
 
@@ -101,7 +119,8 @@ if uploaded_file is not None:
         st.markdown("### 📊 篩選結果總覽")
         col1, col2, col3 = st.columns(3)
         col1.metric("總比對鋼捲數", f"{len(df)} 顆")
-        col2.metric("分析參數平均值", f"{df[selected_param].mean():.2f}")
+        avg_val = df[selected_param].mean()
+        col2.metric(f"【{selected_param}】平均值", f"{avg_val:.2f}")
         col3.metric("涵蓋規格數量", f"{df['產品規格代碼'].nunique() if '產品規格代碼' in df.columns else 0} 種")
         st.markdown("---")
         
@@ -113,21 +132,33 @@ if uploaded_file is not None:
             else:
                 color_map[group] = px.colors.qualitative.Set1[i % len(px.colors.qualitative.Set1)]
         
-        fig = px.line(
-            df, 
-            x="產出鋼捲號碼", 
-            y=selected_param, 
-            color="比對群組", 
-            markers=True, 
-            color_discrete_map=color_map,
-            title=f"📈 【{selected_param}】 跨區間分布趨勢圖"
-        )
+        # 👑 加入分頁功能，提供不同視角的圖表
+        tab1, tab2 = st.tabs(["📈 趨勢折線圖 (看生產順序)", "📦 箱型圖對比 (看群組分佈與離群值)"])
         
-        fig.update_xaxes(categoryorder='array', categoryarray=df['產出鋼捲號碼'].unique())
-        fig.update_traces(connectgaps=True)
-        fig.update_layout(legend_title_text='年份月份 - 試驗等級', height=500)
-        
-        st.plotly_chart(fig, use_container_width=True)
+        with tab1:
+            fig_line = px.line(
+                df, x="產出鋼捲號碼", y=selected_param, color="比對群組", 
+                markers=True, color_discrete_map=color_map,
+                title=f"【{selected_param}】 跨區間分布趨勢圖"
+            )
+            # 副總視角：畫出全體平均基準線
+            fig_line.add_hline(y=avg_val, line_dash="dash", line_color="green", 
+                               annotation_text=f"全體平均: {avg_val:.2f}", annotation_position="bottom right")
+                               
+            fig_line.update_xaxes(categoryorder='array', categoryarray=df['產出鋼捲號碼'].unique())
+            fig_line.update_traces(connectgaps=True)
+            st.plotly_chart(fig_line, use_container_width=True)
+            
+        with tab2:
+            # 這是專業統計與品保部門最愛的圖表
+            fig_box = px.box(
+                df, x="比對群組", y=selected_param, color="比對群組",
+                color_discrete_map=color_map,
+                points="all", # 顯示所有資料點
+                title=f"【{selected_param}】 正常品 vs 異常品 (7B) 數據分佈對比"
+            )
+            st.plotly_chart(fig_box, use_container_width=True)
+            st.caption("💡 提示：箱型圖可一眼看出 7B 異常品的數值是否整體偏低/偏高，或是變異數(波動)過大。")
         
     elif df.empty:
         st.warning("⚠️ 目前的篩選條件下沒有找到任何鋼捲資料，請放寬左側的篩選條件！")
