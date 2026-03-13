@@ -419,7 +419,7 @@ if uploaded_file is not None:
 
         # ============ 標籤 2：多時段對比分析 ============
         with tab_comparison:
-            st.markdown("### 🔄 多時段對比分析 (層峰決策版)")
+            
             st.markdown("比對不同時段、規格的生產品質差異，識別異常點")
             
             # 對比條件設置
