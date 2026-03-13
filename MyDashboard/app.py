@@ -21,16 +21,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 @st.cache_data
-def load_and_clean_data(file):
-    if file.name.endswith('.csv'):
+def load_and_clean_data(file_bytes: bytes, file_name: str):
+    import io
+    if file_name.endswith('.csv'):
         try:
-            df = pd.read_csv(file, encoding='utf-8')
+            df = pd.read_csv(io.BytesIO(file_bytes), encoding='utf-8')
         except UnicodeDecodeError:
-            df = pd.read_csv(file, encoding='big5') 
+            df = pd.read_csv(io.BytesIO(file_bytes), encoding='big5')
     else:
-        df = pd.read_excel(file)
-        
-    df.columns = df.columns.astype(str).str.strip().str.upper()
+        df = pd.read_excel(io.BytesIO(file_bytes))
+    # ... 以下不變
     
     # 📖 終極翻譯字典
     rename_dict = {
@@ -97,7 +97,7 @@ with st.sidebar:
 st.title("📊 鍍三線品質與製程能力 (SPC) 儀表板")
 
 if uploaded_file is not None:
-    raw_df = load_and_clean_data(uploaded_file)
+    raw_df = load_and_clean_data(uploaded_file.read(), uploaded_file.name)
     df = raw_df.copy()
 
     # 🧠 模式判定
@@ -267,3 +267,4 @@ if uploaded_file is not None:
 
 else:
     st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動判別檔案類型並產生圖表。")
+
