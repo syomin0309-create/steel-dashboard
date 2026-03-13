@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
+import re
 
 st.set_page_config(page_title="鍍三線高階分析儀表板", layout="wide", page_icon="📈", initial_sidebar_state="expanded")
 
@@ -68,15 +69,16 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
     else:
         df = pd.read_excel(io.BytesIO(file_bytes))
         
-    df.columns = df.columns.astype(str).str.strip().str.upper()
+    # 🌟 終極殺手鐧：徹底清除欄位名稱中的所有「空白、換行(\n)、不可見字元」
+    df.columns = df.columns.astype(str).str.replace(r'\s+', '', regex=True).str.upper()
     
-    # 📖 中文列名對應 (兼容多種匯出格式)
+    # 📖 中文列名對應 (已移除會干擾的「投入厚度」、「實測寬度」，讓他精準抓取「訂單厚度」)
     rename_mapping = [
         (['鋼捲號碼', 'COIL_NO'], '產出鋼捲號碼'),
         (['PRODUCTION_DATE'], '生產日期'),
         (['QUALITY_CLASS', '投入等級'], '試驗等級'),
-        (['BASE_METAL_THICK', '投入厚度'], '訂單厚度'),
-        (['REAL_WIDTH', '實測寬度'], '訂單寬度'),
+        (['BASE_METAL_THICK'], '訂單厚度'),
+        (['REAL_WIDTH'], '訂單寬度'),
         (['COAT_STD_MIN', 'MIN_COAT_WEIGHT', '鍍層下限', '理論鍍層重', '鍍層下限值'], '鍍層下限管制值')
     ]
     
@@ -202,7 +204,6 @@ if uploaded_file is not None:
             return selected
 
         # ========== 瀑布流連動核心 ==========
-        # 每一次過濾，都必須強制轉為字串 .astype(str) 進行比對，否則 0.483 等小數點會報錯！
         
         # 1. 生產年月
         f_month = create_cascading_filter('生產年月', df)
@@ -519,68 +520,3 @@ if uploaded_file is not None:
                             diff_color = "🔴" if abs(mean_diff_pct) > 5 else "🟡" if abs(mean_diff_pct) > 2 else "🟢"
                             
                             st.markdown(f"""
-                            <div class="compare-section" style="background: #f0f7ff;">
-                                <h4>變化 (B vs A)</h4>
-                                <strong>{diff_color} 平均值差異</strong><br><br>
-                                差值: <strong>{mean_diff:+.4f}</strong><br>
-                                變化率: <strong>{mean_diff_pct:+.2f}%</strong><br>
-                                標準差比: <strong>{(stats_b['std']/stats_a['std']) if stats_a['std']!=0 else 0:.2f}x</strong>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        with comp_card_col3:
-                            st.markdown(f"""
-                            <div class="compare-section">
-                                <h4>時段 B</h4>
-                                <strong>{" + ".join(period_b_months)}</strong><br><br>
-                                🔹 樣本數: <strong>{stats_b['count']}</strong><br>
-                                🔹 平均值: <strong>{stats_b['mean']:.4f}</strong><br>
-                                🔹 標準差: <strong>{stats_b['std']:.4f}</strong>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        st.markdown("---")
-                        chart_col1, chart_col2 = st.columns(2)
-                        
-                        with chart_col1:
-                            fig_comp_hist = go.Figure()
-                            fig_comp_hist.add_trace(go.Histogram(x=df_a_clean[selected_param_comp], name="時段A", opacity=0.7, marker_color='#667eea'))
-                            fig_comp_hist.add_trace(go.Histogram(x=df_b_clean[selected_param_comp], name="時段B", opacity=0.7, marker_color='#ff6b6b'))
-                            fig_comp_hist.update_layout(barmode='overlay', height=400, title=f"【{selected_param_comp}】分佈對比")
-                            st.plotly_chart(fig_comp_hist, use_container_width=True)
-                        
-                        with chart_col2:
-                            df_comparison = pd.concat([df_a_clean.assign(時段='A'), df_b_clean.assign(時段='B')])
-                            fig_box_comp = px.box(df_comparison, x='時段', y=selected_param_comp, color='時段', 
-                                                 color_discrete_map={'A': '#667eea', 'B': '#ff6b6b'}, title=f"箱型圖對比")
-                            fig_box_comp.update_layout(height=400, showlegend=False)
-                            st.plotly_chart(fig_box_comp, use_container_width=True)
-
-        # ============ 數據匯出 ============
-        st.markdown("---")
-        st.markdown("### 💾 數據匯出")
-        csv_data = filtered_df.to_csv(index=False).encode('utf-8-sig')
-        st.download_button("📥 下載目前篩選數據 (CSV)", data=csv_data, file_name='鍍三線_品質分析資料.csv', mime='text/csv')
-
-else:
-    # 初始提示頁面
-    st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動進行分析")
-    
-    col_info1, col_info2 = st.columns(2)
-    with col_info1:
-        st.markdown("""
-        ### ✨ 主要功能
-        - 📊 單一參數的詳細 SPC 分析
-        - 🔄 多時段對比分析
-        - 🔍 異常點自動識別
-        - 📈 趨勢走勢可視化
-        """)
-    
-    with col_info2:
-        st.markdown("""
-        ### 🎯 層峰視角
-        - 快速掌握品質狀況
-        - 不同時段的對比評估
-        - 規格條件精確篩選
-        - 異常點精準定位
-        """)
