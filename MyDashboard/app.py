@@ -33,7 +33,7 @@ def load_and_clean_data(file):
     # 統一將標題轉為大寫並去除隱藏空白
     df.columns = df.columns.astype(str).str.strip().str.upper()
     
-    # 📖 官方翻譯字典
+    # 📖 官方翻譯字典 (只翻譯系統標準欄位，避開 XRAY 名稱衝突)
     rename_dict = {
         'COIL_NO': '產出鋼捲號碼',
         '鋼捲號碼': '產出鋼捲號碼',
@@ -43,24 +43,8 @@ def load_and_clean_data(file):
         'REAL_WIDTH': '訂單寬度',
         '投入厚度': '訂單厚度',
         '實測寬度': '訂單寬度',
-        
-        # 您剛剛提到的 XRAY 欄位對應
-        'NORTH_TOP_COAT_WEIGHT': '北正面鍍層',
-        'CENTER_TOP_COAT_WEIGHT': '中正面鍍層',
-        'SOUTH_TOP_COAT_WEIGHT': '南正面鍍層',
-        'NORTH_BACK_COAT_WEIGHT': '北背面鍍層',
-        'CENTER_BACK_COAT_WEIGHT': '中背面鍍層',
-        'SOUTH_BACK_COAT_WEIGHT': '南背面鍍層',
-        
-        # 保留可能出現的簡稱，統一翻譯成標準中文
-        'XRAY_A_T_N': '北正面鍍層',
-        'XRAY_A_T_C': '中正面鍍層',
-        'XRAY_A_T_S': '南正面鍍層',
-        'XRAY_A_B_N': '北背面鍍層',
-        'XRAY_A_B_C': '中背面鍍層',
-        'XRAY_A_B_S': '南背面鍍層',
-        
-        # 鍍層下限管制值
+        # 🌟 鍍層下限管制值 (支援新版檔案的 COAT_STD_MIN)
+        'COAT_STD_MIN': '鍍層下限管制值',
         'MIN_COAT_WEIGHT': '鍍層下限管制值',
         '鍍層下限': '鍍層下限管制值',
         '理論鍍層重': '鍍層下限管制值'
@@ -68,31 +52,34 @@ def load_and_clean_data(file):
     df.rename(columns=rename_dict, inplace=True)
 
     # ---------------------------------------------------------
-    # 🚀 自動計算雙面總鍍層量 (支援 3 種極端命名格式)
+    # 🚀 智慧運算核心：自動尋找數據最完整的 XRAY 欄位組合
     # ---------------------------------------------------------
-    # 格式 1：經過字典翻譯後的簡稱 (包含您說的 XRAY_A_T_N 等)
-    coat_cols_1 = ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
-    # 格式 2：超完整中文全稱
-    coat_cols_2 = ['鋼捲全板上板北側量側數據(XRAY設備)', '鋼捲全板上板中線量側數據(XRAY設備)', '鋼捲全板上板南側量側數據(XRAY設備)',
-                   '鋼捲全板下板北側量側數據(XRAY設備)', '鋼捲全板下板中線量側數據(XRAY設備)', '鋼捲全板下板南側量側數據(XRAY設備)']
-    # 格式 3：萬一字典翻譯漏接，直接抓最原始的英文欄位
-    coat_cols_3 = ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S']
+    xray_sets = [
+        ['NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
+         'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT'],
+        ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'],
+        ['鋼捲全板上板北側量側數據(XRAY設備)', '鋼捲全板上板中線量側數據(XRAY設備)', '鋼捲全板上板南側量側數據(XRAY設備)',
+         '鋼捲全板下板北側量側數據(XRAY設備)', '鋼捲全板下板中線量側數據(XRAY設備)', '鋼捲全板下板南側量側數據(XRAY設備)'],
+        ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
+    ]
     
-    active_coat_cols = None
-    if all(col in df.columns for col in coat_cols_1):
-        active_coat_cols = coat_cols_1
-    elif all(col in df.columns for col in coat_cols_2):
-        active_coat_cols = coat_cols_2
-    elif all(col in df.columns for col in coat_cols_3):
-        active_coat_cols = coat_cols_3
-
-    # 執行加總與平均計算！
-    if active_coat_cols:
-        for col in active_coat_cols:
+    best_set = None
+    max_valid = -1
+    
+    # 掃描所有可能的組合，找出裡面「真正有數字」最多的一組！
+    for cols in xray_sets:
+        if all(col in df.columns for col in cols):
+            valid_count = df[cols].apply(pd.to_numeric, errors='coerce').notna().sum().sum()
+            if valid_count > max_valid:
+                max_valid = valid_count
+                best_set = cols
+                
+    if best_set and max_valid > 0:
+        for col in best_set:
             df[col] = pd.to_numeric(df[col], errors='coerce')
         # 公式：(正面北+中+南)/3 + (背面北+中+南)/3
-        df['雙面總鍍層量(AVG)'] = (df[active_coat_cols[0]] + df[active_coat_cols[1]] + df[active_coat_cols[2]]) / 3 + \
-                                (df[active_coat_cols[3]] + df[active_coat_cols[4]] + df[active_coat_cols[5]]) / 3
+        df['雙面總鍍層量(AVG)'] = (df[best_set[0]] + df[best_set[1]] + df[best_set[2]]) / 3 + \
+                                (df[best_set[3]] + df[best_set[4]] + df[best_set[5]]) / 3
 
     def extract_year_month(date_val):
         try:
@@ -159,6 +146,8 @@ if uploaded_file is not None:
     exclude_sys = ['產出鋼捲號碼', '試驗等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO', '鍍層下限管制值',
                    '北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層',
                    'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S',
+                   'NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
+                   'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT',
                    '鋼捲全板上板北側量側數據(XRAY設備)', '鋼捲全板上板中線量側數據(XRAY設備)', '鋼捲全板上板南側量側數據(XRAY設備)',
                    '鋼捲全板下板北側量側數據(XRAY設備)', '鋼捲全板下板中線量側數據(XRAY設備)', '鋼捲全板下板南側量側數據(XRAY設備)'] 
     
