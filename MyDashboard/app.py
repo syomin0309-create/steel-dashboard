@@ -382,7 +382,7 @@ if uploaded_file is not None:
                     y=selected_param, 
                     color="比對群組",
                     title=f"【{selected_param}】 群組箱型圖對比",
-                    points="outliers" # 顯示極端值
+                    points="all" # 顯示極端值
                 )
                 
                 fig_box.add_hline(y=target, line_dash="dash", line_color="green", annotation_text="中心值")
