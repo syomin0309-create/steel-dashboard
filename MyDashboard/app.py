@@ -30,6 +30,7 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
             df = pd.read_csv(io.BytesIO(file_bytes), encoding='big5')
     else:
         df = pd.read_excel(io.BytesIO(file_bytes))
+    return df  # 👈 加上這一行！
     # ... 以下不變
     
     # 📖 終極翻譯字典
@@ -119,11 +120,14 @@ if uploaded_file is not None:
         file_key = uploaded_file.name
         
         def create_filter(col_name):
-            if col_name in df.columns:
-                options = df[col_name].dropna().unique().tolist()
-                # 加上 key 參數，換檔案時系統就會強制重置選單！
-                return st.multiselect(f"過濾 {col_name}", options, key=f"filter_{file_key}_{col_name}")
+    if col_name in df.columns:
+        try:
+            options = df[col_name].dropna().astype(str).unique().tolist()
+            return st.multiselect(f"過濾 {col_name}", options, key=f"filter_{file_key}_{col_name}")
+        except Exception as e:
+            st.warning(f"無法載入 {col_name} 的篩選選項：{e}")
             return []
+    return []
             
         f_month = create_filter('生產年月')
         f_thick = create_filter('訂單厚度')
@@ -267,4 +271,5 @@ if uploaded_file is not None:
 
 else:
     st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動判別檔案類型並產生圖表。")
+
 
