@@ -511,12 +511,11 @@ if uploaded_file is not None:
                                 🔹 樣本數: <strong>{stats_a['count']}</strong><br>
                                 🔹 平均值: <strong>{stats_a['mean']:.4f}</strong><br>
                                 🔹 標準差: <strong>{stats_a['std']:.4f}</strong>
-                            </div>
-                            """, unsafe_allow_html=True)
+                            </div>""", unsafe_allow_html=True)
                         
                         with comp_card_col2:
                             mean_diff = stats_b['mean'] - stats_a['mean']
                             mean_diff_pct = (mean_diff / stats_a['mean'] * 100) if stats_a['mean'] != 0 else 0
                             diff_color = "🔴" if abs(mean_diff_pct) > 5 else "🟡" if abs(mean_diff_pct) > 2 else "🟢"
                             
-                            st.markdown(f"""
+                            <strong>{' + '.join(period_a_months)}</strong>
