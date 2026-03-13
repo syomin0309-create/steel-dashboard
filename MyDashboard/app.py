@@ -2,33 +2,24 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="鍍三線高階分析儀表板", layout="wide", page_icon="📈")
+# 設定網頁標題與寬螢幕
+st.set_page_config(page_title="鍍三線品質異常分析儀表板", layout="wide", page_icon="📊")
 
-# ---------------------------------------------------------
-# ✨ 視覺優化補丁：解決中文字體模糊問題
-# ---------------------------------------------------------
+# 解決 Windows 中文字體模糊的隱藏補丁
 st.markdown("""
 <style>
-    /* 強制使用微軟正黑體，並優化字體邊緣渲染 */
     html, body, [class*="css"] {
         font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif !important;
         -webkit-font-smoothing: antialiased !important;
-        -moz-osx-font-smoothing: grayscale !important;
     }
-    /* 針對下拉選單的字體加粗、放大、增強對比 */
     div[data-baseweb="select"] {
         font-size: 16px !important;
-        font-weight: 600 !important;
-    }
-    div[data-baseweb="popover"] {
-        font-family: 'Microsoft JhengHei', sans-serif !important;
+        font-weight: bold !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------
-# 🚀 快取記憶體引擎
-# ---------------------------------------------------------
+# 快取與清洗資料引擎 (保留最核心的過濾功能)
 @st.cache_data
 def load_and_clean_data(file):
     if file.name.endswith('.csv'):
@@ -71,99 +62,70 @@ def load_and_clean_data(file):
         
     return df
 
-# ---------------------------------------------------------
-# 🎛️ 左側邊欄 (Sidebar) 
-# ---------------------------------------------------------
-with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2040/2040504.png", width=60)
-    st.header("⚙️ 儀表板控制中心")
-    uploaded_file = st.file_uploader("📂 上傳產線 RAW DATA", type=["xlsx", "csv"])
-
-# ---------------------------------------------------------
-# 📊 主畫面 (Main Area)
-# ---------------------------------------------------------
+# ==========================================
+# 網頁主畫面開始
+# ==========================================
 st.title("📊 鍍三線鋼捲品質異常分析儀表板")
 
+uploaded_file = st.file_uploader("📂 請上傳產線 RAW DATA (支援 Excel 或 CSV 檔)", type=["xlsx", "csv"])
+
 if uploaded_file is not None:
-    raw_df = load_and_clean_data(uploaded_file)
-    df = raw_df.copy()
-
-    with st.sidebar:
-        st.markdown("---")
-        st.subheader("🎯 規格交叉比對 (可多選)")
-        
-        def create_filter(col_name):
-            if col_name in df.columns:
-                options = df[col_name].dropna().unique().tolist()
-                return st.multiselect(f"過濾 {col_name}", options)
-            return []
-            
-        f_month = create_filter('生產年月')
-        f_thick = create_filter('訂單厚度')
-        f_width = create_filter('訂單寬度')
-        f_mat   = create_filter('熱軋材質')
-        f_spec  = create_filter('產品規格代碼')
-        
-    if f_month: df = df[df['生產年月'].isin(f_month)]
-    if f_thick: df = df[df['訂單厚度'].isin(f_thick)]
-    if f_width: df = df[df['訂單寬度'].isin(f_width)]
-    if f_mat:   df = df[df['熱軋材質'].isin(f_mat)]
-    if f_spec:  df = df[df['產品規格代碼'].isin(f_spec)]
-
+    df = load_and_clean_data(uploaded_file)
+    
+    # 準備下拉選單
     exclude_cols = ['產出鋼捲號碼', '試驗等級', '生產日期', '訂單厚度', '訂單寬度', '熱軋材質', '產品規格代碼', '比對群組', '生產年月'] 
     available_params = [col for col in df.columns if col not in exclude_cols]
     
     if available_params and not df.empty:
-        selected_param = st.selectbox("🔍 選擇分析參數 (Y軸)", available_params)
-        
-        st.markdown("### 📊 篩選結果總覽")
-        col1, col2, col3 = st.columns(3)
-        col1.metric("總比對鋼捲數", f"{len(df)} 顆")
-        avg_val = df[selected_param].mean()
-        col2.metric(f"【{selected_param}】平均值", f"{avg_val:.2f}")
-        col3.metric("涵蓋規格數量", f"{df['產品規格代碼'].nunique() if '產品規格代碼' in df.columns else 0} 種")
+        # 1. 簡潔的下拉選單
+        selected_param = st.selectbox("🔍 請選擇要分析的品質參數：", available_params)
         st.markdown("---")
         
+        # 2. 顏色設定 (7B 永遠是橘紅色)
         unique_groups = df['比對群組'].unique()
         color_map = {}
         for i, group in enumerate(unique_groups):
             if "7B" in str(group):
-                color_map[group] = "#ff4b4b"  
+                color_map[group] = "#ff4b4b"  # 亮橘紅色
             else:
                 color_map[group] = px.colors.qualitative.Set1[i % len(px.colors.qualitative.Set1)]
         
-        # 👑 加入分頁功能，提供不同視角的圖表
-        tab1, tab2 = st.tabs(["📈 趨勢折線圖 (看生產順序)", "📦 箱型圖對比 (看群組分佈與離群值)"])
+        # 3. 繪製乾淨的折線圖
+        fig = px.line(
+            df, 
+            x="產出鋼捲號碼", 
+            y=selected_param, 
+            color="比對群組", 
+            markers=True, 
+            color_discrete_map=color_map,
+            title=f"📈 【{selected_param}】 分布趨勢圖"
+        )
         
-        with tab1:
-            fig_line = px.line(
-                df, x="產出鋼捲號碼", y=selected_param, color="比對群組", 
-                markers=True, color_discrete_map=color_map,
-                title=f"【{selected_param}】 跨區間分布趨勢圖"
-            )
-            # 副總視角：畫出全體平均基準線
-            fig_line.add_hline(y=avg_val, line_dash="dash", line_color="green", 
-                               annotation_text=f"全體平均: {avg_val:.2f}", annotation_position="bottom right")
-                               
-            fig_line.update_xaxes(categoryorder='array', categoryarray=df['產出鋼捲號碼'].unique())
-            fig_line.update_traces(connectgaps=True)
-            st.plotly_chart(fig_line, use_container_width=True)
-            
-        with tab2:
-            # 這是專業統計與品保部門最愛的圖表
-            fig_box = px.box(
-                df, x="比對群組", y=selected_param, color="比對群組",
-                color_discrete_map=color_map,
-                points="all", # 顯示所有資料點
-                title=f"【{selected_param}】 正常品 vs 異常品 (7B) 數據分佈對比"
-            )
-            st.plotly_chart(fig_box, use_container_width=True)
-            st.caption("💡 提示：箱型圖可一眼看出 7B 異常品的數值是否整體偏低/偏高，或是變異數(波動)過大。")
+        fig.update_xaxes(categoryorder='array', categoryarray=df['產出鋼捲號碼'].unique())
+        fig.update_traces(connectgaps=True)
+        fig.update_layout(legend_title_text='年份月份 - 試驗等級', height=500)
         
-    elif df.empty:
-        st.warning("⚠️ 目前的篩選條件下沒有找到任何鋼捲資料，請放寬左側的篩選條件！")
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # ---------------------------------------------------------
+        # 📥 新增功能：資料匯出區塊
+        # ---------------------------------------------------------
+        st.markdown("---")
+        st.subheader("💾 資料匯出")
+        st.write("您可以將目前網頁上處理過、過濾掉空白的乾淨資料下載回去備存。")
+        
+        # 將 DataFrame 轉成 CSV 格式 (使用 utf-8-sig 確保 Excel 打開中文不會亂碼)
+        csv_data = df.to_csv(index=False).encode('utf-8-sig')
+        
+        st.download_button(
+            label="📥 下載乾淨資料 (CSV檔)",
+            data=csv_data,
+            file_name='鍍三線_異常分析清洗資料.csv',
+            mime='text/csv'
+        )
+        
     else:
-        st.warning("⚠️ 找不到數值欄位，請檢查資料來源。")
+        st.warning("⚠️ 找不到可以用來分析的數值欄位，請檢查上傳的資料。")
 
 else:
-    st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動進行清洗與分析。")
+    st.info("請從上方上傳資料檔案，圖表就會自動生成囉！")
