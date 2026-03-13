@@ -33,7 +33,7 @@ def load_and_clean_data(file):
     # 統一將標題轉為大寫並去除隱藏空白
     df.columns = df.columns.astype(str).str.strip().str.upper()
     
-    # 📖 官方翻譯字典 (包含您提供的對照表，並預留鍍層下限的各種可能叫法)
+    # 📖 官方翻譯字典
     rename_dict = {
         'COIL_NO': '產出鋼捲號碼',
         '鋼捲號碼': '產出鋼捲號碼',
@@ -43,19 +43,24 @@ def load_and_clean_data(file):
         'REAL_WIDTH': '訂單寬度',
         '投入厚度': '訂單厚度',
         '實測寬度': '訂單寬度',
+        
+        # 您剛剛提到的 XRAY 欄位對應
         'NORTH_TOP_COAT_WEIGHT': '北正面鍍層',
         'CENTER_TOP_COAT_WEIGHT': '中正面鍍層',
         'SOUTH_TOP_COAT_WEIGHT': '南正面鍍層',
         'NORTH_BACK_COAT_WEIGHT': '北背面鍍層',
         'CENTER_BACK_COAT_WEIGHT': '中背面鍍層',
         'SOUTH_BACK_COAT_WEIGHT': '南背面鍍層',
+        
+        # 保留可能出現的簡稱，統一翻譯成標準中文
         'XRAY_A_T_N': '北正面鍍層',
         'XRAY_A_T_C': '中正面鍍層',
         'XRAY_A_T_S': '南正面鍍層',
         'XRAY_A_B_N': '北背面鍍層',
         'XRAY_A_B_C': '中背面鍍層',
         'XRAY_A_B_S': '南背面鍍層',
-        # 預防公司系統將「鍍層下限管制值」叫成別的名字
+        
+        # 鍍層下限管制值
         'MIN_COAT_WEIGHT': '鍍層下限管制值',
         '鍍層下限': '鍍層下限管制值',
         '理論鍍層重': '鍍層下限管制值'
@@ -63,21 +68,29 @@ def load_and_clean_data(file):
     df.rename(columns=rename_dict, inplace=True)
 
     # ---------------------------------------------------------
-    # 🚀 自動計算雙面總鍍層量 
+    # 🚀 自動計算雙面總鍍層量 (支援 3 種極端命名格式)
     # ---------------------------------------------------------
+    # 格式 1：經過字典翻譯後的簡稱 (包含您說的 XRAY_A_T_N 等)
     coat_cols_1 = ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
+    # 格式 2：超完整中文全稱
     coat_cols_2 = ['鋼捲全板上板北側量側數據(XRAY設備)', '鋼捲全板上板中線量側數據(XRAY設備)', '鋼捲全板上板南側量側數據(XRAY設備)',
                    '鋼捲全板下板北側量側數據(XRAY設備)', '鋼捲全板下板中線量側數據(XRAY設備)', '鋼捲全板下板南側量側數據(XRAY設備)']
+    # 格式 3：萬一字典翻譯漏接，直接抓最原始的英文欄位
+    coat_cols_3 = ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S']
     
     active_coat_cols = None
     if all(col in df.columns for col in coat_cols_1):
         active_coat_cols = coat_cols_1
     elif all(col in df.columns for col in coat_cols_2):
         active_coat_cols = coat_cols_2
+    elif all(col in df.columns for col in coat_cols_3):
+        active_coat_cols = coat_cols_3
 
+    # 執行加總與平均計算！
     if active_coat_cols:
         for col in active_coat_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce')
+        # 公式：(正面北+中+南)/3 + (背面北+中+南)/3
         df['雙面總鍍層量(AVG)'] = (df[active_coat_cols[0]] + df[active_coat_cols[1]] + df[active_coat_cols[2]]) / 3 + \
                                 (df[active_coat_cols[3]] + df[active_coat_cols[4]] + df[active_coat_cols[5]]) / 3
 
@@ -131,8 +144,6 @@ if uploaded_file is not None:
         f_width = create_filter('訂單寬度')
         f_mat   = create_filter('熱軋材質')
         f_spec  = create_filter('產品規格代碼')
-        
-        # 🌟 新增：鍍層下限管制值篩選器
         f_coat_limit = create_filter('鍍層下限管制值')
         
     if f_month: df = df[df['生產年月'].isin(f_month)]
@@ -140,15 +151,14 @@ if uploaded_file is not None:
     if f_width: df = df[df['訂單寬度'].isin(f_width)]
     if f_mat:   df = df[df['熱軋材質'].isin(f_mat)]
     if f_spec:  df = df[df['產品規格代碼'].isin(f_spec)]
-    
-    # 🌟 套用鍍層下限過濾
     if f_coat_limit: df = df[df['鍍層下限管制值'].isin(f_coat_limit)]
 
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
     
-    # 🌟 隱藏系統用欄位 (包含剛加進去的鍍層下限管制值)
+    # 隱藏系統用欄位
     exclude_sys = ['產出鋼捲號碼', '試驗等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO', '鍍層下限管制值',
                    '北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層',
+                   'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S',
                    '鋼捲全板上板北側量側數據(XRAY設備)', '鋼捲全板上板中線量側數據(XRAY設備)', '鋼捲全板上板南側量側數據(XRAY設備)',
                    '鋼捲全板下板北側量側數據(XRAY設備)', '鋼捲全板下板中線量側數據(XRAY設備)', '鋼捲全板下板南側量側數據(XRAY設備)'] 
     
@@ -181,11 +191,10 @@ if uploaded_file is not None:
                 st.markdown("---")
                 st.markdown("### 📐 SPC 規格設定 (用於計算 Cpk)")
                 
-                # 自動化小巧思：如果使用者有選特定的「鍍層下限管制值」，就自動帶入規格下限的預設值！
+                # 自動帶入過濾器選擇的下限值
                 default_lsl = float(avg_val - 4 * std_val) if std_val > 0 else float(avg_val - 10)
                 if f_coat_limit and len(f_coat_limit) == 1:
                     try:
-                        # 嘗試將選取的下限轉為數字自動帶入 LSL
                         default_lsl = float(f_coat_limit[0])
                     except:
                         pass
@@ -194,7 +203,6 @@ if uploaded_file is not None:
                 with col_lsl:
                     lsl = st.number_input("規格下限 (LSL)", value=default_lsl)
                 with col_usl:
-                    # 規格上限預設給 LSL + 40 (可根據廠內標準自行調整)
                     usl = st.number_input("規格上限 (USL)", value=float(lsl + 40) if f_coat_limit else (float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10)))
                 with col_tar:
                     target = st.number_input("規格中心值 (Target)", value=float((usl + lsl) / 2))
