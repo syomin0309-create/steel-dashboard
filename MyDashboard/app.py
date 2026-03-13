@@ -30,57 +30,59 @@ def load_and_clean_data(file):
     else:
         df = pd.read_excel(file)
         
-    df.columns = df.columns.str.replace('\n', '', regex=False).str.replace('\r', '', regex=False).str.strip()
+    # 統一將標題轉為大寫並去除隱藏空白，避免因為大小寫不同而找不到
+    df.columns = df.columns.astype(str).str.strip().str.upper()
     
     # ---------------------------------------------------------
-    # 🧠 引擎 1：同義詞翻譯字典 (解決系統中英文夾雜)
+    # 📖 終極官方翻譯字典：結合您提供的對照表與系統標準
     # ---------------------------------------------------------
-    alias_dict = {
-        '產出鋼捲號碼': ['coil_no', 'coil no', '鋼捲號碼', '鋼捲編號', '產出鋼捲號碼'],
-        '生產日期': ['production_date', 'prod_date', 'date', '生產日期', '日期'],
-        '試驗等級': ['test_class', 'class', '試驗等級', '判定等級'],
-        '訂單厚度': ['base_metal_thick', 'thick', 'thickness', '訂單厚度', '厚度', '投入厚度'],
-        '訂單寬度': ['real_width', 'width', '訂單寬度', '寬度', '投入寬度'],
-        '熱軋材質': ['mat_code', 'material', '熱軋材質', '材質'],
-        '產品規格代碼': ['spec_code', 'spec', '產品規格代碼', '規格代碼', '規格']
+    rename_dict = {
+        # 識別資訊
+        'COIL_NO': '產出鋼捲號碼',
+        '鋼捲號碼': '產出鋼捲號碼',
+        'PRODUCTION_DATE': '生產日期',
+        'QUALITY_CLASS': '試驗等級',
+        
+        # 尺寸與規格
+        'BASE_METAL_THICK': '訂單厚度',
+        'REAL_WIDTH': '訂單寬度',
+        '投入厚度': '訂單厚度',
+        '實測寬度': '訂單寬度',
+        
+        # 鍍層專用 (將英文與XRAY代碼統一對應到簡化中文)
+        'NORTH_TOP_COAT_WEIGHT': '北正面鍍層',
+        'CENTER_TOP_COAT_WEIGHT': '中正面鍍層',
+        'SOUTH_TOP_COAT_WEIGHT': '南正面鍍層',
+        'NORTH_BACK_COAT_WEIGHT': '北背面鍍層',
+        'CENTER_BACK_COAT_WEIGHT': '中背面鍍層',
+        'SOUTH_BACK_COAT_WEIGHT': '南背面鍍層',
+        
+        'XRAY_A_T_N': '北正面鍍層',
+        'XRAY_A_T_C': '中正面鍍層',
+        'XRAY_A_T_S': '南正面鍍層',
+        'XRAY_A_B_N': '北背面鍍層',
+        'XRAY_A_B_C': '中背面鍍層',
+        'XRAY_A_B_S': '南背面鍍層'
     }
     
-    lookup = {}
-    for target, aliases in alias_dict.items():
-        for alias in aliases:
-            lookup[alias.lower()] = target
-            
-    new_cols = []
-    for col in df.columns:
-        cleaned_col = col.lower().strip()
-        if cleaned_col in lookup:
-            new_cols.append(lookup[cleaned_col])
-        else:
-            new_cols.append(col)
-    df.columns = new_cols
+    # 執行官方翻譯替換
+    df.rename(columns=rename_dict, inplace=True)
 
     # ---------------------------------------------------------
-    # 🧠 引擎 2：自動計算雙面總鍍層量
+    # 🚀 自動計算雙面總鍍層量 
+    # (只要經過上面的翻譯，有這6個欄位就直接算！)
     # ---------------------------------------------------------
-    # 支援您提供的 XRAY 縮寫版，以及系統匯出的英文版
-    xray_cols_1 = ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S']
-    xray_cols_2 = ['NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
-                   'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT']
-                   
-    active_xray_cols = None
-    if all(col in df.columns for col in xray_cols_1):
-        active_xray_cols = xray_cols_1
-    elif all(col in df.columns for col in xray_cols_2):
-        active_xray_cols = xray_cols_2
-
-    if active_xray_cols:
-        for col in active_xray_cols:
+    coat_cols = ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
+    
+    if all(col in df.columns for col in coat_cols):
+        for col in coat_cols:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-        # 公式：(正面北中南/3) + (背面北中南/3)
-        df['雙面總鍍層量(AVG)'] = (df[active_xray_cols[0]] + df[active_xray_cols[1]] + df[active_xray_cols[2]]) / 3 + \
-                                (df[active_xray_cols[3]] + df[active_xray_cols[4]] + df[active_xray_cols[5]]) / 3
+            
+        # 完美公式：(正北+正中+正南)/3 + (背北+背中+背南)/3
+        df['雙面總鍍層量(AVG)'] = (df['北正面鍍層'] + df['中正面鍍層'] + df['南正面鍍層']) / 3 + \
+                                (df['北背面鍍層'] + df['中背面鍍層'] + df['南背面鍍層']) / 3
 
-    # 日期轉換處理
+    # 日期與群組處理
     def extract_year_month(date_val):
         try:
             dt = pd.to_datetime(date_val)
@@ -91,7 +93,7 @@ def load_and_clean_data(file):
     if '生產日期' in df.columns:        
         df['生產年月'] = df['生產日期'].apply(extract_year_month)
     else:
-        df['生產年月'] = '未知年月'
+        df['生產年月'] = '全區間'
         
     return df
 
@@ -107,18 +109,16 @@ if uploaded_file is not None:
     df = raw_df.copy()
 
     # ---------------------------------------------------------
-    # 🧠 引擎 3：模式自動判定 (決定要不要顯示 7B 與多個圖表)
+    # 🧠 模式自動判定
     # ---------------------------------------------------------
     is_standard_mode = '試驗等級' in df.columns and not df['試驗等級'].dropna().empty
     
     if is_standard_mode:
-        # 如果是原始標準檔，剔除空白等級，建立比對群組
         df = df[df['試驗等級'].astype(str).str.strip() != ''] 
         df = df[df['試驗等級'].astype(str).str.lower() != 'nan']
         df["比對群組"] = df["生產年月"] + " - " + df["試驗等級"].astype(str)
         st.success("✅ 已偵測到『試驗等級』欄位，啟動【多維度旗艦分析模式】")
     else:
-        # 如果是鍍層專用檔，沒有試驗等級，群組統一為單一顏色
         df["比對群組"] = "全批次數據"
         st.info("ℹ️ 未偵測到『試驗等級』，系統自動切換為【CPK 製程能力專用模式】")
 
@@ -132,6 +132,7 @@ if uploaded_file is not None:
                 return st.multiselect(f"過濾 {col_name}", options)
             return []
             
+        # 有的檔案可能沒有材質，沒有關係，系統會自動略過不顯示錯誤
         f_month = create_filter('生產年月')
         f_thick = create_filter('訂單厚度')
         f_width = create_filter('訂單寬度')
@@ -144,29 +145,24 @@ if uploaded_file is not None:
     if f_mat:   df = df[df['熱軋材質'].isin(f_mat)]
     if f_spec:  df = df[df['產品規格代碼'].isin(f_spec)]
 
-    # 自動抓取所有數值欄位
+    # ---------------------------------------------------------
+    # 自動抓取數值欄位 (把翻譯完的英文原始欄位保留，但過濾掉系統用的)
+    # ---------------------------------------------------------
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-    exclude_sys = ['產出鋼捲號碼', '試驗等級', '生產日期', '訂單厚度', '訂單寬度', '比對群組', '生產年月',
-                   'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S',
-                   'NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
-                   'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT',
-                   'SHIFT_NO'] 
-    
+    exclude_sys = ['產出鋼捲號碼', '試驗等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO'] 
     available_params = [col for col in numeric_cols if col not in exclude_sys]
     
     if available_params and not df.empty:
-        # 如果有算出鍍層量，把它推到選單最前面方便點選
+        # 如果有算好總鍍層，強勢置頂第一順位！
         if '雙面總鍍層量(AVG)' in available_params:
             available_params.insert(0, available_params.pop(available_params.index('雙面總鍍層量(AVG)')))
             
         selected_param = st.selectbox("🔍 選擇分析參數 (自動過濾非數值欄位)", available_params)
-        
         plot_df = df.dropna(subset=[selected_param])
         
         if not plot_df.empty:
             avg_val = plot_df[selected_param].mean()
             std_val = plot_df[selected_param].std()
-            
             ucl = avg_val + 3 * std_val
             lcl = avg_val - 3 * std_val
             
@@ -195,8 +191,6 @@ if uploaded_file is not None:
             c4.metric("Cpk (綜合製程能力)", f"{cpk:.2f}", cpk_status)
             st.markdown("---")
             
-            # --- 繪圖區塊 ---
-            # 共用的 CPK 直方圖函數
             def draw_cpk_chart(data, param_name, c_color):
                 fig = px.histogram(
                     data, x=param_name, nbins=30, opacity=0.6, 
@@ -220,7 +214,6 @@ if uploaded_file is not None:
                 return fig
 
             if is_standard_mode:
-                # 【模式 A：原始標準檔】顯示 3 個分頁
                 unique_groups = plot_df['比對群組'].unique()
                 color_map = {grp: "#FFD700" if "7B" in str(grp) else px.colors.qualitative.Set1[i % len(px.colors.qualitative.Set1)] for i, grp in enumerate(unique_groups)}
                 
@@ -240,7 +233,6 @@ if uploaded_file is not None:
                 with tab3:
                     st.plotly_chart(draw_cpk_chart(plot_df, selected_param, '#4B8BBE'), use_container_width=True)
             else:
-                # 【模式 B：鍍層專用檔】只顯示 1 個 CPK 分頁，非常乾淨！
                 tab1, = st.tabs(["📊 CPK 製程能力分佈圖 (專用模式)"])
                 with tab1:
                     st.plotly_chart(draw_cpk_chart(plot_df, selected_param, '#4B8BBE'), use_container_width=True)
