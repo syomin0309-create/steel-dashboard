@@ -32,7 +32,7 @@ def load_and_clean_data(file):
         
     df.columns = df.columns.astype(str).str.strip().str.upper()
     
-    # 📖 終極翻譯字典 (預防您自己加上去的欄位名稱不同)
+    # 📖 終極翻譯字典
     rename_dict = {
         'COIL_NO': '產出鋼捲號碼',
         '鋼捲號碼': '產出鋼捲號碼',
@@ -46,36 +46,34 @@ def load_and_clean_data(file):
         'MIN_COAT_WEIGHT': '鍍層下限管制值',
         '鍍層下限': '鍍層下限管制值',
         '理論鍍層重': '鍍層下限管制值',
-        '鍍層下限值': '鍍層下限管制值',
-        # 如果您在 Excel 自己手算，叫這些名字也會被系統承認
-        '總鍍層量': '雙面總鍍層量(AVG)',
-        'AVG': '雙面總鍍層量(AVG)'
+        '鍍層下限值': '鍍層下限管制值' 
     }
     df.rename(columns=rename_dict, inplace=True)
 
-    # ---------------------------------------------------------
-    # 🚀 暴力運算引擎：只要找到欄位，不囉嗦直接算！
-    # ---------------------------------------------------------
-    # 確保如果 Excel 裡面沒有算好，系統才會自己算
-    if '雙面總鍍層量(AVG)' not in df.columns:
-        xray_sets = [
-            ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'],
-            ['NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
-             'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT'],
-            ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
-        ]
-        
-        for cols in xray_sets:
-            # 只要確認這 6 個標題存在
-            if all(col in df.columns for col in cols):
-                for col in cols:
-                    # 強制轉為數字，無法轉換的空值直接變 NaN
-                    df[col] = pd.to_numeric(df[col], errors='coerce')
+    # 🚀 自動計算雙面總鍍層量 
+    xray_sets = [
+        ['XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S'],
+        ['NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
+         'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT'],
+        ['北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層']
+    ]
+    
+    best_set = None
+    max_valid = -1
+    
+    for cols in xray_sets:
+        if all(col in df.columns for col in cols):
+            valid_count = df[cols].apply(pd.to_numeric, errors='coerce').notna().sum().sum()
+            if valid_count > max_valid:
+                max_valid = valid_count
+                best_set = cols
                 
-                # 直接硬生生地產生欄位！
-                df['雙面總鍍層量(AVG)'] = (df[cols[0]] + df[cols[1]] + df[cols[2]]) / 3 + \
-                                        (df[cols[3]] + df[cols[4]] + df[cols[5]]) / 3
-                break # 算完就收工跳出
+    if best_set and max_valid > 0:
+        for col in best_set:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        # 公式：(正面北+中+南)/3 + (背面北+中+南)/3
+        df['雙面總鍍層量(AVG)'] = (df[best_set[0]] + df[best_set[1]] + df[best_set[2]]) / 3 + \
+                                (df[best_set[3]] + df[best_set[4]] + df[best_set[5]]) / 3
 
     def extract_year_month(date_val):
         try:
@@ -116,10 +114,15 @@ if uploaded_file is not None:
     with st.sidebar:
         st.markdown("---")
         st.subheader("🎯 規格交叉比對 (可多選)")
+        
+        # 🌟 解決 Streamlit 記憶錯亂的核心：為每個選單綁定檔案專屬 Key
+        file_key = uploaded_file.name
+        
         def create_filter(col_name):
             if col_name in df.columns:
                 options = df[col_name].dropna().unique().tolist()
-                return st.multiselect(f"過濾 {col_name}", options)
+                # 加上 key 參數，換檔案時系統就會強制重置選單！
+                return st.multiselect(f"過濾 {col_name}", options, key=f"filter_{file_key}_{col_name}")
             return []
             
         f_month = create_filter('生產年月')
@@ -140,7 +143,6 @@ if uploaded_file is not None:
 
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
     
-    # 隱藏系統用欄位
     exclude_sys = ['產出鋼捲號碼', '試驗等級', '投入等級', '生產日期', '比對群組', '生產年月', 'SHIFT_NO', '鍍層下限管制值',
                    '北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層',
                    'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S',
@@ -149,12 +151,12 @@ if uploaded_file is not None:
     
     available_params = [col for col in numeric_cols if col not in exclude_sys]
     
-    # 🌟 100% 絕對防呆寫法：只要有這個欄位，就推到選單第一位
     if '雙面總鍍層量(AVG)' in available_params:
         available_params = ['雙面總鍍層量(AVG)'] + [x for x in available_params if x != '雙面總鍍層量(AVG)']
     
     if available_params and not df.empty:
-        selected_param = st.selectbox("🔍 選擇分析參數", available_params)
+        # 🌟 主要選單也加上 Key 防呆
+        selected_param = st.selectbox("🔍 選擇分析參數", available_params, key=f"param_{file_key}")
         plot_df = df.dropna(subset=[selected_param])
         
         if not plot_df.empty:
