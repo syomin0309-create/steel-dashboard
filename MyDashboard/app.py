@@ -135,13 +135,22 @@ if uploaded_file is not None:
     raw_df = load_and_clean_data(uploaded_file.read(), uploaded_file.name)
     df = raw_df.copy()
 
-    is_standard_mode = '試驗等級' in df.columns and not df['試驗等級'].dropna().empty
-    
-    if is_standard_mode:
-        df = df[df['試驗等級'].astype(str).str.strip() != ''] 
-        df = df[df['試驗等級'].astype(str).str.lower() != 'nan']
-        df["比對群組"] = df["生產年月"] + " - " + df["試驗等級"].astype(str)
+    # 🧠 模式判定與空值精準過濾
+    if '試驗等級' in df.columns:
+        # 1. 物理消除真正的空值 (NaN)
+        df = df.dropna(subset=['試驗等級'])
+        
+        # 2. 轉為字串並剃除前後隱藏空白
+        df['試驗等級'] = df['試驗等級'].astype(str).str.strip()
+        
+        # 3. 殺掉長度為 0 的字串，或是被系統誤判成 'nan', 'null' 的無效資料
+        df = df[df['試驗等級'] != '']
+        df = df[~df['試驗等級'].str.lower().isin(['nan', 'null', 'none', 'na'])]
+        
+        # 4. 經過嚴格過濾後，將剩下的乾淨資料建立群組
+        df["比對群組"] = df["生產年月"] + " - " + df["試驗等級"]
     else:
+        # 檔案若無「試驗等級」欄位，則順其自然不強制過濾，保留所有資料
         df["比對群組"] = "全批次數據"
 
     with st.sidebar:
