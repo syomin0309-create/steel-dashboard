@@ -121,10 +121,10 @@ try:
     glow_css = f"""
     <style>
     .glowing-logo {{
-        width: 60px; /* 這裡可以調整圖片顯示的寬度 */
+        width: 500px; /* 這裡可以調整圖片顯示的寬度 */
         /* 下面這行是發光核心：(X偏移, Y偏移, 模糊程度, 顏色) */
         /* rgba(255, 50, 50, 0.8) 代表帶有透明度的科技紅 */
-        filter: drop-shadow(0px 0px 12px rgba(255, 50, 50, 0.8)); 
+        filter: drop-shadow(0px 0px 20px rgba(255, 50, 50, 0.8)); 
         transition: all 0.3s ease-in-out; /* 加上平滑的動畫過渡 */
     }}
     /* 加碼：滑鼠移過去時，發光變強的小特效！ */
