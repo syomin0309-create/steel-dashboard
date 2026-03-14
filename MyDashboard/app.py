@@ -220,8 +220,6 @@ try:
         # 使用 HTML 標籤來套用剛剛寫的發光 class
         st.markdown(f'<img src="data:image/png;base64,{img_base64}" class="glowing-logo">', unsafe_allow_html=True)
         
-    with col_title:
-        st.title("📊 品質與製程能力儀表板")
 
 except FileNotFoundError:
     st.error(f"找不到圖片 {logo_filename}，請確認檔名和位置是否正確！")
