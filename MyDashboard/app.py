@@ -217,9 +217,9 @@ with st.sidebar:
 # 🌟 動畫與分析邏輯切換區塊
 # ==========================================
 if uploaded_file is None:
-    # 1. 顯示 SteelClaw 漸層大標題
-    st.markdown('<div class="hero-title">SteelClaw</div>', unsafe_allow_html=True)
-    st.markdown('<div class="hero-subtitle">THE AI DASHBOARD THAT ACTUALLY WORKS.</div>', unsafe_allow_html=True)
+    # 1. 顯示 AegisCore 漸層大標題與副標題
+    st.markdown('<div class="hero-title">AegisCore</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-subtitle">UNIFYING STEEL DATA. EMPOWERING DECISIONS.</div>', unsafe_allow_html=True)
     
     # 2. 顯示 Lottie 高科技掃描動畫 (放在畫面中間)
     if lottie_scanning:
