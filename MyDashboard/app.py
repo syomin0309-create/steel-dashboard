@@ -214,8 +214,8 @@ else:
     # if '試驗等級' in df.columns:
     # ... (繼續接你原本寫好的所有邏輯)
 
-        # 🧠 模式判定與空值精準過濾
-        if '試驗等級' in df.columns:
+    # 🧠 模式判定與空值精準過濾
+    if '試驗等級' in df.columns:
             df = df.dropna(subset=['試驗等級'])
             df['試驗等級'] = df['試驗等級'].astype(str).str.strip()
             df = df[df['試驗等級'] != '']
