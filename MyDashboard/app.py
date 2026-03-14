@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import numpy as np
 import re
 
-st.set_page_config(page_title="鍍三線高階分析儀表板", layout="wide", page_icon="📈", initial_sidebar_state="expanded")
+st.set_page_config(page_title="分析儀表板", layout="wide", page_icon="📈", initial_sidebar_state="expanded")
 
 # 🎨 專業級視覺優化
 st.markdown("""
@@ -105,10 +105,10 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
 
 col_logo, col_title = st.columns([1, 9])
 with col_logo:
-    st.image("https://cdn-icons-png.flaticon.com/512/2040/2040504.png", width=60)
+    # 把原本的網址刪掉，換成你的照片檔名（記得加上副檔名 .jpg 或 .png 喔）
+    st.image("my_logo.png", width=60)
 with col_title:
-    st.title("📊 鍍三線品質與製程能力儀表板")
-    st.markdown("**層峰決策版 · 智能 SPC 監控**")
+    st.title("📊 品質與製程能力儀表板")
 
 with st.sidebar:
     st.header("⚙️ 儀表板控制中心")
