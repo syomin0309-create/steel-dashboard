@@ -103,12 +103,53 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
 
 # ============ 主頁面開始 ============
 
-col_logo, col_title = st.columns([1, 9])
-with col_logo:
-    # 把原本的網址刪掉，換成你的照片檔名（記得加上副檔名 .jpg 或 .png 喔）
-    st.image("MyDashboard/logo_zheng.png", width=500)
-with col_title:
-    st.title("📊 品質與製程能力儀表板")
+import base64
+
+# --- 1. 讀取本地圖片並轉成編碼的輔助函數 ---
+def get_image_base64(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+# --- 2. 你的圖片檔名 (請確認與你資料夾內的名稱完全一致) ---
+# 如果你換了名字，請把 "my_logo.png" 改掉
+logo_filename = "my_logo.png" 
+
+try:
+    img_base64 = get_image_base64(logo_filename)
+    
+    # --- 3. 定義 CSS 發光特效 ---
+    glow_css = f"""
+    <style>
+    .glowing-logo {{
+        width: 60px; /* 這裡可以調整圖片顯示的寬度 */
+        /* 下面這行是發光核心：(X偏移, Y偏移, 模糊程度, 顏色) */
+        /* rgba(255, 50, 50, 0.8) 代表帶有透明度的科技紅 */
+        filter: drop-shadow(0px 0px 12px rgba(255, 50, 50, 0.8)); 
+        transition: all 0.3s ease-in-out; /* 加上平滑的動畫過渡 */
+    }}
+    /* 加碼：滑鼠移過去時，發光變強的小特效！ */
+    .glowing-logo:hover {{
+        filter: drop-shadow(0px 0px 20px rgba(255, 50, 50, 1));
+        transform: scale(1.05); /* 微微放大 */
+    }}
+    </style>
+    """
+    
+    # 將 CSS 注入到網頁中
+    st.markdown(glow_css, unsafe_allow_html=True)
+    
+    # --- 4. 顯示排版 ---
+    col_logo, col_title = st.columns([1, 9])
+    
+    with col_logo:
+        # 使用 HTML 標籤來套用剛剛寫的發光 class
+        st.markdown(f'<img src="data:image/png;base64,{img_base64}" class="glowing-logo">', unsafe_allow_html=True)
+        
+    with col_title:
+        st.title("📊 品質與製程能力儀表板")
+
+except FileNotFoundError:
+    st.error(f"找不到圖片 {logo_filename}，請確認檔名和位置是否正確！")
 
 with st.sidebar:
     st.header("⚙️ 儀表板控制中心")
