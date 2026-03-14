@@ -30,6 +30,7 @@ openclaw_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
     
+    /* 🌋 火燙燙的熔岩大標題 */
     .hero-title {
         font-family: 'Geist Sans', sans-serif;
         font-size: 4.5rem;
@@ -44,32 +45,28 @@ openclaw_css = """
                             #ff4500 75%,  /* 再回到鮮豔的橙紅色 */
                             #d2691e 100%  /* 巧克力色 (冷卻的金屬) */
                         );
-        background-size: 200% auto; /* 讓背景圖片變大，以便移動 */
+        background-size: 200% auto; 
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        
-        /* 👇 加入動畫魔法 👇 */
-        animation: lava_flow 5s linear infinite; /* 5 秒循環一次 */
+        animation: lava_flow 5s linear infinite; 
     }
     
-    /* 🌋 定義熔岩滾動的動畫關鍵影格 🌋 */
     @keyframes lava_flow {
-        0% { background-position: 0% 50%; } /* 開始：顯示背景的左側 */
-        100% { background-position: 200% 50%; } /* 結束：顯示背景的右側，造成移動感 */
+        0% { background-position: 0% 50%; } 
+        100% { background-position: 200% 50%; } 
     }
 
-
-        
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
+    /* 👇 剛剛失蹤的副標題排版 👇 */
     .hero-subtitle {
         font-family: 'Geist Sans', sans-serif;
-        text-align: center; color: #8b949e; font-size: 1.1rem;
-        letter-spacing: 2px; margin-bottom: 20px;
+        text-align: center; 
+        color: #8b949e; 
+        font-size: 1.1rem;
+        letter-spacing: 2px; 
+        margin-bottom: 20px;
     }
     
-    /* 輪播與毛玻璃卡片 */
+    /* 🎠 輪播與毛玻璃卡片 */
     .marquee-container { width: 100%; overflow: hidden; padding: 20px 0; }
     .marquee-track { display: flex; animation: scroll 25s linear infinite; }
     .marquee-track:hover { animation-play-state: paused; }
