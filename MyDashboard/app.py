@@ -221,10 +221,10 @@ else:
             df = df[df['試驗等級'] != '']
             df = df[~df['試驗等級'].str.lower().isin(['nan', 'null', 'none', 'na'])]
             df["比對群組"] = df["生產年月"] + " - " + df["試驗等級"]
-        else:
+    else:
             df["比對群組"] = "全批次數據"
     
-        with st.sidebar:
+       with st.sidebar:
             st.subheader("🎯 智能連動篩選器")
             st.caption("💡 條件即時連動，支援跨月多選")
             
