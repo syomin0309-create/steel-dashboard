@@ -4,6 +4,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 import re
+import requests
+from streamlit_lottie import st_lottie
 
 st.set_page_config(page_title="分析儀表板", layout="wide", page_icon="📈", initial_sidebar_state="expanded")
 
@@ -23,7 +25,15 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+# --- Lottie 動畫讀取函式 ---
+def load_lottieurl(url: str):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
 
+# 預先載入動畫 (高科技掃描)
+lottie_scanning = load_lottieurl("https://lottie.host/7e0b5030-80a5-4bf7-a931-bd6b7de583bc/Y90g3VvWqI.json")
 @st.cache_data
 def load_and_clean_data(file_bytes: bytes, file_name: str):
     import io
@@ -182,9 +192,27 @@ with st.sidebar:
         st.success("✅ 文件已加載")
         st.caption(f"文件名：{uploaded_file.name}")
 
-if uploaded_file is not None:
+# 🌟 動畫與分析邏輯切換區塊
+# ==========================================
+
+if uploaded_file is None:
+    # 狀態 1：還沒上傳檔案 -> 在主畫面顯示 Lottie 動畫
+    st.markdown("<br><br><br>", unsafe_allow_html=True) # 往下推一點點
+    st.markdown("<h3 style='text-align: center; color: #888;'>等待產線 RAW DATA 匯入中...</h3>", unsafe_allow_html=True)
+    
+    # 這裡記得替換成你在最上方定義的 lottie 變數名稱 (例如 lottie_scanning)
+    if lottie_scanning:
+        st_lottie(lottie_scanning, height=350, key="scanning")
+
+else:
+    # 狀態 2：檔案已上傳 -> 執行你原本的資料清洗與分析
+    # 👇👇 這裡就是你截圖裡原本的程式碼，請保持原本的縮排放在 else 裡面 👇👇
     raw_df = load_and_clean_data(uploaded_file.read(), uploaded_file.name)
     df = raw_df.copy()
+    
+    # 💬 模式判定與空值精準過濾
+    # if '試驗等級' in df.columns:
+    # ... (繼續接你原本寫好的所有邏輯)
 
     # 🧠 模式判定與空值精準過濾
     if '試驗等級' in df.columns:
