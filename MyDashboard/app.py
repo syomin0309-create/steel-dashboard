@@ -263,31 +263,29 @@ if uploaded_file is None:
         st_lottie(lottie_scanning, height=200, key="scanning")
         
     # 3. 顯示高級感無限輪播卡片 (放在動畫下方)
-    cards_html = """
-    <div class="marquee-container">
-        <div class="marquee-track">
-            <div class="glass-card">"這個儀表板真的太狂了！解決了我們產線數據重複的痛點，而且介面超級帥！"<div class="card-user">@廠長_老王</div></div>
-            <div class="glass-card">"自從用了 AegisCore，我每天看報表的心情都變好了，那個動畫真的百看不厭。"<div class="card-user">@品管_小美</div></div>
-            <div class="glass-card">"Why is this dashboard so nuts? It's fast, accurate, and looks like a startup."<div class="card-user">@TechBro</div></div>
-            <div class="glass-card">"伸長率跟鍍層量的分析一目了然，Lottie 動畫簡直是神來一筆！"<div class="card-user">@數據分析師</div></div>
-            <div class="glass-card">"這個儀表板真的太狂了！解決了我們產線數據重複的痛點，而且介面超級帥！"<div class="card-user">@廠長_老王</div></div>
-            <div class="glass-card">"自從用了 AegisCore，我每天看報表的心情都變好了，那個動畫真的百看不厭。"<div class="card-user">@品管_小美</div></div>
-            <div class="glass-card">"Why is this dashboard so nuts? It's fast, accurate, and looks like a startup."<div class="card-user">@TechBro</div></div>
-            <div class="glass-card">"伸長率跟鍍層量的分析一目了然，Lottie 動畫簡直是神來一筆！"<div class="card-user">@數據分析師</div></div>
-        </div>
-        
-        <div class="marquee-track reverse">
-            <div class="glass-card">"再也不用手動合併 Excel 了，這套系統完全解放了我的雙手！"<div class="card-user">@產線工程師</div></div>
-            <div class="glass-card">"主管看到這個介面，直接問我是不是發包給外面的專業設計公司做的 😂"<div class="card-user">@開發者本人</div></div>
-            <div class="glass-card">"The melting lava text is just *chef's kiss*. UI/UX on point."<div class="card-user">@DesignNerd</div></div>
-            <div class="glass-card">"異常鋼捲的黃色標記超級明顯，抓良率問題的速度直接快了三倍！"<div class="card-user">@QA_Team</div></div>
-            <div class="glass-card">"再也不用手動合併 Excel 了，這套系統完全解放了我的雙手！"<div class="card-user">@產線工程師</div></div>
-            <div class="glass-card">"主管看到這個介面，直接問我是不是發包給外面的專業設計公司做的 😂"<div class="card-user">@開發者本人</div></div>
-            <div class="glass-card">"The melting lava text is just *chef's kiss*. UI/UX on point."<div class="card-user">@DesignNerd</div></div>
-            <div class="glass-card">"異常鋼捲的黃色標記超級明顯，抓良率問題的速度直接快了三倍！"<div class="card-user">@QA_Team</div></div>
-        </div>
-    </div>
-    """
+    # 把這整塊貼上去，裡面的 HTML 前面不要留空白喔！
+    cards_html = """<div class="marquee-container">
+<div class="marquee-track">
+<div class="glass-card">"這個儀表板真的太狂了！解決了我們產線數據重複的痛點，而且介面超級帥！"<div class="card-user">@廠長_老王</div></div>
+<div class="glass-card">"自從用了 AegisCore，我每天看報表的心情都變好了，那個動畫真的百看不厭。"<div class="card-user">@品管_小美</div></div>
+<div class="glass-card">"Why is this dashboard so nuts? It's fast, accurate, and looks like a startup."<div class="card-user">@TechBro</div></div>
+<div class="glass-card">"伸長率跟鍍層量的分析一目了然，Lottie 動畫簡直是神來一筆！"<div class="card-user">@數據分析師</div></div>
+<div class="glass-card">"這個儀表板真的太狂了！解決了我們產線數據重複的痛點，而且介面超級帥！"<div class="card-user">@廠長_老王</div></div>
+<div class="glass-card">"自從用了 AegisCore，我每天看報表的心情都變好了，那個動畫真的百看不厭。"<div class="card-user">@品管_小美</div></div>
+<div class="glass-card">"Why is this dashboard so nuts? It's fast, accurate, and looks like a startup."<div class="card-user">@TechBro</div></div>
+<div class="glass-card">"伸長率跟鍍層量的分析一目了然，Lottie 動畫簡直是神來一筆！"<div class="card-user">@數據分析師</div></div>
+</div>
+<div class="marquee-track reverse">
+<div class="glass-card">"再也不用手動合併 Excel 了，這套系統完全解放了我的雙手！"<div class="card-user">@產線工程師</div></div>
+<div class="glass-card">"主管看到這個介面，直接問我是不是發包給外面的專業設計公司做的 😂"<div class="card-user">@開發者本人</div></div>
+<div class="glass-card">"The melting lava text is just *chef's kiss*. UI/UX on point."<div class="card-user">@DesignNerd</div></div>
+<div class="glass-card">"異常鋼捲的黃色標記超級明顯，抓良率問題的速度直接快了三倍！"<div class="card-user">@QA_Team</div></div>
+<div class="glass-card">"再也不用手動合併 Excel 了，這套系統完全解放了我的雙手！"<div class="card-user">@產線工程師</div></div>
+<div class="glass-card">"主管看到這個介面，直接問我是不是發包給外面的專業設計公司做的 😂"<div class="card-user">@開發者本人</div></div>
+<div class="glass-card">"The melting lava text is just *chef's kiss*. UI/UX on point."<div class="card-user">@DesignNerd</div></div>
+<div class="glass-card">"異常鋼捲的黃色標記超級明顯，抓良率問題的速度直接快了三倍！"<div class="card-user">@QA_Team</div></div>
+</div>
+</div>"""
     st.markdown(cards_html, unsafe_allow_html=True)
 
 else:
