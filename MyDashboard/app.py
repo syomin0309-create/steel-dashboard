@@ -7,7 +7,7 @@ import re
 import requests
 from streamlit_lottie import st_lottie
 
-st.set_page_config(page_title="分析儀表板", layout="wide", page_icon="📈", initial_sidebar_state="expanded")
+st.set_page_config(page_title="AegisCore", layout="wide", page_icon="👁️", initial_sidebar_state="expanded")
 
 # 🎨 專業級視覺優化
 st.markdown("""
