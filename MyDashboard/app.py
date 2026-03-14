@@ -106,7 +106,7 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
 col_logo, col_title = st.columns([1, 9])
 with col_logo:
     # 把原本的網址刪掉，換成你的照片檔名（記得加上副檔名 .jpg 或 .png 喔）
-    st.image("C:\Users\USER\Desktop\my_logo.png", width=60)
+    st.image(my_logo.png", width=60)
 with col_title:
     st.title("📊 品質與製程能力儀表板")
 
