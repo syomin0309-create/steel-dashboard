@@ -176,9 +176,9 @@ try:
     <style>
     .glowing-logo {{
         position: fixed;      /* 絕對定位，讓它懸浮 */
-        bottom: 30px;         /* 距離底部 30px */
+        bottom: 80px;         /* 距離底部 30px */
         right: 30px;          /* 距離右邊 30px */
-        width: 55px;          /* 稍微縮小一點，更精緻 */
+        width: 80px;          /* 稍微縮小一點，更精緻 */
         z-index: 9999;        /* 確保它永遠在最上層，不會被圖表擋住 */
         opacity: 0.6;         /* 預設稍微半透明，低調不突兀 */
         filter: drop-shadow(0px 0px 8px rgba(255, 50, 50, 0.6)); 
