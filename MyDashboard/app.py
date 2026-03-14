@@ -498,5 +498,3 @@ else:
         csv_data = filtered_df.to_csv(index=False).encode('utf-8-sig')
         st.download_button("📥 下載目前篩選數據 (CSV)", data=csv_data, file_name='鍍三線_品質分析資料.csv', mime='text/csv')
 
-else:
-    st.info("👈 請從左側邊欄上傳產線的 RAW DATA，系統將自動進行分析")
