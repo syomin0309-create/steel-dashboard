@@ -112,7 +112,7 @@ def get_image_base64(image_path):
 
 # --- 2. 你的圖片檔名 (請確認與你資料夾內的名稱完全一致) ---
 # 如果你換了名字，請把 "my_logo.png" 改掉
-logo_filename = "logo_zheng.png" 
+logo_filename = "MyDashboard/logo_zheng.png" 
 
 try:
     img_base64 = get_image_base64(logo_filename)
