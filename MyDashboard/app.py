@@ -25,6 +25,49 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+# === 🌟 1. 貼在你原本的 CSS 下方 ===
+openclaw_css = """
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+    
+    .hero-title {
+        font-family: 'Geist Sans', sans-serif;
+        font-size: 4.5rem;
+        font-weight: 800;
+        letter-spacing: -2px;
+        text-align: center;
+        margin-top: 10px;
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+        font-family: 'Geist Sans', sans-serif;
+        text-align: center; color: #8b949e; font-size: 1.1rem;
+        letter-spacing: 2px; margin-bottom: 20px;
+    }
+    
+    /* 輪播與毛玻璃卡片 */
+    .marquee-container { width: 100%; overflow: hidden; padding: 20px 0; }
+    .marquee-track { display: flex; animation: scroll 25s linear infinite; }
+    .marquee-track:hover { animation-play-state: paused; }
+    @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-1280px); } }
+    
+    .glass-card {
+        width: 300px; min-width: 300px; margin-right: 20px; padding: 20px;
+        background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; 
+        color: #c9d1d9; transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+        transform: translateY(-5px); border-color: rgba(255, 107, 107, 0.4);
+        box-shadow: 0 10px 20px rgba(255, 107, 107, 0.1);
+    }
+    .card-user { color: #ff6b6b; font-weight: bold; margin-top: 15px; }
+</style>
+"""
+st.markdown(openclaw_css, unsafe_allow_html=True)
+
 # --- Lottie 動畫讀取函式 ---
 def load_lottieurl(url: str):
     r = requests.get(url)
@@ -196,18 +239,36 @@ with st.sidebar:
 # 🌟 動畫與分析邏輯切換區塊
 # ==========================================
 if uploaded_file is None:
-    # 狀態 1：還沒上傳檔案 -> 在主畫面顯示 Lottie 動畫
-    st.markdown("<br><br><br>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center; color: #888;'>等待產線 RAW DATA 匯入中...</h3>", unsafe_allow_html=True)
+    # 1. 顯示 SteelClaw 漸層大標題
+    st.markdown('<div class="hero-title">SteelClaw</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-subtitle">THE AI DASHBOARD THAT ACTUALLY WORKS.</div>', unsafe_allow_html=True)
     
+    # 2. 顯示 Lottie 高科技掃描動畫 (放在畫面中間)
     if lottie_scanning:
-        st_lottie(lottie_scanning, height=350, key="scanning")
+        # 我把高度稍微調小一點，讓畫面更緊湊
+        st_lottie(lottie_scanning, height=200, key="scanning")
+        
+    # 3. 顯示高級感無限輪播卡片 (放在動畫下方)
+    cards_html = """
+    <div class="marquee-container">
+        <div class="marquee-track">
+            <div class="glass-card">"這個儀表板真的太狂了！解決了我們產線數據重複的痛點，而且介面超級帥！"<div class="card-user">@廠長_老王</div></div>
+            <div class="glass-card">"自從用了 SteelClaw，我每天看報表的心情都變好了，那個動畫真的百看不厭。"<div class="card-user">@品管_小美</div></div>
+            <div class="glass-card">"Why is this dashboard so nuts? It's fast, accurate, and looks like a startup."<div class="card-user">@TechBro</div></div>
+            <div class="glass-card">"伸長率跟鍍層量的分析一目了然，Lottie 動畫簡直是神來一筆！"<div class="card-user">@數據分析師</div></div>
+            <div class="glass-card">"這個儀表板真的太狂了！解決了我們產線數據重複的痛點，而且介面超級帥！"<div class="card-user">@廠長_老王</div></div>
+            <div class="glass-card">"自從用了 SteelClaw，我每天看報表的心情都變好了，那個動畫真的百看不厭。"<div class="card-user">@品管_小美</div></div>
+            <div class="glass-card">"Why is this dashboard so nuts? It's fast, accurate, and looks like a startup."<div class="card-user">@TechBro</div></div>
+            <div class="glass-card">"伸長率跟鍍層量的分析一目了然，Lottie 動畫簡直是神來一筆！"<div class="card-user">@數據分析師</div></div>
+        </div>
+    </div>
+    """
+    st.markdown(cards_html, unsafe_allow_html=True)
 
 else:
-    # 狀態 2：檔案已上傳 -> 執行資料清洗與分析
+    # 狀態 2：檔案已上傳 -> 執行你原本寫好的資料清洗與分析
     raw_df = load_and_clean_data(uploaded_file.read(), uploaded_file.name)
     df = raw_df.copy()
-    
     # 👇👇 下面這些通通都幫你往右縮排好了 (包含 if, else, 側邊欄與函式) 👇👇
     
     # 🧠 模式判定與空值精準過濾
