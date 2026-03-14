@@ -171,41 +171,25 @@ try:
     img_base64 = get_image_base64(logo_filename)
     
     # --- 3. 定義 CSS 發光特效 ---
+    # --- 重新定義 CSS：加上懸浮在右下角的魔法 ---
     glow_css = f"""
     <style>
     .glowing-logo {{
-        width: 500px; /* 這裡可以調整圖片顯示的寬度 */
-        /* 下面這行是發光核心：(X偏移, Y偏移, 模糊程度, 顏色) */
-        /* rgba(255, 50, 50, 0.8) 代表帶有透明度的科技紅 */
-        filter: drop-shadow(0px 0px 20px rgba(255, 50, 50, 0.8)); 
-        transition: all 0.3s ease-in-out; /* 加上平滑的動畫過渡 */
+        position: fixed;      /* 絕對定位，讓它懸浮 */
+        bottom: 30px;         /* 距離底部 30px */
+        right: 30px;          /* 距離右邊 30px */
+        width: 55px;          /* 稍微縮小一點，更精緻 */
+        z-index: 9999;        /* 確保它永遠在最上層，不會被圖表擋住 */
+        opacity: 0.6;         /* 預設稍微半透明，低調不突兀 */
+        filter: drop-shadow(0px 0px 8px rgba(255, 50, 50, 0.6)); 
+        transition: all 0.4s ease-in-out;
+        cursor: pointer;
     }}
-    /* 加碼：滑鼠移過去時，發光變強的小特效！ */
+    /* 滑鼠移過去時的驚喜特效：變亮、發光增強、微微放大 */
     .glowing-logo:hover {{
+        opacity: 1;           /* 恢復 100% 亮度 */
         filter: drop-shadow(0px 0px 20px rgba(255, 50, 50, 1));
-        transform: scale(1.05); /* 微微放大 */
-    }}
-
-    /* 2. 新增：定義漸顯滑動的動畫關鍵影格 */
-    @keyframes fadeInUp {{
-        0% {{
-            opacity: 0;
-            transform: translateY(20px);
-        }}
-        100% {{
-            opacity: 1;
-            transform: translateY(0);
-        }}
-    }}
-
-    /* 3. 新增：將動畫套用到 Streamlit 的主要內容區塊 */
-    .block-container {{
-        animation: fadeInUp 0.8s ease-out; /* 0.8秒的平滑進場 */
-    }}
-    
-    /* 加碼：讓側邊欄也有稍微延遲的進場效果 */
-    [data-testid="stSidebar"] {{
-        animation: fadeInUp 1s ease-out;
+        transform: scale(1.15) translateY(-5px); /* 微微放大並往上浮 */
     }}
     </style>
     """
@@ -213,14 +197,10 @@ try:
     # 將 CSS 注入到網頁中
     st.markdown(glow_css, unsafe_allow_html=True)
     
-    # --- 4. 顯示排版 ---
-    col_logo, col_title = st.columns([1, 9])
+    # 🌟 直接印出圖片 (完全不需要 col_logo 那些排版了)，CSS 會自動把它吸到右下角！
+    st.markdown(f'<img src="data:image/png;base64,{img_base64}" class="glowing-logo">', unsafe_allow_html=True)
     
-    with col_logo:
-        # 使用 HTML 標籤來套用剛剛寫的發光 class
-        st.markdown(f'<img src="data:image/png;base64,{img_base64}" class="glowing-logo">', unsafe_allow_html=True)
-        
-
+ 
 except FileNotFoundError:
     st.error(f"找不到圖片 {logo_filename}，請確認檔名和位置是否正確！")
 
