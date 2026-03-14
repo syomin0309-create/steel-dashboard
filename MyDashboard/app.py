@@ -132,6 +132,28 @@ try:
         filter: drop-shadow(0px 0px 20px rgba(255, 50, 50, 1));
         transform: scale(1.05); /* 微微放大 */
     }}
+
+    /* 2. 新增：定義漸顯滑動的動畫關鍵影格 */
+    @keyframes fadeInUp {{
+        0% {{
+            opacity: 0;
+            transform: translateY(20px);
+        }}
+        100% {{
+            opacity: 1;
+            transform: translateY(0);
+        }}
+    }}
+
+    /* 3. 新增：將動畫套用到 Streamlit 的主要內容區塊 */
+    .block-container {{
+        animation: fadeInUp 0.8s ease-out; /* 0.8秒的平滑進場 */
+    }}
+    
+    /* 加碼：讓側邊欄也有稍微延遲的進場效果 */
+    [data-testid="stSidebar"] {{
+        animation: fadeInUp 1s ease-out;
+    }}
     </style>
     """
     
