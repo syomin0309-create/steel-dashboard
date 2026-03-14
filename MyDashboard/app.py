@@ -30,6 +30,49 @@ openclaw_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
     
+    /* 針對 Streamlit 的主容器 .stApp 設置星際背景 */
+    .stApp {
+        background-color: #0a0e17; /* 1. 基礎深藍黑背景色 */
+        
+        /* 2. 生成多層星星背景 (使用多個 radial-gradient 重疊) */
+        background-image:
+            /* 層 1: 小星星 (移動最快) */
+            radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+            radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+            /* 層 2: 中星星 (移動其次) */
+            radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px),
+            /* 層 3: 星雲 (一個大型的 radial-gradient) */
+            radial-gradient(circle at 20% 80%, rgba(70, 130, 180, 0.2), transparent 40%),
+            radial-gradient(circle at 80% 20%, rgba(138, 43, 226, 0.2), transparent 40%);
+
+        /* 3. 設置星星的大小和位置 */
+        background-size:
+            550px 550px, /* 層 1 大小 */
+            350px 350px, /* 層 2 大小 */
+            250px 250px, /* 層 3 大小 */
+            100% 100%,   /* 層 4 (星雲) 大小 */
+            100% 100%;   /* 層 5 (星雲) 大小 */
+
+        /* 4. 加入動畫魔法 */
+        animation:
+            twinkle 5s ease-in-out infinite, /* 閃爍動畫 */
+            parallax 15s linear infinite;    /* 移動動畫 */
+            
+        will-change: background-position; /* 提示 GPU 加速 */
+    }
+    
+    /* 🌋 閃爍動畫 (改變透明度) */
+    @keyframes twinkle {
+        0%, 100% { opacity: 0.8; }
+        50% { opacity: 1; }
+    }
+
+    /* 🚀 移動動畫 (改變背景位置，營造視差效果) */
+    @keyframes parallax {
+        0% { background-position: 0 0, 0 0, 0 0, 0 0, 0 0; }
+        100% { background-position: -550px 0, -350px 0, -250px 0, 0 0, 0 0; } /* 小星星移動最快，中星星其次，大星星最慢 */
+    }
+
     /* 🌋 火燙燙的熔岩大標題 */
     .hero-title {
         font-family: 'Geist Sans', sans-serif;
@@ -56,7 +99,7 @@ openclaw_css = """
         100% { background-position: 200% 50%; } 
     }
 
-    /* 👇 剛剛失蹤的副標題排版 👇 */
+    /* 👇 副標題排版 (保持原樣) 👇 */
     .hero-subtitle {
         font-family: 'Geist Sans', sans-serif;
         text-align: center; 
@@ -66,26 +109,21 @@ openclaw_css = """
         margin-bottom: 20px;
     }
     
-    /* 🎠 輪播與毛玻璃卡片 */
+    /* 🎠 雙排字卡輪播 (保持原樣，記得靠左對齊！) */
     .marquee-container { 
         width: 100%; 
         overflow: hidden; 
         padding: 20px 0; 
         display: flex; 
-        flex-direction: column; /* 讓字卡可以分上下兩行 */
-        gap: 25px;              /* 兩行字卡之間的垂直間距 */
+        flex-direction: column; 
+        gap: 25px; 
     }
     .marquee-track { 
         display: flex; 
-        width: max-content;     /* 確保寬度足夠，不會被擠壓 */
+        width: max-content; 
         animation: scroll 30s linear infinite; 
     }
-    
-    /* 👇 這裡就是逆向流動的魔法！ 👇 */
-    .marquee-track.reverse { 
-        animation-direction: reverse; 
-    }
-    
+    .marquee-track.reverse { animation-direction: reverse; }
     .marquee-track:hover { animation-play-state: paused; }
     @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-1280px); } }
     
