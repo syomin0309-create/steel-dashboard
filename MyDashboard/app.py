@@ -37,7 +37,29 @@ openclaw_css = """
         letter-spacing: -2px;
         text-align: center;
         margin-top: 10px;
-        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        background-image: linear-gradient(135deg, 
+                            #ff4500 0%,   /* 鮮豔的橙紅色 (火) */
+                            #ffd700 25%,  /* 金黃色 (燙) */
+                            #ff8c00 50%,  /* 橙色 */
+                            #ff4500 75%,  /* 再回到鮮豔的橙紅色 */
+                            #d2691e 100%  /* 巧克力色 (冷卻的金屬) */
+                        );
+        background-size: 200% auto; /* 讓背景圖片變大，以便移動 */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        
+        /* 👇 加入動畫魔法 👇 */
+        animation: lava_flow 5s linear infinite; /* 5 秒循環一次 */
+    }
+    
+    /* 🌋 定義熔岩滾動的動畫關鍵影格 🌋 */
+    @keyframes lava_flow {
+        0% { background-position: 0% 50%; } /* 開始：顯示背景的左側 */
+        100% { background-position: 200% 50%; } /* 結束：顯示背景的右側，造成移動感 */
+    }
+
+
+        
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
