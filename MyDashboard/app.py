@@ -193,7 +193,18 @@ if uploaded_file is not None:
                        '北正面鍍層', '中正面鍍層', '南正面鍍層', '北背面鍍層', '中背面鍍層', '南背面鍍層',
                        'XRAY_A_T_N', 'XRAY_A_T_C', 'XRAY_A_T_S', 'XRAY_A_B_N', 'XRAY_A_B_C', 'XRAY_A_B_S',
                        'NORTH_TOP_COAT_WEIGHT', 'CENTER_TOP_COAT_WEIGHT', 'SOUTH_TOP_COAT_WEIGHT', 
-                       'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT']
+                       'NORTH_BACK_COAT_WEIGHT', 'CENTER_BACK_COAT_WEIGHT', 'SOUTH_BACK_COAT_WEIGHT',
+                       '開始時間', '排程單號', '結束時間', '班次', '產出內徑', '上粗糙度', '下粗糙度',
+                       '化成', '切除米數', '收捲方向', '藥劑代號[化驗用]', '規範代碼', '鈍化藥劑批號', '訂購量(KG)',
+                       '訂單合約限重-下限', '訂單合約限重-上限', '中波(波高)', '邊波(波高)', '橫向翹曲(波高)', '縱向翹曲(波高)', '中波(波長)',
+                       '邊波(波長)', '建議套筒厚度', 'AIM符號', 'AIRKNIFE電量', '引帶號碼', '引帶捲入口銲接重量', '引帶出口殘餘銲接重量',
+                       '降伏強度[(MIN.)規格值]', '降伏強度[(MAX.)規格值]', '降伏強度[(MIN.)管制值]', '降伏強度[(MAX.)管制值]',
+                       '抗拉強度[(MIN.)規格值]', '抗拉強度[(MAX.)規格值]', '抗拉強度[(MIN.)管制值]', '抗拉強度[(MAX.)管制值]',
+                       '伸長率[(MIN.)規格值]', '伸長率[(MAX.)規格值]', '伸長率[(MIN.)管制值]', '伸長率[(MAX.)管制值]','伸長率[(MIN.)客戶要求]', '伸長率[(MAX.)客戶要求]',
+                       '降伏強度[(MIN.)客戶要求]', '降伏強度[(MAX.)客戶要求]', '抗拉強度[(MIN.)客戶要求]', '抗拉強度[(MAX.)客戶要求]',
+                       '抗拉/降伏[(MIN.)標準值]', '抗拉/降伏[(MAX.)標準值]]', '硬度[(MIN.)客戶要求]', '硬度[(MAX.)客戶要求]',
+                       '硬度[(MIN.)規格值]', '硬度[(MAX.)規格值]', '硬度[(MIN.)管制值]', '硬度指數[N值]','額外加測',
+      
         
         available_params = [col for col in numeric_cols if col not in exclude_sys]
         
