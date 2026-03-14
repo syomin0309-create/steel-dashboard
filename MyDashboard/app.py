@@ -214,37 +214,37 @@ else:
     # if '試驗等級' in df.columns:
     # ... (繼續接你原本寫好的所有邏輯)
 
-    # 🧠 模式判定與空值精準過濾
-    if '試驗等級' in df.columns:
-        df = df.dropna(subset=['試驗等級'])
-        df['試驗等級'] = df['試驗等級'].astype(str).str.strip()
-        df = df[df['試驗等級'] != '']
-        df = df[~df['試驗等級'].str.lower().isin(['nan', 'null', 'none', 'na'])]
-        df["比對群組"] = df["生產年月"] + " - " + df["試驗等級"]
-    else:
-        df["比對群組"] = "全批次數據"
-
-    with st.sidebar:
-        st.subheader("🎯 智能連動篩選器")
-        st.caption("💡 條件即時連動，支援跨月多選")
-        
-        file_key = uploaded_file.name
-        
-        def create_cascading_filter(col_name, current_df):
-            if col_name not in current_df.columns:
-                return []
+        # 🧠 模式判定與空值精準過濾
+        if '試驗等級' in df.columns:
+            df = df.dropna(subset=['試驗等級'])
+            df['試驗等級'] = df['試驗等級'].astype(str).str.strip()
+            df = df[df['試驗等級'] != '']
+            df = df[~df['試驗等級'].str.lower().isin(['nan', 'null', 'none', 'na'])]
+            df["比對群組"] = df["生產年月"] + " - " + df["試驗等級"]
+        else:
+            df["比對群組"] = "全批次數據"
+    
+        with st.sidebar:
+            st.subheader("🎯 智能連動篩選器")
+            st.caption("💡 條件即時連動，支援跨月多選")
             
-            valid_opts = sorted(current_df[col_name].dropna().astype(str).unique())
-            if not valid_opts:
-                return []
+            file_key = uploaded_file.name
             
-            key_name = f"filter_{file_key}_{col_name}"
-            
-            if key_name in st.session_state:
-                st.session_state[key_name] = [x for x in st.session_state[key_name] if x in valid_opts]
-            
-            selected = st.multiselect(f"🔹 選擇 {col_name}", options=valid_opts, key=key_name)
-            return selected
+            def create_cascading_filter(col_name, current_df):
+                if col_name not in current_df.columns:
+                    return []
+                
+                valid_opts = sorted(current_df[col_name].dropna().astype(str).unique())
+                if not valid_opts:
+                    return []
+                
+                key_name = f"filter_{file_key}_{col_name}"
+                
+                if key_name in st.session_state:
+                    st.session_state[key_name] = [x for x in st.session_state[key_name] if x in valid_opts]
+                
+                selected = st.multiselect(f"🔹 選擇 {col_name}", options=valid_opts, key=key_name)
+                return selected
 
         # 瀑布流連動過濾
         f_month = create_cascading_filter('生產年月', df)
