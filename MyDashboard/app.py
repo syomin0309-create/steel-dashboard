@@ -192,60 +192,58 @@ with st.sidebar:
         st.success("✅ 文件已加載")
         st.caption(f"文件名：{uploaded_file.name}")
 
+# ==========================================
 # 🌟 動畫與分析邏輯切換區塊
 # ==========================================
-
 if uploaded_file is None:
     # 狀態 1：還沒上傳檔案 -> 在主畫面顯示 Lottie 動畫
-    st.markdown("<br><br><br>", unsafe_allow_html=True) # 往下推一點點
+    st.markdown("<br><br><br>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center; color: #888;'>等待產線 RAW DATA 匯入中...</h3>", unsafe_allow_html=True)
     
-    # 這裡記得替換成你在最上方定義的 lottie 變數名稱 (例如 lottie_scanning)
     if lottie_scanning:
         st_lottie(lottie_scanning, height=350, key="scanning")
 
 else:
-    # 狀態 2：檔案已上傳 -> 執行你原本的資料清洗與分析
-    # 👇👇 這裡就是你截圖裡原本的程式碼，請保持原本的縮排放在 else 裡面 👇👇
+    # 狀態 2：檔案已上傳 -> 執行資料清洗與分析
     raw_df = load_and_clean_data(uploaded_file.read(), uploaded_file.name)
     df = raw_df.copy()
     
-    # 💬 模式判定與空值精準過濾
-    # if '試驗等級' in df.columns:
-    # ... (繼續接你原本寫好的所有邏輯)
-
+    # 👇👇 下面這些通通都幫你往右縮排好了 (包含 if, else, 側邊欄與函式) 👇👇
+    
     # 🧠 模式判定與空值精準過濾
     if '試驗等級' in df.columns:
-            df = df.dropna(subset=['試驗等級'])
-            df['試驗等級'] = df['試驗等級'].astype(str).str.strip()
-            df = df[df['試驗等級'] != '']
-            df = df[~df['試驗等級'].str.lower().isin(['nan', 'null', 'none', 'na'])]
-            df["比對群組"] = df["生產年月"] + " - " + df["試驗等級"]
+        df = df.dropna(subset=['試驗等級'])
+        df['試驗等級'] = df['試驗等級'].astype(str).str.strip()
+        df = df[df['試驗等級'] != '']
+        df = df[~df['試驗等級'].str.lower().isin(['nan', 'null', 'none', 'na'])]
+        df["比對群組"] = df["生產年月"] + " - " + df["試驗等級"]
     else:
-            df["比對群組"] = "全批次數據"
-    
-       with st.sidebar:
-            st.subheader("🎯 智能連動篩選器")
-            st.caption("💡 條件即時連動，支援跨月多選")
-            
-            file_key = uploaded_file.name
-            
-            def create_cascading_filter(col_name, current_df):
-                if col_name not in current_df.columns:
-                    return []
-                
-                valid_opts = sorted(current_df[col_name].dropna().astype(str).unique())
-                if not valid_opts:
-                    return []
-                
-                key_name = f"filter_{file_key}_{col_name}"
-                
-                if key_name in st.session_state:
-                    st.session_state[key_name] = [x for x in st.session_state[key_name] if x in valid_opts]
-                
-                selected = st.multiselect(f"🔹 選擇 {col_name}", options=valid_opts, key=key_name)
-                return selected
+        df["比對群組"] = "全批次數據"
 
+    # 側邊欄：智能連動篩選器
+    with st.sidebar:
+        st.subheader("🎯 智能連動篩選器")
+        st.caption("💡 條件即時連動，支援跨月多選")
+
+        file_key = uploaded_file.name
+
+        def create_cascading_filter(col_name, current_df):
+            if col_name not in current_df.columns:
+                return []
+            
+            valid_opts = sorted(current_df[col_name].dropna().astype(str).unique())
+            if not valid_opts:
+                return []
+            
+            key_name = f"filter_{file_key}_{col_name}"
+            
+            if key_name in st.session_state:
+                st.session_state[key_name] = [x for x in st.session_state[key_name] if x in valid_opts]
+            
+            selected = st.multiselect(f"🔹 選擇 {col_name}", options=valid_opts, key=key_name)
+            return selected
+        
+        # (這裡下面應該接著你原本呼叫 create_cascading_filter 的程式碼，請確保它們也跟 def 切齊)
         # 瀑布流連動過濾
         f_month = create_cascading_filter('生產年月', df)
         df_f1 = df.copy()
