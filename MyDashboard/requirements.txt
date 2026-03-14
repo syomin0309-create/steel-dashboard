@@ -1,5 +1,7 @@
+streamlit
 pandas
 plotly
 openpyxl
-streamlit-lottie
+xlsxwriter
 requests
+streamlit-lottie
