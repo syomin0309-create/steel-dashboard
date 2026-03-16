@@ -543,10 +543,15 @@ else:
                     outside_lsl = len(plot_df[plot_df[selected_param] < lsl])
                     inside = len(plot_df) - outside_usl - outside_lsl
                     
-                    fig_pie = px.pie(
+                   fig_pie = px.pie(
                         values=[inside, outside_usl, outside_lsl],
                         names=['符合規格', '超過上限', '低於下限'],
-                        color_discrete_sequence=['#28a745', '#ff6b6b', '#ffc107'],
+                        color=['符合規格', '超過上限', '低於下限'],  # 👈 關鍵1：告訴系統要用名字來找顏色
+                        color_discrete_map={                       # 👈 關鍵2：把名字跟顏色死死綁定
+                            '符合規格': '#28a745',  # 綠色
+                            '低於下限': '#ff6b6b',  # 紅色
+                            '超過上限': '#ffc107'   # 黃色
+                        },
                         title="規格符合率"
                     )
                     fig_pie.update_layout(height=450)
