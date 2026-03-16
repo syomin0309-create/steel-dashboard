@@ -543,19 +543,23 @@ else:
                     outside_lsl = len(plot_df[plot_df[selected_param] < lsl])
                     inside = len(plot_df) - outside_usl - outside_lsl
                     
-                   fig_pie = px.pie(
-                        values=[inside, outside_usl, outside_lsl],
-                        names=['符合規格', '超過上限', '低於下限'],
-                        color=['符合規格', '超過上限', '低於下限'],  # 👈 關鍵1：告訴系統要用名字來找顏色
-                        color_discrete_map={                       # 👈 關鍵2：把名字跟顏色死死綁定
-                            '符合規格': '#28a745',  # 綠色
-                            '低於下限': '#ff6b6b',  # 紅色
-                            '超過上限': '#ffc107'   # 黃色
-                        },
-                        title="規格符合率"
-                    )
-                    fig_pie.update_layout(height=450)
-                    st.plotly_chart(fig_pie, use_container_width=True)
+                   # 👇 1. 這三行必須完美切齊！
+        fig_pie = px.pie(
+            # 👇 2. 肚子裡的東西，統一往右縮排
+            values=[inside, outside_usl, outside_lsl],
+            names=['符合規格', '超過上限', '低於下限'],
+            color=['符合規格', '超過上限', '低於下限'], 
+            color_discrete_map={                       
+                '符合規格': '#28a745',  
+                '低於下限': '#ff6b6b',  
+                '超過上限': '#ffc107'   
+            },
+            title="規格符合率"
+        ) # 👈 這個右括號通常跟裡面的內容切齊，或跟 fig_pie 切齊都可以
+        
+        # 👇 跟最上面的 fig_pie 切齊
+        fig_pie.update_layout(height=450)
+        st.plotly_chart(fig_pie, use_container_width=True)
 
                 # 🌟 生產順序異常監控圖
                 st.markdown("---")
