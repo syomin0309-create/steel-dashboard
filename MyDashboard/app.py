@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 import numpy as np
 import re
 import requests
-from streamlit_lottie import st_lottie
 
 st.set_page_config(page_title="AegisCore", layout="wide", page_icon="👁️", initial_sidebar_state="expanded")
 
@@ -13,15 +12,7 @@ st.set_page_config(page_title="AegisCore", layout="wide", page_icon="👁️", i
 from ui_theme import inject_theme, render_landing
 inject_theme()
 
-# --- Lottie 動畫讀取函式 ---
-def load_lottieurl(url: str):
-    r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    return r.json()
 
-# 預先載入動畫 (高科技掃描)
-lottie_scanning = load_lottieurl("https://lottie.host/7e0b5030-80a5-4bf7-a931-bd6b7de583bc/Y90g3VvWqI.json")
 @st.cache_data
 def load_and_clean_data(file_bytes: bytes, file_name: str):
     import io
@@ -100,54 +91,41 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
     return df
 
 # ============ 主頁面開始 ============
+import base64, os
 
-import base64
-
-# --- 1. 讀取本地圖片並轉成編碼的輔助函數 ---
 def get_image_base64(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-# --- 2. 你的圖片檔名 (請確認與你資料夾內的名稱完全一致) ---
-# 如果你換了名字，請把 "my_logo.png" 改掉
-logo_filename = "MyDashboard/logo_zheng.png" 
+# Logo — 自動偵測路徑，Cloud 和本地都能用
+_logo_candidates = ["logo_zheng.png", "MyDashboard/logo_zheng.png"]
+_logo_path = next((p for p in _logo_candidates if os.path.exists(p)), None)
 
-try:
-    img_base64 = get_image_base64(logo_filename)
-    
-    # --- 3. 定義 CSS 發光特效 ---
-    # --- 重新定義 CSS：加上懸浮在右下角的魔法 ---
-    glow_css = f"""
-    <style>
-    .glowing-logo {{
-        position: fixed;      /* 絕對定位，讓它懸浮 */
-        bottom: 80px;         /* 距離底部 30px */
-        right: 30px;          /* 距離右邊 30px */
-        width: 80px;          /* 稍微縮小一點，更精緻 */
-        z-index: 9999;        /* 確保它永遠在最上層，不會被圖表擋住 */
-        opacity: 0.6;         /* 預設稍微半透明，低調不突兀 */
-        filter: drop-shadow(0px 0px 8px rgba(255, 50, 50, 0.6)); 
-        transition: all 0.4s ease-in-out;
-        cursor: pointer;
-    }}
-    /* 滑鼠移過去時的驚喜特效：變亮、發光增強、微微放大 */
-    .glowing-logo:hover {{
-        opacity: 1;           /* 恢復 100% 亮度 */
-        filter: drop-shadow(0px 0px 20px rgba(255, 50, 50, 1));
-        transform: scale(1.15) translateY(-5px); /* 微微放大並往上浮 */
-    }}
-    </style>
-    """
-    
-    # 將 CSS 注入到網頁中
-    st.markdown(glow_css, unsafe_allow_html=True)
-    
-    # 🌟 直接印出圖片 (完全不需要 col_logo 那些排版了)，CSS 會自動把它吸到右下角！
-    st.markdown(f'<img src="data:image/png;base64,{img_base64}" class="glowing-logo">', unsafe_allow_html=True)
-    
- 
-except FileNotFoundError:
-    st.error(f"找不到圖片 {logo_filename}，請確認檔名和位置是否正確！")
+if _logo_path:
+    try:
+        img_base64 = get_image_base64(_logo_path)
+        st.markdown(f"""
+<style>
+.glowing-logo {{
+    position: fixed;
+    bottom: 80px; right: 28px;
+    width: 72px;
+    z-index: 9999;
+    opacity: 0.55;
+    filter: drop-shadow(0 2px 8px rgba(99,102,241,0.35));
+    transition: all 0.35s ease;
+    cursor: pointer;
+}}
+.glowing-logo:hover {{
+    opacity: 1;
+    filter: drop-shadow(0 4px 16px rgba(99,102,241,0.65));
+    transform: scale(1.12) translateY(-4px);
+}}
+</style>
+<img src="data:image/png;base64,{img_base64}" class="glowing-logo">
+""", unsafe_allow_html=True)
+    except Exception:
+        pass  # Logo 讀取失敗時靜默略過，不影響主程式
 
 with st.sidebar:
     st.header("⚙️ 儀表板控制中心")
