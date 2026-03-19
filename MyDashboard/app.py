@@ -442,130 +442,6 @@ else:
                     if pd.isna(avg_val): avg_val = 0.0
                     if pd.isna(std_val): std_val = 0.0
                 
-                    # SPC 規格設定
-                    st.markdown("### 📐 SPC 規格設定")
-                
-                    dynamic_key = f"{selected_param}_{len(plot_df)}"
-                    default_lsl = float(avg_val - 4 * std_val) if std_val > 0 else float(avg_val - 10)
-                    default_usl = float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10)
-                
-                    spec_col1, spec_col2, spec_col3 = st.columns(3)
-                    with spec_col1:
-                        lsl = st.number_input("規格下限 (LSL)", value=default_lsl, key=f"lsl_{dynamic_key}")
-                    with spec_col2:
-                        usl = st.number_input("規格上限 (USL)", value=default_usl, key=f"usl_{dynamic_key}")
-                    with spec_col3:
-                        target = st.number_input("規格中心值 (Target)", value=float((default_usl + default_lsl) / 2), key=f"tar_{dynamic_key}")
-                
-                    cp = (usl - lsl) / (6 * std_val) if std_val > 0 else 0
-                    ca = (avg_val - target) / ((usl - lsl) / 2) * 100 if usl != lsl else 0
-                    cpk = min((usl - avg_val) / (3 * std_val), (avg_val - lsl) / (3 * std_val)) if std_val > 0 else 0
-                
-                    st.markdown("### 📊 製程能力指標")
-                    metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
-                
-                    with metric_col1:
-                        st.markdown(f"""
-                        <div class="metric-highlight">
-                            <strong>樣本數</strong><br>
-                            <h2>{len(plot_df)} 顆</h2>
-                        </div>
-                        """, unsafe_allow_html=True)
-                
-                    with metric_col2:
-                        st.markdown(f"""
-                        <div class="metric-highlight">
-                            <strong>Cp (精密度)</strong><br>
-                            <h2>{cp:.2f}</h2>
-                            <small>變異大小</small>
-                        </div>
-                        """, unsafe_allow_html=True)
-                
-                    with metric_col3:
-                        st.markdown(f"""
-                        <div class="metric-highlight">
-                            <strong>Ca (準確度)</strong><br>
-                            <h2>{abs(ca):.1f}%</h2>
-                            <small>偏離中心值</small>
-                        </div>
-                        """, unsafe_allow_html=True)
-                
-                    cpk_color = "🟢" if cpk >= 1.33 else ("🟡" if cpk >= 1.0 else "🔴")
-                    cpk_status = "優良(A)" if cpk >= 1.33 else ("尚可(B)" if cpk >= 1.0 else "需改善(C)")
-                
-                    with metric_col4:
-                        st.markdown(f"""
-                        <div class="metric-highlight">
-                            <strong>Cpk {cpk_color}</strong><br>
-                            <h2>{cpk:.2f}</h2>
-                            <small>{cpk_status}</small>
-                        </div>
-                        """, unsafe_allow_html=True)
-                
-                    st.markdown("---")
-                
-                    stats_col1, stats_col2, stats_col3 = st.columns(3)
-                    with stats_col1:
-                        st.write(f"**平均值**: {avg_val:.4f}")
-                        st.write(f"**中位數**: {median_val:.4f}")
-                    with stats_col2:
-                        st.write(f"**標準差**: {std_val:.4f}")
-                        st.write(f"**變異係數**: {(std_val/avg_val*100) if avg_val != 0 else 0:.2f}%")
-                    with stats_col3:
-                        st.write(f"**最小值**: {plot_df[selected_param].min():.4f}")
-                        st.write(f"**最大值**: {plot_df[selected_param].max():.4f}")
-                
-                    st.markdown("---")
-                
-                    st.markdown("### 📉 視覺分析")
-                    chart_col1, chart_col2 = st.columns([1.5, 1])
-                
-                    with chart_col1:
-                        fig_hist = px.histogram(
-                            plot_df, x=selected_param, nbins=30, opacity=0.7,
-                            histnorm='probability density',
-                            color_discrete_sequence=['#667eea'],
-                            title=f"【{selected_param}】常態分佈與規格區間"
-                        )
-                    
-                        if std_val > 0:
-                            x_min = min(plot_df[selected_param].min(), lsl)
-                            x_max = max(plot_df[selected_param].max(), usl)
-                            x_curve = np.linspace(x_min - std_val, x_max + std_val, 200)
-                            y_pdf = (1 / (std_val * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_curve - avg_val) / std_val) ** 2)
-                            fig_hist.add_trace(go.Scatter(x=x_curve, y=y_pdf, mode='lines', 
-                                                         line=dict(color='#FF2B2B', width=3), name='常態分佈'))
-                    
-                        fig_hist.add_vline(x=usl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"USL: {usl:.2f}")
-                        fig_hist.add_vline(x=lsl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"LSL: {lsl:.2f}")
-                        fig_hist.add_vline(x=target, line_dash="solid", line_color="#00CC96", annotation_text=f"目標: {target:.2f}")
-                    
-                        fig_hist.update_layout(height=450)
-                        st.plotly_chart(fig_hist, use_container_width=True)
-                
-                    with chart_col2:
-                        outside_usl = len(plot_df[plot_df[selected_param] > usl])
-                        outside_lsl = len(plot_df[plot_df[selected_param] < lsl])
-                        inside = len(plot_df) - outside_usl - outside_lsl
-                    
-                       # 👇 1. 這三行必須完美切齊！
-                        fig_pie = px.pie(
-                            # 👇 2. 肚子裡的東西，統一往右縮排
-                            values=[inside, outside_usl, outside_lsl],
-                            names=['符合規格', '超過上限', '低於下限'],
-                            color=['符合規格', '超過上限', '低於下限'], 
-                            color_discrete_map={                       
-                                '符合規格': '#28a745',  
-                                '低於下限': '#ff6b6b',  
-                                '超過上限': '#ffc107'   
-                            },
-                            title="規格符合率"
-                        ) # 👈 這個右括號通常跟裡面的內容切齊，或跟 fig_pie 切齊都可以
-                    
-                        # 👇 跟最上面的 fig_pie 切齊
-                        fig_pie.update_layout(height=450)
-                        st.plotly_chart(fig_pie, use_container_width=True)
-
                     # 🌟 生產順序異常監控圖
                     st.markdown("---")
                     st.markdown("### 📈 生產順序異常監控圖")
@@ -593,10 +469,7 @@ else:
                                 name='異常 (7B)', hoverinfo='skip' 
                             ))
                 
-                    fig_line.add_hrect(y0=lsl, y1=usl, line_width=0, fillcolor="#00CC96", opacity=0.1)
-                    fig_line.add_hline(y=target, line_dash="dash", line_color="green", annotation_text="中心值")
-                    fig_line.add_hline(y=usl, line_dash="solid", line_color="red", annotation_text="USL")
-                    fig_line.add_hline(y=lsl, line_dash="solid", line_color="red", annotation_text="LSL")
+                    fig_line.add_hline(y=avg_val, line_dash="dash", line_color="#00CC96", annotation_text=f"平均值: {avg_val:.4f}")
                     fig_line.update_xaxes(showticklabels=False, title_text="生產順序 (依照時間/鋼捲號碼)")
                     fig_line.update_layout(height=400, hovermode="closest")
                     st.plotly_chart(fig_line, use_container_width=True)
@@ -621,9 +494,7 @@ else:
                         points="all" # 顯示極端值
                     )
                 
-                    fig_box.add_hline(y=target, line_dash="dash", line_color="green", annotation_text="中心值")
-                    fig_box.add_hline(y=usl, line_dash="solid", line_color="red", annotation_text="USL")
-                    fig_box.add_hline(y=lsl, line_dash="solid", line_color="red", annotation_text="LSL")
+                    fig_box.add_hline(y=avg_val, line_dash="dash", line_color="#00CC96", annotation_text=f"平均值: {avg_val:.4f}")
                     fig_box.update_layout(height=450, showlegend=False, xaxis_title="群組分類")
                 
                     st.plotly_chart(fig_box, use_container_width=True)
