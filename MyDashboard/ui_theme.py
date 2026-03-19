@@ -379,144 +379,121 @@ LANDING_HTML = """
 .ap-stat-num { font-family:'Syne',sans-serif; font-size:1.7rem; font-weight:800; color:#6366f1; line-height:1; margin-bottom:4px; }
 .ap-stat-lbl { font-family:'JetBrains Mono',monospace; font-size:0.58rem; letter-spacing:1.5px; color:#94a3b8; text-transform:uppercase; }
 
-.ap-features { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; max-width:880px; margin:0 auto 44px; }
-.ap-feat {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 24px 20px 20px;
+/* ── Vertical Ticker (Ferris Wheel) ── */
+.ap-vticker-outer {
+  width: 100%;
+  max-width: 720px;
+  height: 340px;
+  margin: 0 auto 44px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(15,23,42,0.05);
-  cursor: default;
-  /* Pure CSS stagger reveal — no JS needed */
-  animation: feat_rise 0.55s cubic-bezier(0.22,1,0.36,1) both;
-}
-
-.ap-feat:nth-child(1) { animation-delay: 0.05s; }
-.ap-feat:nth-child(2) { animation-delay: 0.13s; }
-.ap-feat:nth-child(3) { animation-delay: 0.21s; }
-.ap-feat:nth-child(4) { animation-delay: 0.29s; }
-.ap-feat:nth-child(5) { animation-delay: 0.37s; }
-.ap-feat:nth-child(6) { animation-delay: 0.45s; }
-
-@keyframes feat_rise {
-  from { opacity: 0; transform: translateY(22px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Top accent bar — slides in on hover */
-.ap-feat::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--fc, #6366f1);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-  z-index: 2;
-}
-
-.ap-feat:hover::before { transform: scaleX(1); }
-
-/* Spotlight glow (cursor-tracked radial gradient) */
-.ap-feat::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    180px circle at var(--mx, 50%) var(--my, 50%),
-    rgba(99,102,241,0.10) 0%,
-    transparent 70%
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15,23,42,0.07);
+  /* Top & bottom fade = cards appear/disappear smoothly */
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 12%,
+    black 88%,
+    transparent 100%
   );
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  z-index: 1;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 12%,
+    black 88%,
+    transparent 100%
+  );
 }
 
-.ap-feat:hover::after { opacity: 1; }
-
-/* Hover lift + glow border */
-.ap-feat:hover {
-  transform: translateY(-5px);
-  box-shadow:
-    0 16px 40px rgba(15,23,42,0.12),
-    0 0 0 1px var(--fc, #6366f1);
-  border-color: transparent;
+.ap-vticker-track {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  /* 16 cards × (72px + 12px gap) ≈ 1344px total → animate -50% */
+  animation: vticker_scroll 24s linear infinite;
+  width: 100%;
 }
 
-/* Icon box */
-.ap-feat-icon {
-  width: 44px; height: 44px;
+.ap-vticker-outer:hover .ap-vticker-track {
+  animation-play-state: paused;
+}
+
+@keyframes vticker_scroll {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+/* Individual vertical card */
+.ap-vcard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid var(--vc, #6366f1);
   border-radius: 12px;
+  padding: 14px 16px;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.ap-vcard:hover {
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(15,23,42,0.08);
+  transform: translateX(3px);
+}
+
+.ap-vcard-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: var(--vb, rgba(99,102,241,0.08));
   display: flex; align-items: center; justify-content: center;
-  margin-bottom: 14px;
-  background: var(--fb, rgba(99,102,241,0.08));
-  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), background 0.3s;
-  position: relative;
-  z-index: 2;
+  flex-shrink: 0;
+  transition: transform 0.3s;
 }
 
-.ap-feat:hover .ap-feat-icon {
-  transform: scale(1.12) rotate(-3deg);
-  background: var(--fb, rgba(99,102,241,0.14));
+.ap-vcard:hover .ap-vcard-icon {
+  transform: scale(1.1) rotate(-4deg);
 }
 
-/* Shimmer sweep on hover */
-.ap-feat-icon::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.6) 50%, transparent 70%);
-  transform: translateX(-100%);
-  transition: transform 0s;
+.ap-vcard-body {
+  flex: 1;
+  text-align: left;
 }
 
-.ap-feat:hover .ap-feat-icon::after {
-  transform: translateX(100%);
-  transition: transform 0.5s ease 0.05s;
-}
-
-.ap-feat-title {
+.ap-vcard-title {
   font-family: 'Syne', sans-serif;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 7px;
-  position: relative;
-  z-index: 2;
+  margin-bottom: 2px;
 }
 
-.ap-feat-desc {
+.ap-vcard-desc {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   color: #64748b;
-  line-height: 1.58;
-  margin: 0 0 12px;
-  position: relative;
-  z-index: 2;
+  line-height: 1.4;
+  margin: 0;
 }
 
-/* Arrow indicator — slides in on hover */
-.ap-feat-arrow {
-  font-family: 'Syne', sans-serif;
-  font-size: 1rem;
+.ap-vcard-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
   font-weight: 700;
-  color: var(--fc, #6366f1);
-  opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
-  position: relative;
-  z-index: 2;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid;
+  flex-shrink: 0;
+  text-transform: uppercase;
 }
 
-.ap-feat:hover .ap-feat-arrow {
-  opacity: 1;
-  transform: translateX(0);
-}
 
 @keyframes feat_fadein { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
@@ -567,54 +544,36 @@ LANDING_HTML = """
     <div class="ap-stat"><div class="ap-stat-num" style="font-size:1.3rem">A+~D</div><div class="ap-stat-lbl">五級評鑑系統</div></div>
   </div>
 
-  <div class="ap-features" id="featGrid">
-    <div class="ap-feat" style="--fc:#6366f1">
-      <div class="ap-feat-icon" style="--fb:rgba(99,102,241,0.1)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 16l3-4 3 3 3-5"/></svg>
-      </div>
-      <div class="ap-feat-title">智能 SPC 分析</div>
-      <p class="ap-feat-desc">自動計算 Ca / Cp / Cpk，五級 A+～D 評鑑，附製程診斷建議。</p>
-      <div class="ap-feat-arrow">→</div>
-    </div>
-    <div class="ap-feat" style="--fc:#0891b2">
-      <div class="ap-feat-icon" style="--fb:rgba(8,145,178,0.1)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      </div>
-      <div class="ap-feat-title">趨勢異常監控</div>
-      <p class="ap-feat-desc">生產順序管制圖，7B 異常鋼捲自動標記，跨月箱型圖對比。</p>
-      <div class="ap-feat-arrow">→</div>
-    </div>
-    <div class="ap-feat" style="--fc:#d97706">
-      <div class="ap-feat-icon" style="--fb:rgba(217,119,6,0.1)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </div>
-      <div class="ap-feat-title">瀑布流篩選器</div>
-      <p class="ap-feat-desc">年月 × 厚度 × 寬度 × 材質 × 規格，六層條件即時連動。</p>
-      <div class="ap-feat-arrow">→</div>
-    </div>
-    <div class="ap-feat" style="--fc:#059669">
-      <div class="ap-feat-icon" style="--fb:rgba(5,150,105,0.1)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div class="ap-feat-title">鍍鋅產線專屬</div>
-      <p class="ap-feat-desc">自動識別鍍層欄位，雙面總鍍層量 AVG，對應鋼捲規格分類。</p>
-      <div class="ap-feat-arrow">→</div>
-    </div>
-    <div class="ap-feat" style="--fc:#7c3aed">
-      <div class="ap-feat-icon" style="--fb:rgba(124,58,237,0.1)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      </div>
-      <div class="ap-feat-title">製程診斷報告</div>
-      <p class="ap-feat-desc">自動判斷偏移根因，提供 Offset 調整方向，清楚說明問題所在。</p>
-      <div class="ap-feat-arrow">→</div>
-    </div>
-    <div class="ap-feat" style="--fc:#dc2626">
-      <div class="ap-feat-icon" style="--fb:rgba(220,38,38,0.1)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      </div>
-      <div class="ap-feat-title">一鍵匯出 CSV</div>
-      <p class="ap-feat-desc">篩選數據集直接下載，UTF-8 編碼支援繁體中文不亂碼。</p>
-      <div class="ap-feat-arrow">→</div>
+  <!-- ── Vertical Ferris Wheel Ticker ── -->
+  <div class="ap-vticker-outer">
+    <div class="ap-vticker-track">
+
+      <div class="ap-vcard" style="--vc:#6366f1"><div class="ap-vcard-icon" style="--vb:rgba(99,102,241,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 16l3-4 3 3 3-5"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">智能 SPC 分析</div><div class="ap-vcard-desc">自動計算 Ca / Cp / Cpk，五級 A+～D 評鑑，附製程診斷建議。</div></div><div class="ap-vcard-badge" style="color:#6366f1;border-color:#6366f1;background:rgba(99,102,241,0.06)">SPC</div></div>
+
+      <div class="ap-vcard" style="--vc:#0891b2"><div class="ap-vcard-icon" style="--vb:rgba(8,145,178,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">趨勢異常監控</div><div class="ap-vcard-desc">生產順序管制圖，7B 異常鋼捲自動標記，跨月箱型圖對比。</div></div><div class="ap-vcard-badge" style="color:#0891b2;border-color:#0891b2;background:rgba(8,145,178,0.06)">趨勢</div></div>
+
+      <div class="ap-vcard" style="--vc:#d97706"><div class="ap-vcard-icon" style="--vb:rgba(217,119,6,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">瀑布流篩選器</div><div class="ap-vcard-desc">年月 × 厚度 × 寬度 × 材質 × 規格，六層條件即時連動。</div></div><div class="ap-vcard-badge" style="color:#d97706;border-color:#d97706;background:rgba(217,119,6,0.06)">篩選</div></div>
+
+      <div class="ap-vcard" style="--vc:#059669"><div class="ap-vcard-icon" style="--vb:rgba(5,150,105,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">鍍鋅產線專屬</div><div class="ap-vcard-desc">自動識別鍍層欄位，雙面總鍍層量 AVG，對應鋼捲規格分類。</div></div><div class="ap-vcard-badge" style="color:#059669;border-color:#059669;background:rgba(5,150,105,0.06)">產線</div></div>
+
+      <div class="ap-vcard" style="--vc:#7c3aed"><div class="ap-vcard-icon" style="--vb:rgba(124,58,237,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">製程診斷報告</div><div class="ap-vcard-desc">自動判斷偏移根因，提供 Offset 調整方向，清楚說明問題所在。</div></div><div class="ap-vcard-badge" style="color:#7c3aed;border-color:#7c3aed;background:rgba(124,58,237,0.06)">診斷</div></div>
+
+      <div class="ap-vcard" style="--vc:#dc2626"><div class="ap-vcard-icon" style="--vb:rgba(220,38,38,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">一鍵匯出 CSV</div><div class="ap-vcard-desc">篩選數據集直接下載，UTF-8 編碼支援繁體中文不亂碼。</div></div><div class="ap-vcard-badge" style="color:#dc2626;border-color:#dc2626;background:rgba(220,38,38,0.06)">匯出</div></div>
+
+      <div class="ap-vcard" style="--vc:#0891b2"><div class="ap-vcard-icon" style="--vb:rgba(8,145,178,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">即時數據更新</div><div class="ap-vcard-desc">上傳即分析，篩選條件即時連動，不需重新整理頁面。</div></div><div class="ap-vcard-badge" style="color:#0891b2;border-color:#0891b2;background:rgba(8,145,178,0.06)">即時</div></div>
+
+      <div class="ap-vcard" style="--vc:#6366f1"><div class="ap-vcard-icon" style="--vb:rgba(99,102,241,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">多群組對比分析</div><div class="ap-vcard-desc">依月份與等級分群，箱型圖直觀呈現各群組變異差異。</div></div><div class="ap-vcard-badge" style="color:#6366f1;border-color:#6366f1;background:rgba(99,102,241,0.06)">對比</div></div>
+
+      <!-- duplicate for seamless loop -->
+      <div class="ap-vcard" style="--vc:#6366f1"><div class="ap-vcard-icon" style="--vb:rgba(99,102,241,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 16l3-4 3 3 3-5"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">智能 SPC 分析</div><div class="ap-vcard-desc">自動計算 Ca / Cp / Cpk，五級 A+～D 評鑑，附製程診斷建議。</div></div><div class="ap-vcard-badge" style="color:#6366f1;border-color:#6366f1;background:rgba(99,102,241,0.06)">SPC</div></div>
+      <div class="ap-vcard" style="--vc:#0891b2"><div class="ap-vcard-icon" style="--vb:rgba(8,145,178,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">趨勢異常監控</div><div class="ap-vcard-desc">生產順序管制圖，7B 異常鋼捲自動標記，跨月箱型圖對比。</div></div><div class="ap-vcard-badge" style="color:#0891b2;border-color:#0891b2;background:rgba(8,145,178,0.06)">趨勢</div></div>
+      <div class="ap-vcard" style="--vc:#d97706"><div class="ap-vcard-icon" style="--vb:rgba(217,119,6,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">瀑布流篩選器</div><div class="ap-vcard-desc">年月 × 厚度 × 寬度 × 材質 × 規格，六層條件即時連動。</div></div><div class="ap-vcard-badge" style="color:#d97706;border-color:#d97706;background:rgba(217,119,6,0.06)">篩選</div></div>
+      <div class="ap-vcard" style="--vc:#059669"><div class="ap-vcard-icon" style="--vb:rgba(5,150,105,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">鍍鋅產線專屬</div><div class="ap-vcard-desc">自動識別鍍層欄位，雙面總鍍層量 AVG，對應鋼捲規格分類。</div></div><div class="ap-vcard-badge" style="color:#059669;border-color:#059669;background:rgba(5,150,105,0.06)">產線</div></div>
+      <div class="ap-vcard" style="--vc:#7c3aed"><div class="ap-vcard-icon" style="--vb:rgba(124,58,237,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">製程診斷報告</div><div class="ap-vcard-desc">自動判斷偏移根因，提供 Offset 調整方向，清楚說明問題所在。</div></div><div class="ap-vcard-badge" style="color:#7c3aed;border-color:#7c3aed;background:rgba(124,58,237,0.06)">診斷</div></div>
+      <div class="ap-vcard" style="--vc:#dc2626"><div class="ap-vcard-icon" style="--vb:rgba(220,38,38,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">一鍵匯出 CSV</div><div class="ap-vcard-desc">篩選數據集直接下載，UTF-8 編碼支援繁體中文不亂碼。</div></div><div class="ap-vcard-badge" style="color:#dc2626;border-color:#dc2626;background:rgba(220,38,38,0.06)">匯出</div></div>
+      <div class="ap-vcard" style="--vc:#0891b2"><div class="ap-vcard-icon" style="--vb:rgba(8,145,178,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">即時數據更新</div><div class="ap-vcard-desc">上傳即分析，篩選條件即時連動，不需重新整理頁面。</div></div><div class="ap-vcard-badge" style="color:#0891b2;border-color:#0891b2;background:rgba(8,145,178,0.06)">即時</div></div>
+      <div class="ap-vcard" style="--vc:#6366f1"><div class="ap-vcard-icon" style="--vb:rgba(99,102,241,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">多群組對比分析</div><div class="ap-vcard-desc">依月份與等級分群，箱型圖直觀呈現各群組變異差異。</div></div><div class="ap-vcard-badge" style="color:#6366f1;border-color:#6366f1;background:rgba(99,102,241,0.06)">對比</div></div>
+
     </div>
   </div>
 
