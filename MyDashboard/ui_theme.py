@@ -379,77 +379,75 @@ LANDING_HTML = """
 .ap-stat-num { font-family:'Syne',sans-serif; font-size:1.7rem; font-weight:800; color:#6366f1; line-height:1; margin-bottom:4px; }
 .ap-stat-lbl { font-family:'JetBrains Mono',monospace; font-size:0.58rem; letter-spacing:1.5px; color:#94a3b8; text-transform:uppercase; }
 
-/* ── Vertical Ticker (Ferris Wheel) ── */
+/* ── Notification Feed Ticker ── */
 .ap-vticker-outer {
   width: 100%;
-  max-width: 720px;
-  height: 340px;
+  max-width: 680px;
+  height: 280px;
   margin: 0 auto 44px;
   position: relative;
   overflow: hidden;
-  border-radius: 20px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 16px rgba(15,23,42,0.07);
-  /* Top & bottom fade = cards appear/disappear smoothly */
-  mask-image: linear-gradient(
-    to bottom,
+  /* Soft top + bottom fade */
+  mask-image: linear-gradient(to bottom,
     transparent 0%,
-    black 12%,
-    black 88%,
+    black 18%,
+    black 82%,
     transparent 100%
   );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
+  -webkit-mask-image: linear-gradient(to bottom,
     transparent 0%,
-    black 12%,
-    black 88%,
+    black 18%,
+    black 82%,
     transparent 100%
   );
 }
 
 .ap-vticker-track {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  /* 16 cards × (72px + 12px gap) ≈ 1344px total → animate -50% */
-  animation: vticker_scroll 24s linear infinite;
+  position: relative;
   width: 100%;
+  height: 100%;
 }
 
-.ap-vticker-outer:hover .ap-vticker-track {
-  animation-play-state: paused;
-}
-
-@keyframes vticker_scroll {
-  0%   { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
-}
-
-/* Individual vertical card */
+/* Each card is absolutely positioned at the bottom, animated independently */
 .ap-vcard {
+  position: absolute;
+  bottom: 20px;
+  left: 0; right: 0;
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-left: 3px solid var(--vc, #6366f1);
-  border-radius: 12px;
-  padding: 14px 16px;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-  flex-shrink: 0;
-  cursor: default;
+  border-radius: 14px;
+  padding: 14px 18px;
+  box-shadow: 0 4px 20px rgba(15,23,42,0.09), 0 1px 4px rgba(15,23,42,0.04);
+  opacity: 0;
+  transform: translateY(60px) scale(0.96);
+  animation-duration: 32s;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  will-change: transform, opacity;
 }
 
-.ap-vcard:hover {
-  background: #ffffff;
-  box-shadow: 0 4px 16px rgba(15,23,42,0.08);
-  transform: translateX(3px);
+/* Assign unique keyframe to each card */
+.ap-vcard:nth-child(1)  { animation-name: vcard_anim_0; }
+.ap-vcard:nth-child(2)  { animation-name: vcard_anim_1; }
+.ap-vcard:nth-child(3)  { animation-name: vcard_anim_2; }
+.ap-vcard:nth-child(4)  { animation-name: vcard_anim_3; }
+.ap-vcard:nth-child(5)  { animation-name: vcard_anim_4; }
+.ap-vcard:nth-child(6)  { animation-name: vcard_anim_5; }
+.ap-vcard:nth-child(7)  { animation-name: vcard_anim_6; }
+.ap-vcard:nth-child(8)  { animation-name: vcard_anim_7; }
+
+/* Hover pause — whole outer container */
+.ap-vticker-outer:hover .ap-vcard {
+  animation-play-state: paused;
 }
 
 .ap-vcard-icon {
-  width: 38px; height: 38px;
+  width: 40px; height: 40px;
   border-radius: 10px;
   background: var(--vb, rgba(99,102,241,0.08));
   display: flex; align-items: center; justify-content: center;
@@ -457,28 +455,23 @@ LANDING_HTML = """
   transition: transform 0.3s;
 }
 
-.ap-vcard:hover .ap-vcard-icon {
-  transform: scale(1.1) rotate(-4deg);
-}
+.ap-vcard:hover .ap-vcard-icon { transform: scale(1.1) rotate(-4deg); }
 
-.ap-vcard-body {
-  flex: 1;
-  text-align: left;
-}
+.ap-vcard-body { flex: 1; text-align: left; }
 
 .ap-vcard-title {
   font-family: 'Syne', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 .ap-vcard-desc {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: #64748b;
-  line-height: 1.4;
+  line-height: 1.45;
   margin: 0;
 }
 
@@ -487,11 +480,84 @@ LANDING_HTML = """
   font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 1px;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: 6px;
   border: 1px solid;
   flex-shrink: 0;
   text-transform: uppercase;
+}
+
+
+@keyframes vcard_anim_0 {
+  0%                  { opacity:0; transform:translateY(60px) scale(0.96); }
+  0.0%     { opacity:0; transform:translateY(60px) scale(0.96); }
+  1.41%        { opacity:1; transform:translateY(0)    scale(1);    }
+  9.22%       { opacity:1; transform:translateY(0)    scale(1);    }
+  10.94%      { opacity:0; transform:translateY(-40px) scale(0.96); }
+  100%                { opacity:0; transform:translateY(-40px) scale(0.96); }
+}
+
+@keyframes vcard_anim_1 {
+  0%                  { opacity:0; transform:translateY(60px) scale(0.96); }
+  12.5%     { opacity:0; transform:translateY(60px) scale(0.96); }
+  13.91%        { opacity:1; transform:translateY(0)    scale(1);    }
+  21.72%       { opacity:1; transform:translateY(0)    scale(1);    }
+  23.44%      { opacity:0; transform:translateY(-40px) scale(0.96); }
+  100%                { opacity:0; transform:translateY(-40px) scale(0.96); }
+}
+
+@keyframes vcard_anim_2 {
+  0%                  { opacity:0; transform:translateY(60px) scale(0.96); }
+  25.0%     { opacity:0; transform:translateY(60px) scale(0.96); }
+  26.41%        { opacity:1; transform:translateY(0)    scale(1);    }
+  34.22%       { opacity:1; transform:translateY(0)    scale(1);    }
+  35.94%      { opacity:0; transform:translateY(-40px) scale(0.96); }
+  100%                { opacity:0; transform:translateY(-40px) scale(0.96); }
+}
+
+@keyframes vcard_anim_3 {
+  0%                  { opacity:0; transform:translateY(60px) scale(0.96); }
+  37.5%     { opacity:0; transform:translateY(60px) scale(0.96); }
+  38.91%        { opacity:1; transform:translateY(0)    scale(1);    }
+  46.72%       { opacity:1; transform:translateY(0)    scale(1);    }
+  48.44%      { opacity:0; transform:translateY(-40px) scale(0.96); }
+  100%                { opacity:0; transform:translateY(-40px) scale(0.96); }
+}
+
+@keyframes vcard_anim_4 {
+  0%                  { opacity:0; transform:translateY(60px) scale(0.96); }
+  50.0%     { opacity:0; transform:translateY(60px) scale(0.96); }
+  51.41%        { opacity:1; transform:translateY(0)    scale(1);    }
+  59.22%       { opacity:1; transform:translateY(0)    scale(1);    }
+  60.94%      { opacity:0; transform:translateY(-40px) scale(0.96); }
+  100%                { opacity:0; transform:translateY(-40px) scale(0.96); }
+}
+
+@keyframes vcard_anim_5 {
+  0%                  { opacity:0; transform:translateY(60px) scale(0.96); }
+  62.5%     { opacity:0; transform:translateY(60px) scale(0.96); }
+  63.91%        { opacity:1; transform:translateY(0)    scale(1);    }
+  71.72%       { opacity:1; transform:translateY(0)    scale(1);    }
+  73.44%      { opacity:0; transform:translateY(-40px) scale(0.96); }
+  100%                { opacity:0; transform:translateY(-40px) scale(0.96); }
+}
+
+@keyframes vcard_anim_6 {
+  0%                  { opacity:0; transform:translateY(60px) scale(0.96); }
+  75.0%     { opacity:0; transform:translateY(60px) scale(0.96); }
+  76.41%        { opacity:1; transform:translateY(0)    scale(1);    }
+  84.22%       { opacity:1; transform:translateY(0)    scale(1);    }
+  85.94%      { opacity:0; transform:translateY(-40px) scale(0.96); }
+  100%                { opacity:0; transform:translateY(-40px) scale(0.96); }
+}
+
+@keyframes vcard_anim_7 {
+  0%                  { opacity:0; transform:translateY(60px) scale(0.96); }
+  87.5%     { opacity:0; transform:translateY(60px) scale(0.96); }
+  88.91%        { opacity:1; transform:translateY(0)    scale(1);    }
+  96.72%       { opacity:1; transform:translateY(0)    scale(1);    }
+  98.44%      { opacity:0; transform:translateY(-40px) scale(0.96); }
+  100%                { opacity:0; transform:translateY(-40px) scale(0.96); }
 }
 
 
@@ -544,35 +610,57 @@ LANDING_HTML = """
     <div class="ap-stat"><div class="ap-stat-num" style="font-size:1.3rem">A+~D</div><div class="ap-stat-lbl">五級評鑑系統</div></div>
   </div>
 
-  <!-- ── Vertical Ferris Wheel Ticker ── -->
+  <!-- ── Notification Feed Ticker ── -->
   <div class="ap-vticker-outer">
     <div class="ap-vticker-track">
 
-      <div class="ap-vcard" style="--vc:#6366f1"><div class="ap-vcard-icon" style="--vb:rgba(99,102,241,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 16l3-4 3 3 3-5"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">智能 SPC 分析</div><div class="ap-vcard-desc">自動計算 Ca / Cp / Cpk，五級 A+～D 評鑑，附製程診斷建議。</div></div><div class="ap-vcard-badge" style="color:#6366f1;border-color:#6366f1;background:rgba(99,102,241,0.06)">SPC</div></div>
+      <div class="ap-vcard" style="--vc:#6366f1">
+        <div class="ap-vcard-icon" style="--vb:rgba(99,102,241,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 16l3-4 3 3 3-5"/></svg></div>
+        <div class="ap-vcard-body"><div class="ap-vcard-title">智能 SPC 分析</div><div class="ap-vcard-desc">自動計算 Ca / Cp / Cpk，五級 A+～D 評鑑，附製程診斷建議。</div></div>
+        <div class="ap-vcard-badge" style="color:#6366f1;border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.06)">SPC</div>
+      </div>
 
-      <div class="ap-vcard" style="--vc:#0891b2"><div class="ap-vcard-icon" style="--vb:rgba(8,145,178,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">趨勢異常監控</div><div class="ap-vcard-desc">生產順序管制圖，7B 異常鋼捲自動標記，跨月箱型圖對比。</div></div><div class="ap-vcard-badge" style="color:#0891b2;border-color:#0891b2;background:rgba(8,145,178,0.06)">趨勢</div></div>
+      <div class="ap-vcard" style="--vc:#0891b2">
+        <div class="ap-vcard-icon" style="--vb:rgba(8,145,178,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="ap-vcard-body"><div class="ap-vcard-title">趨勢異常監控</div><div class="ap-vcard-desc">生產順序管制圖，7B 異常鋼捲自動標記，跨月箱型圖對比。</div></div>
+        <div class="ap-vcard-badge" style="color:#0891b2;border-color:rgba(8,145,178,0.3);background:rgba(8,145,178,0.06)">趨勢</div>
+      </div>
 
-      <div class="ap-vcard" style="--vc:#d97706"><div class="ap-vcard-icon" style="--vb:rgba(217,119,6,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">瀑布流篩選器</div><div class="ap-vcard-desc">年月 × 厚度 × 寬度 × 材質 × 規格，六層條件即時連動。</div></div><div class="ap-vcard-badge" style="color:#d97706;border-color:#d97706;background:rgba(217,119,6,0.06)">篩選</div></div>
+      <div class="ap-vcard" style="--vc:#d97706">
+        <div class="ap-vcard-icon" style="--vb:rgba(217,119,6,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        <div class="ap-vcard-body"><div class="ap-vcard-title">瀑布流篩選器</div><div class="ap-vcard-desc">年月 × 厚度 × 寬度 × 材質 × 規格，六層條件即時連動。</div></div>
+        <div class="ap-vcard-badge" style="color:#d97706;border-color:rgba(217,119,6,0.3);background:rgba(217,119,6,0.06)">篩選</div>
+      </div>
 
-      <div class="ap-vcard" style="--vc:#059669"><div class="ap-vcard-icon" style="--vb:rgba(5,150,105,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">鍍鋅產線專屬</div><div class="ap-vcard-desc">自動識別鍍層欄位，雙面總鍍層量 AVG，對應鋼捲規格分類。</div></div><div class="ap-vcard-badge" style="color:#059669;border-color:#059669;background:rgba(5,150,105,0.06)">產線</div></div>
+      <div class="ap-vcard" style="--vc:#059669">
+        <div class="ap-vcard-icon" style="--vb:rgba(5,150,105,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <div class="ap-vcard-body"><div class="ap-vcard-title">鍍鋅產線專屬</div><div class="ap-vcard-desc">自動識別鍍層欄位，雙面總鍍層量 AVG，對應鋼捲規格分類。</div></div>
+        <div class="ap-vcard-badge" style="color:#059669;border-color:rgba(5,150,105,0.3);background:rgba(5,150,105,0.06)">產線</div>
+      </div>
 
-      <div class="ap-vcard" style="--vc:#7c3aed"><div class="ap-vcard-icon" style="--vb:rgba(124,58,237,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">製程診斷報告</div><div class="ap-vcard-desc">自動判斷偏移根因，提供 Offset 調整方向，清楚說明問題所在。</div></div><div class="ap-vcard-badge" style="color:#7c3aed;border-color:#7c3aed;background:rgba(124,58,237,0.06)">診斷</div></div>
+      <div class="ap-vcard" style="--vc:#7c3aed">
+        <div class="ap-vcard-icon" style="--vb:rgba(124,58,237,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div>
+        <div class="ap-vcard-body"><div class="ap-vcard-title">製程診斷報告</div><div class="ap-vcard-desc">自動判斷偏移根因，提供 Offset 調整方向，清楚說明問題所在。</div></div>
+        <div class="ap-vcard-badge" style="color:#7c3aed;border-color:rgba(124,58,237,0.3);background:rgba(124,58,237,0.06)">診斷</div>
+      </div>
 
-      <div class="ap-vcard" style="--vc:#dc2626"><div class="ap-vcard-icon" style="--vb:rgba(220,38,38,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">一鍵匯出 CSV</div><div class="ap-vcard-desc">篩選數據集直接下載，UTF-8 編碼支援繁體中文不亂碼。</div></div><div class="ap-vcard-badge" style="color:#dc2626;border-color:#dc2626;background:rgba(220,38,38,0.06)">匯出</div></div>
+      <div class="ap-vcard" style="--vc:#dc2626">
+        <div class="ap-vcard-icon" style="--vb:rgba(220,38,38,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+        <div class="ap-vcard-body"><div class="ap-vcard-title">一鍵匯出 CSV</div><div class="ap-vcard-desc">篩選數據集直接下載，UTF-8 編碼支援繁體中文不亂碼。</div></div>
+        <div class="ap-vcard-badge" style="color:#dc2626;border-color:rgba(220,38,38,0.3);background:rgba(220,38,38,0.06)">匯出</div>
+      </div>
 
-      <div class="ap-vcard" style="--vc:#0891b2"><div class="ap-vcard-icon" style="--vb:rgba(8,145,178,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">即時數據更新</div><div class="ap-vcard-desc">上傳即分析，篩選條件即時連動，不需重新整理頁面。</div></div><div class="ap-vcard-badge" style="color:#0891b2;border-color:#0891b2;background:rgba(8,145,178,0.06)">即時</div></div>
+      <div class="ap-vcard" style="--vc:#0891b2">
+        <div class="ap-vcard-icon" style="--vb:rgba(8,145,178,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="ap-vcard-body"><div class="ap-vcard-title">即時數據更新</div><div class="ap-vcard-desc">上傳即分析，篩選條件即時連動，不需重新整理頁面。</div></div>
+        <div class="ap-vcard-badge" style="color:#0891b2;border-color:rgba(8,145,178,0.3);background:rgba(8,145,178,0.06)">即時</div>
+      </div>
 
-      <div class="ap-vcard" style="--vc:#6366f1"><div class="ap-vcard-icon" style="--vb:rgba(99,102,241,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">多群組對比分析</div><div class="ap-vcard-desc">依月份與等級分群，箱型圖直觀呈現各群組變異差異。</div></div><div class="ap-vcard-badge" style="color:#6366f1;border-color:#6366f1;background:rgba(99,102,241,0.06)">對比</div></div>
-
-      <!-- duplicate for seamless loop -->
-      <div class="ap-vcard" style="--vc:#6366f1"><div class="ap-vcard-icon" style="--vb:rgba(99,102,241,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 16l3-4 3 3 3-5"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">智能 SPC 分析</div><div class="ap-vcard-desc">自動計算 Ca / Cp / Cpk，五級 A+～D 評鑑，附製程診斷建議。</div></div><div class="ap-vcard-badge" style="color:#6366f1;border-color:#6366f1;background:rgba(99,102,241,0.06)">SPC</div></div>
-      <div class="ap-vcard" style="--vc:#0891b2"><div class="ap-vcard-icon" style="--vb:rgba(8,145,178,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">趨勢異常監控</div><div class="ap-vcard-desc">生產順序管制圖，7B 異常鋼捲自動標記，跨月箱型圖對比。</div></div><div class="ap-vcard-badge" style="color:#0891b2;border-color:#0891b2;background:rgba(8,145,178,0.06)">趨勢</div></div>
-      <div class="ap-vcard" style="--vc:#d97706"><div class="ap-vcard-icon" style="--vb:rgba(217,119,6,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">瀑布流篩選器</div><div class="ap-vcard-desc">年月 × 厚度 × 寬度 × 材質 × 規格，六層條件即時連動。</div></div><div class="ap-vcard-badge" style="color:#d97706;border-color:#d97706;background:rgba(217,119,6,0.06)">篩選</div></div>
-      <div class="ap-vcard" style="--vc:#059669"><div class="ap-vcard-icon" style="--vb:rgba(5,150,105,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">鍍鋅產線專屬</div><div class="ap-vcard-desc">自動識別鍍層欄位，雙面總鍍層量 AVG，對應鋼捲規格分類。</div></div><div class="ap-vcard-badge" style="color:#059669;border-color:#059669;background:rgba(5,150,105,0.06)">產線</div></div>
-      <div class="ap-vcard" style="--vc:#7c3aed"><div class="ap-vcard-icon" style="--vb:rgba(124,58,237,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">製程診斷報告</div><div class="ap-vcard-desc">自動判斷偏移根因，提供 Offset 調整方向，清楚說明問題所在。</div></div><div class="ap-vcard-badge" style="color:#7c3aed;border-color:#7c3aed;background:rgba(124,58,237,0.06)">診斷</div></div>
-      <div class="ap-vcard" style="--vc:#dc2626"><div class="ap-vcard-icon" style="--vb:rgba(220,38,38,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">一鍵匯出 CSV</div><div class="ap-vcard-desc">篩選數據集直接下載，UTF-8 編碼支援繁體中文不亂碼。</div></div><div class="ap-vcard-badge" style="color:#dc2626;border-color:#dc2626;background:rgba(220,38,38,0.06)">匯出</div></div>
-      <div class="ap-vcard" style="--vc:#0891b2"><div class="ap-vcard-icon" style="--vb:rgba(8,145,178,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">即時數據更新</div><div class="ap-vcard-desc">上傳即分析，篩選條件即時連動，不需重新整理頁面。</div></div><div class="ap-vcard-badge" style="color:#0891b2;border-color:#0891b2;background:rgba(8,145,178,0.06)">即時</div></div>
-      <div class="ap-vcard" style="--vc:#6366f1"><div class="ap-vcard-icon" style="--vb:rgba(99,102,241,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div><div class="ap-vcard-body"><div class="ap-vcard-title">多群組對比分析</div><div class="ap-vcard-desc">依月份與等級分群，箱型圖直觀呈現各群組變異差異。</div></div><div class="ap-vcard-badge" style="color:#6366f1;border-color:#6366f1;background:rgba(99,102,241,0.06)">對比</div></div>
+      <div class="ap-vcard" style="--vc:#6366f1">
+        <div class="ap-vcard-icon" style="--vb:rgba(99,102,241,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div>
+        <div class="ap-vcard-body"><div class="ap-vcard-title">多群組對比分析</div><div class="ap-vcard-desc">依月份與等級分群，箱型圖直觀呈現各群組變異差異。</div></div>
+        <div class="ap-vcard-badge" style="color:#6366f1;border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.06)">對比</div>
+      </div>
 
     </div>
   </div>
