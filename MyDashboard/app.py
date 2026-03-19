@@ -282,10 +282,75 @@ with st.sidebar:
     st.header("⚙️ 儀表板控制中心")
     uploaded_file = st.file_uploader("📂 上傳產線 RAW DATA", type=["xlsx", "csv"])
     st.markdown("---")
-    
+
+    # ── Appearance toggle ─────────────────────────
+    st.markdown("**🎨 Appearance**")
+    theme_mode = st.radio(
+        "外觀模式", ["Dark", "Light"],
+        horizontal=True,
+        label_visibility="collapsed",
+        key="theme_mode"
+    )
+    st.markdown("---")
+
     if uploaded_file:
         st.success("✅ 文件已加載")
         st.caption(f"文件名：{uploaded_file.name}")
+
+# ==========================================
+# 🎨 主題系統
+# ==========================================
+_is_dark = (st.session_state.get("theme_mode", "Dark") == "Dark")
+
+if _is_dark:
+    T = dict(
+        bg_app="#0a0e17", bg_panel="#101826", bg_chart="#0c1220",
+        text_p="#c8dde8", text_s="#5a7a8e", text_dim="#2e4455",
+        border="#1c2e42", grid="#1c2e42",
+        bar_in="rgba(0,180,220,0.55)", bar_out="rgba(255,59,59,0.75)",
+        bar_border="rgba(255,255,255,0.08)",
+        curve="#f5a623", line_mean="#39e07a", line_spec="#ff3b3b",
+        line_target="#00d4ff", line_dot="rgba(0,212,255,0.12)",
+        abnormal="#FFD700", hover_bg="rgba(12,18,32,0.95)",
+        legend_bg="rgba(12,18,32,0.85)", card_bg="#101826",
+        stat_bg="#101826", ann_bg="rgba(10,16,24,0.85)",
+        title_color="#5a7a8e",
+    )
+else:
+    T = dict(
+        bg_app="#f4f6f9", bg_panel="#ffffff", bg_chart="#ffffff",
+        text_p="#1a2332", text_s="#546e7a", text_dim="#90a4ae",
+        border="#e0e7ef", grid="#e8edf2",
+        bar_in="rgba(253,211,78,0.88)", bar_out="rgba(220,38,38,0.72)",
+        bar_border="rgba(50,50,50,0.12)",
+        curve="#1a2332", line_mean="#059669", line_spec="#dc2626",
+        line_target="#2563eb", line_dot="rgba(37,99,235,0.06)",
+        abnormal="#f59e0b", hover_bg="rgba(255,255,255,0.98)",
+        legend_bg="rgba(255,255,255,0.95)", card_bg="#ffffff",
+        stat_bg="#f8fafc", ann_bg="rgba(255,255,255,0.92)",
+        title_color="#546e7a",
+    )
+
+_theme_css = f"""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap');
+.stApp {{ background-color: {T['bg_app']} !important; }}
+section[data-testid="stSidebar"] {{
+    background-color: {T['bg_panel']} !important;
+    border-right: 1px solid {T['border']} !important;
+}}
+.spc-metric-card {{ background: {T['card_bg']} !important; border: 1px solid {T['border']} !important; }}
+.spc-card-label, .spc-card-desc {{ color: {T['text_s']} !important; }}
+.spc-card-value {{ color: {T['text_p']} !important; }}
+.spc-stats-bar {{ background: {T['stat_bg']} !important; border-color: {T['border']} !important; }}
+.spc-stat-cell {{ border-color: {T['border']} !important; }}
+.spc-stat-val {{ color: {T['text_p']} !important; }}
+.spc-stat-label {{ color: {T['text_s']} !important; }}
+.spc-gauge-track {{ background: {T['border']} !important; }}
+.spc-section-title {{ color: {T['text_s']} !important; }}
+</style>
+"""
+st.markdown(_theme_css, unsafe_allow_html=True)
 
 # ==========================================
 # 🌟 動畫與分析邏輯切換區塊
@@ -739,14 +804,14 @@ else:
                         idx = max(0, min(bin_count - 1, idx))
                         counts[idx] += 1
 
-                    # 依規格著色：規格外 → 紅；規格內 → cyan
+                    # 依規格著色：規格外 → 紅；規格內 → 主題色
                     bar_colors = []
                     for i in range(bin_count):
                         lo, hi = edges[i], edges[i + 1]
                         if hi <= lsl or lo >= usl:
-                            bar_colors.append("rgba(255,59,59,0.75)")
+                            bar_colors.append(T['bar_out'])
                         else:
-                            bar_colors.append("rgba(0,180,220,0.55)")
+                            bar_colors.append(T['bar_in'])
 
                     bar_centers = [(edges[i] + edges[i+1]) / 2 for i in range(bin_count)]
 
@@ -759,7 +824,7 @@ else:
                         width=[step * 0.98] * bin_count,
                         marker=dict(
                             color=bar_colors,
-                            line=dict(width=0.5, color="rgba(255,255,255,0.1)")
+                            line=dict(width=0.5, color=T['bar_border'])
                         ),
                         name="分布",
                         hovertemplate="區間中心: %{x:.4f}<br>次數: %{y}<extra></extra>"
@@ -772,23 +837,23 @@ else:
                         y_curve = y_pdf * len(hist_data) * step
                         fig_hist.add_trace(go.Scatter(
                             x=x_curve, y=y_curve, mode='lines',
-                            line=dict(color='#f5a623', width=2.5),
+                            line=dict(color=T['curve'], width=2.5),
                             name='常態曲線'
                         ))
 
                     # 規格線
                     max_y = max(counts) * 1.25 if counts else 10
                     for xval, label, color, dash in [
-                        (lsl,    f"LSL: {lsl:.4f}",    "#ff3b3b", "solid"),
-                        (usl,    f"USL: {usl:.4f}",    "#ff3b3b", "solid"),
-                        (target, f"Target: {target:.4f}", "#00d4ff", "dash"),
-                        (avg_val,f"X̄: {avg_val:.4f}",  "#39e07a", "dot"),
+                        (lsl,    f"LSL: {lsl:.4f}",      T['line_spec'],   "solid"),
+                        (usl,    f"USL: {usl:.4f}",      T['line_spec'],   "solid"),
+                        (target, f"Target: {target:.4f}", T['line_target'], "dash"),
+                        (avg_val,f"X̄: {avg_val:.4f}",    T['line_mean'],   "dot"),
                     ]:
                         fig_hist.add_vline(
                             x=xval, line_dash=dash, line_color=color, line_width=1.8,
                             annotation=dict(
                                 text=label, font=dict(color=color, size=10),
-                                bgcolor="rgba(10,16,24,0.85)", bordercolor=color,
+                                bgcolor=T['ann_bg'], bordercolor=color,
                                 borderwidth=1, borderpad=3
                             )
                         )
@@ -796,26 +861,26 @@ else:
                     fig_hist.update_layout(
                         title=dict(
                             text=f"【{selected_param}】 直方圖 · 常態分佈",
-                            font=dict(color="#5a7a8e", size=12, family="Space Mono, monospace"),
+                            font=dict(color=T['title_color'], size=12, family="Space Mono, monospace"),
                             x=0
                         ),
                         height=420,
-                        plot_bgcolor="#0c1220",
-                        paper_bgcolor="#101826",
-                        font=dict(color="#c8dde8"),
+                        plot_bgcolor=T['bg_chart'],
+                        paper_bgcolor=T['bg_panel'],
+                        font=dict(color=T['text_p']),
                         xaxis=dict(
-                            gridcolor="#1c2e42", zerolinecolor="#1c2e42",
-                            title=dict(text=selected_param, font=dict(color="#5a7a8e", size=10)),
-                            tickfont=dict(size=9, color="#5a7a8e"),
+                            gridcolor=T['grid'], zerolinecolor=T['grid'],
+                            title=dict(text=selected_param, font=dict(color=T['text_s'], size=10)),
+                            tickfont=dict(size=9, color=T['text_s']),
                         ),
                         yaxis=dict(
-                            gridcolor="#1c2e42", zerolinecolor="#1c2e42",
-                            title=dict(text="次數 (Frequency)", font=dict(color="#5a7a8e", size=10)),
-                            tickfont=dict(size=9, color="#5a7a8e"),
+                            gridcolor=T['grid'], zerolinecolor=T['grid'],
+                            title=dict(text="次數 (Frequency)", font=dict(color=T['text_s'], size=10)),
+                            tickfont=dict(size=9, color=T['text_s']),
                         ),
                         legend=dict(
-                            bgcolor="rgba(12,18,32,0.8)", bordercolor="#1c2e42", borderwidth=1,
-                            font=dict(size=10, color="#c8dde8")
+                            bgcolor=T['legend_bg'], bordercolor=T['border'], borderwidth=1,
+                            font=dict(size=10, color=T['text_p'])
                         ),
                         bargap=0,
                         margin=dict(t=60, b=50, l=50, r=20)
@@ -826,17 +891,17 @@ else:
                 with chart_col2:
                     pie_values = [inside, outside_usl, outside_lsl]
                     pie_names  = ['符合規格', '超過上限 (>USL)', '低於下限 (<LSL)']
-                    pie_colors = ['#00b4dc', '#ff3b3b', '#f5a623']
+                    pie_colors = ['#00b4dc', '#ff3b3b', '#f5a623'] if _is_dark else ['#2563eb', '#dc2626', '#f59e0b']
 
                     fig_pie = go.Figure(go.Pie(
                         values=pie_values,
                         labels=pie_names,
                         marker=dict(
                             colors=pie_colors,
-                            line=dict(color='#0c1220', width=2)
+                            line=dict(color=T['bg_chart'], width=2)
                         ),
                         textinfo='label+percent',
-                        textfont=dict(size=10, color="#c8dde8"),
+                        textfont=dict(size=10, color=T['text_p']),
                         hole=0.42,
                         hovertemplate="%{label}<br>數量: %{value} 顆<br>佔比: %{percent}<extra></extra>"
                     ))
@@ -851,82 +916,191 @@ else:
                     fig_pie.update_layout(
                         title=dict(
                             text="規格符合率",
-                            font=dict(color="#5a7a8e", size=12, family="Space Mono, monospace"),
+                            font=dict(color=T['title_color'], size=12, family="Space Mono, monospace"),
                             x=0
                         ),
                         height=420,
-                        paper_bgcolor="#101826",
-                        plot_bgcolor="#101826",
-                        font=dict(color="#c8dde8"),
+                        paper_bgcolor=T['bg_panel'],
+                        plot_bgcolor=T['bg_panel'],
+                        font=dict(color=T['text_p']),
                         legend=dict(
-                            bgcolor="rgba(12,18,32,0.8)", bordercolor="#1c2e42", borderwidth=1,
-                            font=dict(size=10, color="#c8dde8"),
+                            bgcolor=T['legend_bg'], bordercolor=T['border'], borderwidth=1,
+                            font=dict(size=10, color=T['text_p']),
                             orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5
                         ),
                         margin=dict(t=60, b=60, l=20, r=20)
                     )
                     st.plotly_chart(fig_pie, use_container_width=True)
 
-                # 🌟 生產順序異常監控圖
-                st.markdown("---")
-                st.markdown("### 📈 生產順序異常監控圖")
-                
-                x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else plot_df.index
-                hover_cols = ['試驗等級'] if '試驗等級' in plot_df.columns else None
-                
-                fig_line = px.line(
-                    plot_df, x=x_axis_col, y=selected_param, markers=True, hover_data=hover_cols,
-                    title=f"【{selected_param}】 單一趨勢管制圖", color_discrete_sequence=['#667eea'] 
-                )
-                
+                # ═══════════════════════════════════════════════
+                # 生產順序異常監控圖（主題化）
+                # ═══════════════════════════════════════════════
+                st.markdown('<div class="spc-section-title" style="margin-top:22px">▸ 生產順序異常監控圖</div>', unsafe_allow_html=True)
+
+                x_axis_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else None
+                x_data = plot_df[x_axis_col] if x_axis_col else list(range(len(plot_df)))
+                x_label = "鋼捲號碼" if x_axis_col else "生產順序"
+
+                fig_line = go.Figure()
+
+                # 主趨勢線
+                hover_extra = ("<br><b>試驗等級:</b> %{customdata}"
+                               if '試驗等級' in plot_df.columns else "")
+                fig_line.add_trace(go.Scatter(
+                    x=x_data,
+                    y=plot_df[selected_param],
+                    mode='lines+markers',
+                    line=dict(color=T['line_target'], width=1.4),
+                    marker=dict(size=4, color=T['line_target'], opacity=0.7),
+                    customdata=plot_df['試驗等級'] if '試驗等級' in plot_df.columns else None,
+                    hovertemplate=(
+                        f"<b>{x_label}:</b> %{{x}}<br>"
+                        f"<b>{selected_param}:</b> %{{y:.4f}}"
+                        + hover_extra + "<extra></extra>"
+                    ),
+                    name=selected_param,
+                ))
+
+                # 異常點（7B）
+                abnormal_df = pd.DataFrame()
                 if '試驗等級' in plot_df.columns:
-                    fig_line.update_traces(hovertemplate="<b>鋼捲號碼:</b> %{x}<br><b>數值:</b> %{y}<br><b>試驗等級:</b> %{customdata[0]}<extra></extra>")
-                else:
-                    fig_line.update_traces(hovertemplate="<b>鋼捲號碼:</b> %{x}<br><b>數值:</b> %{y}<extra></extra>")
-                
-                if '試驗等級' in plot_df.columns:
-                    abnormal_df = plot_df[plot_df['試驗等級'].astype(str).str.upper().str.replace(' ', '').str.contains('7B', na=False)]
+                    abnormal_df = plot_df[
+                        plot_df['試驗等級'].astype(str).str.upper()
+                        .str.replace(' ', '').str.contains('7B', na=False)
+                    ]
                     if not abnormal_df.empty:
-                        x_data_abnormal = abnormal_df["產出鋼捲號碼"] if "產出鋼捲號碼" in abnormal_df.columns else abnormal_df.index
+                        x_abn = abnormal_df[x_axis_col] if x_axis_col else abnormal_df.index
                         fig_line.add_trace(go.Scatter(
-                            x=x_data_abnormal, y=abnormal_df[selected_param], mode='markers',
-                            marker=dict(color='#FFD700', size=12, symbol='circle', line=dict(color='black', width=2)),
-                            name='異常 (7B)', hoverinfo='skip' 
+                            x=x_abn, y=abnormal_df[selected_param],
+                            mode='markers',
+                            marker=dict(
+                                color=T['abnormal'], size=10, symbol='circle',
+                                line=dict(color=T['bg_chart'], width=1.5)
+                            ),
+                            name='異常 (7B)',
+                            hovertemplate=f"<b>異常鋼捲</b><br>{x_label}: %{{x}}<br>數值: %{{y:.4f}}<extra></extra>",
                         ))
-                
-                fig_line.add_hrect(y0=lsl, y1=usl, line_width=0, fillcolor="#00CC96", opacity=0.1)
-                fig_line.add_hline(y=target, line_dash="dash", line_color="green", annotation_text="中心值")
-                fig_line.add_hline(y=usl, line_dash="solid", line_color="red", annotation_text="USL")
-                fig_line.add_hline(y=lsl, line_dash="solid", line_color="red", annotation_text="LSL")
-                fig_line.update_xaxes(showticklabels=False, title_text="生產順序 (依照時間/鋼捲號碼)")
-                fig_line.update_layout(height=400, hovermode="closest")
+
+                # 規格帶、目標線、USL、LSL
+                fig_line.add_hrect(
+                    y0=lsl, y1=usl, line_width=0,
+                    fillcolor=T['line_dot'], opacity=1
+                )
+                for yval, label, color, dash in [
+                    (usl,    f"USL: {usl:.4f}",      T['line_spec'],   "solid"),
+                    (lsl,    f"LSL: {lsl:.4f}",      T['line_spec'],   "solid"),
+                    (target, f"Target: {target:.4f}", T['line_target'], "dash"),
+                ]:
+                    fig_line.add_hline(
+                        y=yval, line_dash=dash, line_color=color, line_width=1.6,
+                        annotation=dict(
+                            text=label, font=dict(color=color, size=10),
+                            bgcolor=T['ann_bg'], bordercolor=color,
+                            borderwidth=1, borderpad=3, xanchor="right"
+                        )
+                    )
+
+                fig_line.update_layout(
+                    title=dict(
+                        text=f"【{selected_param}】 單一趨勢管制圖",
+                        font=dict(color=T['title_color'], size=12, family="Space Mono, monospace"), x=0
+                    ),
+                    height=400,
+                    plot_bgcolor=T['bg_chart'],
+                    paper_bgcolor=T['bg_panel'],
+                    font=dict(color=T['text_p']),
+                    xaxis=dict(
+                        showticklabels=False,
+                        title=dict(text=f"生產順序 ({x_label})", font=dict(color=T['text_s'], size=10)),
+                        gridcolor=T['grid'], zerolinecolor=T['grid'],
+                        tickfont=dict(size=9, color=T['text_s']),
+                    ),
+                    yaxis=dict(
+                        gridcolor=T['grid'], zerolinecolor=T['grid'],
+                        title=dict(text=selected_param, font=dict(color=T['text_s'], size=10)),
+                        tickfont=dict(size=9, color=T['text_s']),
+                    ),
+                    legend=dict(
+                        bgcolor=T['legend_bg'], bordercolor=T['border'], borderwidth=1,
+                        font=dict(size=10, color=T['text_p']),
+                        orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+                    ),
+                    hovermode="closest",
+                    margin=dict(t=60, b=50, l=55, r=20),
+                )
                 st.plotly_chart(fig_line, use_container_width=True)
 
                 if '試驗等級' in plot_df.columns:
                     if not abnormal_df.empty:
-                        st.warning(f"⚠️ 在上方趨勢圖中，共標示了 **{len(abnormal_df)} 顆** 7B 異常鋼捲 (黃色點)。")
+                        st.warning(f"⚠️ 共標示了 **{len(abnormal_df)} 顆** 7B 異常鋼捲（橘黃色點）。")
                     else:
                         st.success("✅ 目前顯示的鋼捲中，沒有出現 7B 等級。")
 
-                # 🌟 新增：群組數據分佈箱型圖
-                st.markdown("---")
-                st.markdown("### 📦 群組數據分佈箱型圖")
-                st.caption("將篩選後的資料依照「月份與等級」分群對比，可直觀看出不同群組的變異程度與極端值。")
-                
-                fig_box = px.box(
-                    plot_df, 
-                    x="比對群組", 
-                    y=selected_param, 
-                    color="比對群組",
-                    title=f"【{selected_param}】 群組箱型圖對比",
-                    points="all" # 顯示極端值
+                # ═══════════════════════════════════════════════
+                # 群組數據分佈箱型圖（主題化）
+                # ═══════════════════════════════════════════════
+                st.markdown('<div class="spc-section-title" style="margin-top:22px">▸ 群組數據分佈箱型圖</div>', unsafe_allow_html=True)
+                st.caption("依「月份與等級」分群對比，可直觀看出不同群組的變異程度與極端值。")
+
+                groups = sorted(plot_df["比對群組"].dropna().unique())
+                box_palette = (
+                    ["#00d4ff","#f5a623","#39e07a","#9b59ff","#ff3b3b",
+                     "#00bfa5","#ff7c3b","#5c6bc0","#26a69a","#ef5350"]
+                    if _is_dark else
+                    ["#2563eb","#f59e0b","#059669","#7c3aed","#dc2626",
+                     "#0891b2","#ea580c","#4f46e5","#0d9488","#e11d48"]
                 )
-                
-                fig_box.add_hline(y=target, line_dash="dash", line_color="green", annotation_text="中心值")
-                fig_box.add_hline(y=usl, line_dash="solid", line_color="red", annotation_text="USL")
-                fig_box.add_hline(y=lsl, line_dash="solid", line_color="red", annotation_text="LSL")
-                fig_box.update_layout(height=450, showlegend=False, xaxis_title="群組分類")
-                
+
+                fig_box = go.Figure()
+                for i, grp in enumerate(groups):
+                    grp_data = plot_df[plot_df["比對群組"] == grp][selected_param].dropna()
+                    c = box_palette[i % len(box_palette)]
+                    fig_box.add_trace(go.Box(
+                        y=grp_data,
+                        name=grp,
+                        marker=dict(color=c, size=4, opacity=0.6),
+                        line=dict(color=c, width=1.5),
+                        fillcolor=c.replace(")", ", 0.15)").replace("rgb", "rgba") if c.startswith("rgb") else c + "26",
+                        boxpoints='outliers',
+                        hovertemplate=f"<b>{grp}</b><br>數值: %{{y:.4f}}<extra></extra>",
+                    ))
+
+                for yval, label, color, dash in [
+                    (usl,    f"USL: {usl:.4f}",      T['line_spec'],   "solid"),
+                    (lsl,    f"LSL: {lsl:.4f}",      T['line_spec'],   "solid"),
+                    (target, f"Target: {target:.4f}", T['line_target'], "dash"),
+                ]:
+                    fig_box.add_hline(
+                        y=yval, line_dash=dash, line_color=color, line_width=1.6,
+                        annotation=dict(
+                            text=label, font=dict(color=color, size=10),
+                            bgcolor=T['ann_bg'], bordercolor=color,
+                            borderwidth=1, borderpad=3, xanchor="right"
+                        )
+                    )
+
+                fig_box.update_layout(
+                    title=dict(
+                        text=f"【{selected_param}】 群組箱型圖對比",
+                        font=dict(color=T['title_color'], size=12, family="Space Mono, monospace"), x=0
+                    ),
+                    height=460,
+                    plot_bgcolor=T['bg_chart'],
+                    paper_bgcolor=T['bg_panel'],
+                    font=dict(color=T['text_p']),
+                    xaxis=dict(
+                        title=dict(text="群組分類", font=dict(color=T['text_s'], size=10)),
+                        gridcolor=T['grid'], zerolinecolor=T['grid'],
+                        tickfont=dict(size=9, color=T['text_s']),
+                    ),
+                    yaxis=dict(
+                        gridcolor=T['grid'], zerolinecolor=T['grid'],
+                        title=dict(text=selected_param, font=dict(color=T['text_s'], size=10)),
+                        tickfont=dict(size=9, color=T['text_s']),
+                    ),
+                    showlegend=False,
+                    margin=dict(t=60, b=80, l=55, r=20),
+                )
                 st.plotly_chart(fig_box, use_container_width=True)
 
         # ============ 數據匯出 ============
