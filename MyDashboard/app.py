@@ -437,13 +437,15 @@ else:
                 if pd.isna(avg_val): avg_val = 0.0
                 if pd.isna(std_val): std_val = 0.0
                 
+                # ═══════════════════════════════════════════════
                 # SPC 規格設定
+                # ═══════════════════════════════════════════════
                 st.markdown("### 📐 SPC 規格設定")
-                
+
                 dynamic_key = f"{selected_param}_{len(plot_df)}"
                 default_lsl = float(avg_val - 4 * std_val) if std_val > 0 else float(avg_val - 10)
                 default_usl = float(avg_val + 4 * std_val) if std_val > 0 else float(avg_val + 10)
-                
+
                 spec_col1, spec_col2, spec_col3 = st.columns(3)
                 with spec_col1:
                     lsl = st.number_input("規格下限 (LSL)", value=default_lsl, key=f"lsl_{dynamic_key}")
@@ -451,114 +453,418 @@ else:
                     usl = st.number_input("規格上限 (USL)", value=default_usl, key=f"usl_{dynamic_key}")
                 with spec_col3:
                     target = st.number_input("規格中心值 (Target)", value=float((default_usl + default_lsl) / 2), key=f"tar_{dynamic_key}")
-                
-                cp = (usl - lsl) / (6 * std_val) if std_val > 0 else 0
-                ca = (avg_val - target) / ((usl - lsl) / 2) * 100 if usl != lsl else 0
-                cpk = min((usl - avg_val) / (3 * std_val), (avg_val - lsl) / (3 * std_val)) if std_val > 0 else 0
-                
-                st.markdown("### 📊 製程能力指標")
-                metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
-                
-                with metric_col1:
+
+                # ── 正確公式計算 (依教材 Ca/Cp/Cpk) ──────────────
+                cp  = (usl - lsl) / (6 * std_val) if std_val > 0 else 0.0
+                ca  = (avg_val - target) / ((usl - lsl) / 2) * 100 if usl != lsl else 0.0   # 有正負號
+                cpk = cp * (1 - abs(ca) / 100)                                               # Cpk = Cp × (1 - |Ca|)
+
+                # ── 五級評價函式 ────────────────────────────────
+                def grade_ca(ca_abs):
+                    if ca_abs < 6.25:  return "A+", "#39e07a", "製程準確極佳"
+                    if ca_abs < 12.5:  return "A",  "#00d4ff", "準確度良好"
+                    if ca_abs < 25.0:  return "B",  "#f5a623", "尚可，建議調整 Offset"
+                    if ca_abs < 50.0:  return "C",  "#ff7c3b", "能力不足，需調整參數"
+                    return                     "D",  "#ff3b3b", "能力極差，立即處理"
+
+                def grade_cp(val):
+                    if val >= 1.67: return "A+", "#39e07a", "製程精密極佳"
+                    if val >= 1.33: return "A",  "#00d4ff", "精密度良好"
+                    if val >= 1.00: return "B",  "#f5a623", "尚可，加強管制"
+                    if val >= 0.67: return "C",  "#ff7c3b", "能力不足，查原因"
+                    return                  "D",  "#ff3b3b", "能力極差，全面檢討"
+
+                ca_grade, ca_color, ca_desc   = grade_ca(abs(ca))
+                cp_grade, cp_color, cp_desc   = grade_cp(cp)
+                cpk_grade, cpk_color, cpk_desc = grade_cp(cpk)
+
+                # 規格符合率計算
+                outside_usl = len(plot_df[plot_df[selected_param] > usl])
+                outside_lsl = len(plot_df[plot_df[selected_param] < lsl])
+                inside      = len(plot_df) - outside_usl - outside_lsl
+                yield_pct   = inside / len(plot_df) * 100 if len(plot_df) > 0 else 0.0
+                if yield_pct >= 99.73: yield_grade, yield_color = "A+", "#39e07a"
+                elif yield_pct >= 99:  yield_grade, yield_color = "A",  "#00d4ff"
+                elif yield_pct >= 95:  yield_grade, yield_color = "B",  "#f5a623"
+                else:                  yield_grade, yield_color = "D",  "#ff3b3b"
+
+                # ── 工業儀表卡片 CSS (注入一次) ─────────────────
+                st.markdown("""
+                <style>
+                .spc-section-title {
+                    font-family: 'Rajdhani', 'Microsoft JhengHei', sans-serif;
+                    font-size: 0.65rem;
+                    letter-spacing: 3px;
+                    color: #5a7a8e;
+                    text-transform: uppercase;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin: 18px 0 10px 0;
+                }
+                .spc-section-title::after {
+                    content: '';
+                    flex: 1;
+                    height: 1px;
+                    background: linear-gradient(90deg, #1c2e42, transparent);
+                }
+                .spc-metric-card {
+                    background: #101826;
+                    border: 1px solid #1c2e42;
+                    border-radius: 8px;
+                    padding: 16px 18px 14px 18px;
+                    position: relative;
+                    overflow: hidden;
+                    transition: border-color 0.3s;
+                }
+                .spc-metric-card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 0; right: 0;
+                    height: 2px;
+                    background: var(--card-top, #1c2e42);
+                    opacity: 0.8;
+                }
+                .spc-metric-card::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0; left: 0; right: 0;
+                    height: 2px;
+                    background: var(--card-top, #1c2e42);
+                    opacity: 0.3;
+                }
+                .spc-card-label {
+                    font-family: 'Space Mono', 'Courier New', monospace;
+                    font-size: 0.58rem;
+                    letter-spacing: 2px;
+                    color: #5a7a8e;
+                    text-transform: uppercase;
+                    margin-bottom: 6px;
+                }
+                .spc-card-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 2px;
+                }
+                .spc-grade-badge {
+                    font-family: 'Rajdhani', monospace;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    padding: 2px 9px;
+                    border-radius: 3px;
+                    border: 1px solid currentColor;
+                    letter-spacing: 1px;
+                }
+                .spc-card-value {
+                    font-family: 'Rajdhani', 'Microsoft JhengHei', sans-serif;
+                    font-size: 2.0rem;
+                    font-weight: 700;
+                    line-height: 1.1;
+                    letter-spacing: -0.5px;
+                    margin: 4px 0 2px 0;
+                }
+                .spc-card-desc {
+                    font-family: 'Space Mono', monospace;
+                    font-size: 0.58rem;
+                    color: #5a7a8e;
+                    margin-bottom: 8px;
+                }
+                .spc-gauge-track {
+                    height: 3px;
+                    background: #1c2e42;
+                    border-radius: 2px;
+                    overflow: hidden;
+                    margin-top: 6px;
+                }
+                .spc-gauge-fill {
+                    height: 100%;
+                    border-radius: 2px;
+                    transition: width 0.6s ease;
+                }
+                .spc-stats-bar {
+                    background: #101826;
+                    border: 1px solid #1c2e42;
+                    border-radius: 8px;
+                    display: grid;
+                    grid-template-columns: repeat(6, 1fr);
+                    overflow: hidden;
+                    margin: 10px 0 0 0;
+                }
+                .spc-stat-cell {
+                    padding: 10px 8px;
+                    text-align: center;
+                    border-right: 1px solid #1c2e42;
+                }
+                .spc-stat-cell:last-child { border-right: none; }
+                .spc-stat-label {
+                    font-family: 'Space Mono', monospace;
+                    font-size: 0.52rem;
+                    color: #5a7a8e;
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 3px;
+                }
+                .spc-stat-val {
+                    font-family: 'Space Mono', monospace;
+                    font-size: 0.78rem;
+                    color: #c8dde8;
+                    font-weight: 700;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+
+                # ── 製程能力指標標題 ─────────────────────────────
+                st.markdown('<div class="spc-section-title">▸ 製程能力指標</div>', unsafe_allow_html=True)
+
+                mc1, mc2, mc3, mc4 = st.columns(4)
+
+                # 樣本數卡片
+                with mc1:
                     st.markdown(f"""
-                    <div class="metric-highlight">
-                        <strong>樣本數</strong><br>
-                        <h2>{len(plot_df)} 顆</h2>
+                    <div class="spc-metric-card" style="--card-top:#00d4ff">
+                        <div class="spc-card-label">樣本數 · N</div>
+                        <div class="spc-card-value" style="color:#c8dde8">{len(plot_df)}</div>
+                        <div class="spc-card-desc">{'✓ 達統計需求 (≥30)' if len(plot_df) >= 30 else '⚠ 樣本數不足 (<30)'}</div>
+                        <div class="spc-gauge-track">
+                            <div class="spc-gauge-fill" style="width:{min(len(plot_df)/30*100,100):.0f}%;background:#00d4ff;box-shadow:0 0 5px #00d4ff"></div>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
-                
-                with metric_col2:
+
+                # Ca 卡片
+                with mc2:
+                    ca_gauge = min(abs(ca), 100)
+                    ca_sign_label = f"{'▲ 偏高' if ca > 0 else '▼ 偏低'}  {abs(ca):.2f}%"
                     st.markdown(f"""
-                    <div class="metric-highlight">
-                        <strong>Cp (精密度)</strong><br>
-                        <h2>{cp:.2f}</h2>
-                        <small>變異大小</small>
+                    <div class="spc-metric-card" style="--card-top:{ca_color}">
+                        <div class="spc-card-header">
+                            <div class="spc-card-label">Ca · 準確度</div>
+                            <span class="spc-grade-badge" style="color:{ca_color};border-color:{ca_color};background:{ca_color}18">{ca_grade}</span>
+                        </div>
+                        <div class="spc-card-value" style="color:{ca_color}">{abs(ca):.1f}%</div>
+                        <div class="spc-card-desc">{ca_sign_label} · {ca_desc}</div>
+                        <div class="spc-gauge-track">
+                            <div class="spc-gauge-fill" style="width:{ca_gauge:.0f}%;background:{ca_color};box-shadow:0 0 5px {ca_color}"></div>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
-                
-                with metric_col3:
+
+                # Cp 卡片
+                with mc3:
+                    cp_gauge = min(cp / 2.0 * 100, 100)
                     st.markdown(f"""
-                    <div class="metric-highlight">
-                        <strong>Ca (準確度)</strong><br>
-                        <h2>{abs(ca):.1f}%</h2>
-                        <small>偏離中心值</small>
+                    <div class="spc-metric-card" style="--card-top:{cp_color}">
+                        <div class="spc-card-header">
+                            <div class="spc-card-label">Cp · 精密度</div>
+                            <span class="spc-grade-badge" style="color:{cp_color};border-color:{cp_color};background:{cp_color}18">{cp_grade}</span>
+                        </div>
+                        <div class="spc-card-value" style="color:{cp_color}">{cp:.3f}</div>
+                        <div class="spc-card-desc">{cp_desc}</div>
+                        <div class="spc-gauge-track">
+                            <div class="spc-gauge-fill" style="width:{cp_gauge:.0f}%;background:{cp_color};box-shadow:0 0 5px {cp_color}"></div>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
-                
-                cpk_color = "🟢" if cpk >= 1.33 else ("🟡" if cpk >= 1.0 else "🔴")
-                cpk_status = "優良(A)" if cpk >= 1.33 else ("尚可(B)" if cpk >= 1.0 else "需改善(C)")
-                
-                with metric_col4:
+
+                # Cpk 卡片
+                with mc4:
+                    cpk_gauge = min(cpk / 2.0 * 100, 100)
                     st.markdown(f"""
-                    <div class="metric-highlight">
-                        <strong>Cpk {cpk_color}</strong><br>
-                        <h2>{cpk:.2f}</h2>
-                        <small>{cpk_status}</small>
+                    <div class="spc-metric-card" style="--card-top:{cpk_color}">
+                        <div class="spc-card-header">
+                            <div class="spc-card-label">Cpk · 製程能力</div>
+                            <span class="spc-grade-badge" style="color:{cpk_color};border-color:{cpk_color};background:{cpk_color}18">{cpk_grade}</span>
+                        </div>
+                        <div class="spc-card-value" style="color:{cpk_color}">{cpk:.3f}</div>
+                        <div class="spc-card-desc">{cpk_desc}</div>
+                        <div class="spc-gauge-track">
+                            <div class="spc-gauge-fill" style="width:{cpk_gauge:.0f}%;background:{cpk_color};box-shadow:0 0 5px {cpk_color}"></div>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
-                
-                st.markdown("---")
-                
-                stats_col1, stats_col2, stats_col3 = st.columns(3)
-                with stats_col1:
-                    st.write(f"**平均值**: {avg_val:.4f}")
-                    st.write(f"**中位數**: {median_val:.4f}")
-                with stats_col2:
-                    st.write(f"**標準差**: {std_val:.4f}")
-                    st.write(f"**變異係數**: {(std_val/avg_val*100) if avg_val != 0 else 0:.2f}%")
-                with stats_col3:
-                    st.write(f"**最小值**: {plot_df[selected_param].min():.4f}")
-                    st.write(f"**最大值**: {plot_df[selected_param].max():.4f}")
-                
-                st.markdown("---")
-                
-                st.markdown("### 📉 視覺分析")
-                chart_col1, chart_col2 = st.columns([1.5, 1])
-                
+
+                # ── 統計摘要列 ───────────────────────────────────
+                cv = (std_val / avg_val * 100) if avg_val != 0 else 0
+                st.markdown(f"""
+                <div class="spc-stats-bar">
+                    <div class="spc-stat-cell">
+                        <div class="spc-stat-label">平均值 X̄</div>
+                        <div class="spc-stat-val">{avg_val:.4f}</div>
+                    </div>
+                    <div class="spc-stat-cell">
+                        <div class="spc-stat-label">中位數</div>
+                        <div class="spc-stat-val">{median_val:.4f}</div>
+                    </div>
+                    <div class="spc-stat-cell">
+                        <div class="spc-stat-label">標準差 σ</div>
+                        <div class="spc-stat-val">{std_val:.4f}</div>
+                    </div>
+                    <div class="spc-stat-cell">
+                        <div class="spc-stat-label">變異係數</div>
+                        <div class="spc-stat-val">{cv:.2f}%</div>
+                    </div>
+                    <div class="spc-stat-cell">
+                        <div class="spc-stat-label">最小值</div>
+                        <div class="spc-stat-val">{plot_df[selected_param].min():.4f}</div>
+                    </div>
+                    <div class="spc-stat-cell">
+                        <div class="spc-stat-label">最大值</div>
+                        <div class="spc-stat-val">{plot_df[selected_param].max():.4f}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # ── 視覺分析標題 ─────────────────────────────────
+                st.markdown('<div class="spc-section-title" style="margin-top:22px">▸ 視覺分析</div>', unsafe_allow_html=True)
+
+                chart_col1, chart_col2 = st.columns([1.6, 1])
+
+                # ── 直方圖 (規格外自動標紅) ──────────────────────
                 with chart_col1:
-                    fig_hist = px.histogram(
-                        plot_df, x=selected_param, nbins=30, opacity=0.7,
-                        histnorm='probability density',
-                        color_discrete_sequence=['#667eea'],
-                        title=f"【{selected_param}】常態分佈與規格區間"
-                    )
-                    
+                    hist_data  = plot_df[selected_param].dropna().values
+                    bin_count  = 30
+                    data_min, data_max = hist_data.min(), hist_data.max()
+
+                    # 展開軸範圍，讓 LSL/USL 線可見
+                    pad        = std_val * 1.5
+                    axis_min   = min(data_min, lsl) - pad
+                    axis_max   = max(data_max, usl) + pad
+                    step       = (axis_max - axis_min) / bin_count
+                    edges      = [axis_min + i * step for i in range(bin_count + 1)]
+                    counts     = [0] * bin_count
+
+                    for v in hist_data:
+                        idx = int((v - axis_min) / step)
+                        idx = max(0, min(bin_count - 1, idx))
+                        counts[idx] += 1
+
+                    # 依規格著色：規格外 → 紅；規格內 → cyan
+                    bar_colors = []
+                    for i in range(bin_count):
+                        lo, hi = edges[i], edges[i + 1]
+                        if hi <= lsl or lo >= usl:
+                            bar_colors.append("rgba(255,59,59,0.75)")
+                        else:
+                            bar_colors.append("rgba(0,180,220,0.55)")
+
+                    bar_centers = [(edges[i] + edges[i+1]) / 2 for i in range(bin_count)]
+
+                    fig_hist = go.Figure()
+
+                    # 柱狀圖
+                    fig_hist.add_trace(go.Bar(
+                        x=bar_centers,
+                        y=counts,
+                        width=[step * 0.98] * bin_count,
+                        marker=dict(
+                            color=bar_colors,
+                            line=dict(width=0.5, color="rgba(255,255,255,0.1)")
+                        ),
+                        name="分布",
+                        hovertemplate="區間中心: %{x:.4f}<br>次數: %{y}<extra></extra>"
+                    ))
+
+                    # 常態曲線
                     if std_val > 0:
-                        x_min = min(plot_df[selected_param].min(), lsl)
-                        x_max = max(plot_df[selected_param].max(), usl)
-                        x_curve = np.linspace(x_min - std_val, x_max + std_val, 200)
-                        y_pdf = (1 / (std_val * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_curve - avg_val) / std_val) ** 2)
-                        fig_hist.add_trace(go.Scatter(x=x_curve, y=y_pdf, mode='lines', 
-                                                     line=dict(color='#FF2B2B', width=3), name='常態分佈'))
-                    
-                    fig_hist.add_vline(x=usl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"USL: {usl:.2f}")
-                    fig_hist.add_vline(x=lsl, line_dash="solid", line_color="#FF4B4B", annotation_text=f"LSL: {lsl:.2f}")
-                    fig_hist.add_vline(x=target, line_dash="solid", line_color="#00CC96", annotation_text=f"目標: {target:.2f}")
-                    
-                    fig_hist.update_layout(height=450)
+                        x_curve = np.linspace(axis_min, axis_max, 300)
+                        y_pdf   = (1 / (std_val * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_curve - avg_val) / std_val) ** 2)
+                        y_curve = y_pdf * len(hist_data) * step
+                        fig_hist.add_trace(go.Scatter(
+                            x=x_curve, y=y_curve, mode='lines',
+                            line=dict(color='#f5a623', width=2.5),
+                            name='常態曲線'
+                        ))
+
+                    # 規格線
+                    max_y = max(counts) * 1.25 if counts else 10
+                    for xval, label, color, dash in [
+                        (lsl,    f"LSL: {lsl:.4f}",    "#ff3b3b", "solid"),
+                        (usl,    f"USL: {usl:.4f}",    "#ff3b3b", "solid"),
+                        (target, f"Target: {target:.4f}", "#00d4ff", "dash"),
+                        (avg_val,f"X̄: {avg_val:.4f}",  "#39e07a", "dot"),
+                    ]:
+                        fig_hist.add_vline(
+                            x=xval, line_dash=dash, line_color=color, line_width=1.8,
+                            annotation=dict(
+                                text=label, font=dict(color=color, size=10),
+                                bgcolor="rgba(10,16,24,0.85)", bordercolor=color,
+                                borderwidth=1, borderpad=3
+                            )
+                        )
+
+                    fig_hist.update_layout(
+                        title=dict(
+                            text=f"【{selected_param}】 直方圖 · 常態分佈",
+                            font=dict(color="#5a7a8e", size=12, family="Space Mono, monospace"),
+                            x=0
+                        ),
+                        height=420,
+                        plot_bgcolor="#0c1220",
+                        paper_bgcolor="#101826",
+                        font=dict(color="#c8dde8"),
+                        xaxis=dict(
+                            gridcolor="#1c2e42", zerolinecolor="#1c2e42",
+                            title=dict(text=selected_param, font=dict(color="#5a7a8e", size=10)),
+                            tickfont=dict(size=9, color="#5a7a8e"),
+                        ),
+                        yaxis=dict(
+                            gridcolor="#1c2e42", zerolinecolor="#1c2e42",
+                            title=dict(text="次數 (Frequency)", font=dict(color="#5a7a8e", size=10)),
+                            tickfont=dict(size=9, color="#5a7a8e"),
+                        ),
+                        legend=dict(
+                            bgcolor="rgba(12,18,32,0.8)", bordercolor="#1c2e42", borderwidth=1,
+                            font=dict(size=10, color="#c8dde8")
+                        ),
+                        bargap=0,
+                        margin=dict(t=60, b=50, l=50, r=20)
+                    )
                     st.plotly_chart(fig_hist, use_container_width=True)
-                
+
+                # ── 規格符合率圓餅圖 ─────────────────────────────
                 with chart_col2:
-                    outside_usl = len(plot_df[plot_df[selected_param] > usl])
-                    outside_lsl = len(plot_df[plot_df[selected_param] < lsl])
-                    inside = len(plot_df) - outside_usl - outside_lsl
-                    
-                   # 👇 1. 這三行必須完美切齊！
-                    fig_pie = px.pie(
-                        # 👇 2. 肚子裡的東西，統一往右縮排
-                        values=[inside, outside_usl, outside_lsl],
-                        names=['符合規格', '超過上限', '低於下限'],
-                        color=['符合規格', '超過上限', '低於下限'], 
-                        color_discrete_map={                       
-                            '符合規格': '#28a745',  
-                            '低於下限': '#ff6b6b',  
-                            '超過上限': '#ffc107'   
-                        },
-                        title="規格符合率"
-                    ) # 👈 這個右括號通常跟裡面的內容切齊，或跟 fig_pie 切齊都可以
-                    
-                    # 👇 跟最上面的 fig_pie 切齊
-                    fig_pie.update_layout(height=450)
+                    pie_values = [inside, outside_usl, outside_lsl]
+                    pie_names  = ['符合規格', '超過上限 (>USL)', '低於下限 (<LSL)']
+                    pie_colors = ['#00b4dc', '#ff3b3b', '#f5a623']
+
+                    fig_pie = go.Figure(go.Pie(
+                        values=pie_values,
+                        labels=pie_names,
+                        marker=dict(
+                            colors=pie_colors,
+                            line=dict(color='#0c1220', width=2)
+                        ),
+                        textinfo='label+percent',
+                        textfont=dict(size=10, color="#c8dde8"),
+                        hole=0.42,
+                        hovertemplate="%{label}<br>數量: %{value} 顆<br>佔比: %{percent}<extra></extra>"
+                    ))
+
+                    fig_pie.add_annotation(
+                        text=f"<b>{yield_pct:.1f}%</b><br><span style='font-size:10px'>良品率</span>",
+                        x=0.5, y=0.5, showarrow=False,
+                        font=dict(size=16, color=yield_color, family="Rajdhani, sans-serif"),
+                        align="center"
+                    )
+
+                    fig_pie.update_layout(
+                        title=dict(
+                            text="規格符合率",
+                            font=dict(color="#5a7a8e", size=12, family="Space Mono, monospace"),
+                            x=0
+                        ),
+                        height=420,
+                        paper_bgcolor="#101826",
+                        plot_bgcolor="#101826",
+                        font=dict(color="#c8dde8"),
+                        legend=dict(
+                            bgcolor="rgba(12,18,32,0.8)", bordercolor="#1c2e42", borderwidth=1,
+                            font=dict(size=10, color="#c8dde8"),
+                            orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5
+                        ),
+                        margin=dict(t=60, b=60, l=20, r=20)
+                    )
                     st.plotly_chart(fig_pie, use_container_width=True)
 
                 # 🌟 生產順序異常監控圖
@@ -628,4 +934,3 @@ else:
         st.markdown("### 💾 數據匯出")
         csv_data = filtered_df.to_csv(index=False).encode('utf-8-sig')
         st.download_button("📥 下載目前篩選數據 (CSV)", data=csv_data, file_name='鍍三線_品質分析資料.csv', mime='text/csv')
-
