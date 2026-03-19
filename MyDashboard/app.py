@@ -350,6 +350,36 @@ section[data-testid="stSidebar"] {{
 .spc-section-title {{ color: {T['text_s']} !important; }}
 </style>
 """
+
+# Light mode overrides for hardcoded dark elements
+if not _is_dark:
+    _theme_css += """
+<style>
+.hero-title {
+    background-image: linear-gradient(135deg,
+        #1a3a5c 0%, #2563eb 30%, #0d9488 60%, #1a3a5c 100%) !important;
+    background-size: 200% auto !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+.hero-subtitle { color: #546e7a !important; }
+.glass-card {
+    background: rgba(255,255,255,0.7) !important;
+    border: 1px solid #e0e7ef !important;
+    color: #1a2332 !important;
+}
+.card-user { color: #2563eb !important; }
+.stApp {
+    background-color: #f4f6f9 !important;
+    background-image:
+        linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px) !important;
+    background-size: 40px 40px !important;
+    animation: none !important;
+}
+</style>
+"""
+
 st.markdown(_theme_css, unsafe_allow_html=True)
 
 # ==========================================
@@ -1055,13 +1085,19 @@ else:
                 for i, grp in enumerate(groups):
                     grp_data = plot_df[plot_df["比對群組"] == grp][selected_param].dropna()
                     c = box_palette[i % len(box_palette)]
+                    # 將 hex 轉成 rgba 透明填色
+                    def _hex_to_rgba(h, alpha=0.18):
+                        h = h.lstrip("#")
+                        r, g, b = int(h[0:2],16), int(h[2:4],16), int(h[4:6],16)
+                        return f"rgba({r},{g},{b},{alpha})"
+                    fill_c = _hex_to_rgba(c)
                     fig_box.add_trace(go.Box(
                         y=grp_data,
                         name=grp,
-                        marker=dict(color=c, size=4, opacity=0.6),
+                        marker=dict(color=c, size=4, opacity=0.7),
                         line=dict(color=c, width=1.5),
-                        fillcolor=c.replace(")", ", 0.15)").replace("rgb", "rgba") if c.startswith("rgb") else c + "26",
-                        boxpoints='outliers',
+                        fillcolor=fill_c,
+                        boxpoints="outliers",
                         hovertemplate=f"<b>{grp}</b><br>數值: %{{y:.4f}}<extra></extra>",
                     ))
 
