@@ -767,6 +767,28 @@ else:
                     disabled=(not is_both)
                 )
 
+            g4, g5 = st.columns(2)
+            with g4:
+                spc_bins = st.number_input(
+                    "組距 (Bins)", value=12, min_value=5, max_value=50,
+                    key=f"spc_bins_{spc_param}"
+                )
+            with g5:
+                spc_prec = st.number_input(
+                    "小數位數", value=3, min_value=0, max_value=6,
+                    key=f"spc_prec_{spc_param}"
+                )
+
+            # ── 顯示選項 ─────────────────────────────────────────
+            st.markdown('<div class="spc-sec">▸ 顯示選項</div>', unsafe_allow_html=True)
+            tog1, tog2 = st.columns(2)
+            with tog1:
+                show_mean2   = st.toggle("顯示平均值線", value=True,  key=f"spc_mean_{spc_param}")
+                show_curve2  = st.toggle("顯示常態曲線", value=True,  key=f"spc_curve_{spc_param}")
+            with tog2:
+                show_median2 = st.toggle("顯示中位數線", value=False, key=f"spc_med_{spc_param}")
+                show_target2 = st.toggle("顯示目標值線", value=True,  key=f"spc_tgt_{spc_param}")
+
             # ── Ca / Cp / Cpk 計算 ──────────────────────────────
             # Ca：僅雙邊規格
             if is_both and (usl2 - lsl2) != 0:
@@ -875,7 +897,8 @@ else:
             with ch1:
                 # 直方圖
                 arr    = spc_data.values
-                bins   = 30
+                bins   = int(spc_bins)
+                p      = int(spc_prec)
                 pad    = spc_std * 1.5
                 amin   = min(arr.min(), lsl2) - pad
                 amax   = max(arr.max(), usl2) + pad
@@ -905,10 +928,10 @@ else:
                     width=[step_h*0.98]*bins,
                     marker=dict(color=bar_colors, line=dict(width=0.5, color="rgba(255,255,255,0.08)")),
                     name="分布",
-                    hovertemplate="區間: %{x:.4f}<br>次數: %{y}<extra></extra>"
+                    hovertemplate=f"區間: %{{x:.{p}f}}<br>次數: %{{y}}<extra></extra>"
                 ))
 
-                if spc_std > 0:
+                if spc_std > 0 and show_curve2:
                     xc = np.linspace(amin, amax, 300)
                     yc = (1/(spc_std*np.sqrt(2*np.pi))) * np.exp(-0.5*((xc-spc_mean)/spc_std)**2)
                     fig_h.add_trace(go.Scatter(
@@ -917,10 +940,16 @@ else:
                     ))
 
                 spec_lines = []
-                if is_both or is_lower: spec_lines.append((lsl2, f"LSL:{lsl2:.3f}", "#ff3b3b", "solid"))
-                if is_both or is_upper: spec_lines.append((usl2, f"USL:{usl2:.3f}", "#ff3b3b", "solid"))
-                if is_both:             spec_lines.append((target2, f"Target:{target2:.3f}", "#00d4ff", "dash"))
-                spec_lines.append((spc_mean, f"X̄:{spc_mean:.3f}", "#39e07a", "dot"))
+                if is_both or is_lower:
+                    spec_lines.append((lsl2, f"LSL:{lsl2:.{p}f}", "#ff3b3b", "solid"))
+                if is_both or is_upper:
+                    spec_lines.append((usl2, f"USL:{usl2:.{p}f}", "#ff3b3b", "solid"))
+                if is_both and show_target2:
+                    spec_lines.append((target2, f"Target:{target2:.{p}f}", "#00d4ff", "dash"))
+                if show_mean2:
+                    spec_lines.append((spc_mean, f"X̄:{spc_mean:.{p}f}", "#39e07a", "dot"))
+                if show_median2:
+                    spec_lines.append((spc_median, f"Med:{spc_median:.{p}f}", "#9b59ff", "dashdot"))
 
                 for xv, lb, cl, dk in spec_lines:
                     fig_h.add_vline(x=xv, line_dash=dk, line_color=cl, line_width=1.8,
