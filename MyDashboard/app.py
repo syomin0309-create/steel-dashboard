@@ -344,10 +344,21 @@ with tab1:
     fig_line.add_hline(y=lcl,     line_dash="dot",   line_color="#9A3B2E",
                        annotation_text=f"-3σ: {lcl:.3f}", annotation_position="bottom right")
     fig_line.update_xaxes(showticklabels=False, title_text="生產順序（依照時間/鋼捲號碼）")
-    fig_line.update_layout(template="simple_white", plot_bgcolor="#FDFAF6", paper_bgcolor="#FDFAF6",
-        title=f"【{selected_param}】 單一趨勢管制圖",
+    fig_line.update_layout(
+        template="simple_white",
+        plot_bgcolor="#FDFAF6", paper_bgcolor="#FDFAF6",
+        title=dict(text=f"【{selected_param}】 單一趨勢管制圖", font=dict(color="#2C1F14", size=15)),
         height=420, hovermode="closest",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        font=dict(color="#2C1F14"),
+        xaxis=dict(gridcolor="#DABEA7", tickfont=dict(color="#2C1F14", size=12),
+                   title=dict(font=dict(color="#2C1F14", size=13)),
+                   linecolor="#A98B73", showgrid=True),
+        yaxis=dict(gridcolor="#DABEA7", tickfont=dict(color="#2C1F14", size=12),
+                   title=dict(font=dict(color="#2C1F14", size=13)),
+                   linecolor="#A98B73", showgrid=True),
+        legend=dict(bgcolor="#FDFAF6", bordercolor="#A98B73", borderwidth=1,
+                    font=dict(color="#2C1F14", size=13),
+                    orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     st.plotly_chart(fig_line, use_container_width=True)
 
@@ -371,7 +382,17 @@ with tab1:
     , template="simple_white")
     fig_box.add_hline(y=avg_val, line_dash="dash", line_color="#3D6B4A",
                       annotation_text=f"平均值: {avg_val:.3f}")
-    fig_box.update_layout(template="simple_white", height=450, showlegend=False, xaxis_title="群組分類")
+    fig_box.update_layout(
+        template="simple_white",
+        plot_bgcolor="#FDFAF6", paper_bgcolor="#FDFAF6",
+        height=450, showlegend=False,
+        font=dict(color="#2C1F14"),
+        xaxis=dict(title=dict(text="群組分類", font=dict(color="#2C1F14", size=13)),
+                   gridcolor="#DABEA7", tickfont=dict(color="#2C1F14", size=11),
+                   linecolor="#A98B73"),
+        yaxis=dict(gridcolor="#DABEA7", tickfont=dict(color="#2C1F14", size=12),
+                   linecolor="#A98B73"),
+    )
     st.plotly_chart(fig_box, use_container_width=True)
 
     # 匯出
@@ -617,16 +638,22 @@ with tab2:
                     annotation=dict(text=lb, font=dict(color=cl, size=10),
                         bgcolor="#FDFAF6", bordercolor=cl, borderwidth=1, borderpad=3))
 
-            fig_h.update_layout(template="simple_white",
+            fig_h.update_layout(
+                template="simple_white",
+                plot_bgcolor="#FDFAF6", paper_bgcolor="#FDFAF6",
                 title=dict(text=f"【{selected_param}】 直方圖 · 常態分佈",
-                    font=dict(color="#2C1F14", size=12), x=0),
-                height=380, plot_bgcolor="#FDFAF6", paper_bgcolor="#FDFAF6",
-                font=dict(color="#2C1F14"), bargap=0,
-                xaxis=dict(gridcolor="#DABEA7", tickfont=dict(size=11, color="#2C1F14")),
-                yaxis=dict(gridcolor="#DABEA7", title=dict(text="次數", font=dict(size=12, color="#2C1F14"))),
-                legend=dict(bgcolor="rgba(255,255,255,0.95)", bordercolor="#e8eaed", borderwidth=1,
-                    font=dict(size=12, color="#2C1F14")),
-                margin=dict(t=60, b=50, l=50, r=20)
+                    font=dict(color="#5C4033", size=13), x=0),
+                height=380,
+                font=dict(color="#2C1F14"),
+                xaxis=dict(gridcolor="#DABEA7", tickfont=dict(color="#2C1F14", size=11),
+                           title=dict(text=selected_param, font=dict(color="#2C1F14", size=12)),
+                           linecolor="#A98B73", showgrid=False),
+                yaxis=dict(gridcolor="#DABEA7", tickfont=dict(color="#2C1F14", size=11),
+                           title=dict(text="次數 (Frequency)", font=dict(color="#2C1F14", size=12)),
+                           linecolor="#A98B73"),
+                legend=dict(bgcolor="#FDFAF6", bordercolor="#A98B73", borderwidth=1,
+                    font=dict(size=11, color="#2C1F14")),
+                bargap=0, margin=dict(t=60, b=50, l=50, r=20)
             )
             st.plotly_chart(fig_h, use_container_width=True)
 
@@ -639,20 +666,24 @@ with tab2:
                 marker=dict(colors=['#876D5A','#9A3B2E','#CDA581'],
                             line=dict(color='#ffffff', width=2)),
                 textinfo='label+percent',
-                textfont=dict(size=12, color="#2C1F14"),
+                textfont=dict(size=13, color="#2C1F14"),
                 hole=0.46,
                 hovertemplate="%{label}<br>%{value} 顆 (%{percent})<extra></extra>"
             ))
             fig_p.add_annotation(
                 text=f"<b>{yield2:.1f}%</b><br><span style='font-size:10px'>良品率</span>",
                 x=0.5, y=0.5, showarrow=False,
-                font=dict(size=14, color=yc_color), align="center"
+                font=dict(size=15, color='#2C1F14'), align="center"
             )
-            fig_p.update_layout(template="simple_white",
-                title=dict(text="規格符合率", font=dict(color="#2C1F14", size=12), x=0),
-                height=380, paper_bgcolor="#FDFAF6",
+            fig_p.update_layout(
+                template="simple_white",
+                paper_bgcolor="#FDFAF6",
+                title=dict(text="規格符合率", font=dict(color="#5C4033", size=13), x=0),
+                height=380,
+                font=dict(color="#2C1F14"),
                 legend=dict(orientation="h", yanchor="bottom", y=-0.18, xanchor="center", x=0.5,
-                    font=dict(size=12, color="#2C1F14")),
+                    font=dict(size=12, color="#2C1F14"),
+                    bgcolor="#FDFAF6", bordercolor="#A98B73", borderwidth=1),
                 margin=dict(t=60, b=60, l=10, r=10)
             )
             st.plotly_chart(fig_p, use_container_width=True)
