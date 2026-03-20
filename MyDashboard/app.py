@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import numpy as np
 import re
 import requests
-from theme import THEME_CSS
+from theme import THEME_CSS, render_landing
 
 st.set_page_config(page_title="AegisCore", layout="wide", page_icon="👁️", initial_sidebar_state="expanded")
 st.markdown(THEME_CSS, unsafe_allow_html=True)
