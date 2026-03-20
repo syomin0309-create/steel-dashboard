@@ -5,13 +5,10 @@ import plotly.graph_objects as go
 import numpy as np
 import re
 import requests
+from theme import THEME_CSS
 
 st.set_page_config(page_title="AegisCore", layout="wide", page_icon="👁️", initial_sidebar_state="expanded")
-
-# ── Obsidian Intelligence Theme ──────────────────────────
-from ui_theme import inject_theme, render_landing
-inject_theme()
-
+st.markdown(THEME_CSS, unsafe_allow_html=True)
 
 @st.cache_data
 def load_and_clean_data(file_bytes: bytes, file_name: str):
