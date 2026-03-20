@@ -344,7 +344,7 @@ with tab1:
     fig_line.add_hline(y=lcl,     line_dash="dot",   line_color="#9A3B2E",
                        annotation_text=f"-3σ: {lcl:.3f}", annotation_position="bottom right")
     fig_line.update_xaxes(showticklabels=False, title_text="生產順序（依照時間/鋼捲號碼）")
-    fig_line.update_layout(
+    fig_line.update_layout(template="simple_white", plot_bgcolor="#FDFAF6", paper_bgcolor="#FDFAF6",
         title=f"【{selected_param}】 單一趨勢管制圖",
         height=420, hovermode="closest",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
@@ -368,10 +368,10 @@ with tab1:
         color_discrete_map=group_palette,
         title=f"【{selected_param}】 群組箱型圖對比",
         points="all"
-    )
+    , template="simple_white")
     fig_box.add_hline(y=avg_val, line_dash="dash", line_color="#3D6B4A",
                       annotation_text=f"平均值: {avg_val:.3f}")
-    fig_box.update_layout(height=450, showlegend=False, xaxis_title="群組分類")
+    fig_box.update_layout(template="simple_white", height=450, showlegend=False, xaxis_title="群組分類")
     st.plotly_chart(fig_box, use_container_width=True)
 
     # 匯出
@@ -617,7 +617,7 @@ with tab2:
                     annotation=dict(text=lb, font=dict(color=cl, size=10),
                         bgcolor="#FDFAF6", bordercolor=cl, borderwidth=1, borderpad=3))
 
-            fig_h.update_layout(
+            fig_h.update_layout(template="simple_white",
                 title=dict(text=f"【{selected_param}】 直方圖 · 常態分佈",
                     font=dict(color="#2C1F14", size=12), x=0),
                 height=380, plot_bgcolor="#FDFAF6", paper_bgcolor="#FDFAF6",
@@ -648,7 +648,7 @@ with tab2:
                 x=0.5, y=0.5, showarrow=False,
                 font=dict(size=14, color=yc_color), align="center"
             )
-            fig_p.update_layout(
+            fig_p.update_layout(template="simple_white",
                 title=dict(text="規格符合率", font=dict(color="#2C1F14", size=12), x=0),
                 height=380, paper_bgcolor="#FDFAF6",
                 legend=dict(orientation="h", yanchor="bottom", y=-0.18, xanchor="center", x=0.5,
