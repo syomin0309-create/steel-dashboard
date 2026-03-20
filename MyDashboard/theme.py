@@ -1,16 +1,41 @@
 import streamlit as st
 
+# ══════════════════════════════════════════════════════
+#  AegisCore Theme — 奶茶色系
+#  背景 #F5EDE3 · 主色 #876D5A · 文字 #2C1F14
+# ══════════════════════════════════════════════════════
+
 THEME_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap');
 
-/* ── 全域底色與文字 ─────────────────────────────── */
+/* ── CSS 變數（奶茶色系）───────────────────────────── */
+:root {
+    --bg-page:      #F5EDE3;
+    --bg-card:      #FDFAF6;
+    --bg-strip:     #EFE3D5;
+    --border:       #DABEA7;
+    --border-dark:  #A98B73;
+    --primary:      #876D5A;
+    --primary-dark: #6B5445;
+    --primary-light:#CDA581;
+    --accent:       #9D7553;
+    --text-main:    #2C1F14;
+    --text-sub:     #5C4033;
+    --text-hint:    #876D5A;
+    --red:          #9A3B2E;
+    --green:        #3D6B4A;
+    --yellow:       #8A6200;
+    --blue:         #2B5084;
+}
+
+/* ── 全域 ────────────────────────────────────────── */
 html, body,
 [data-testid="stAppViewContainer"],
 [data-testid="stMain"],
 [data-testid="block-container"] {
-    background-color: #f8f9fb !important;
-    color: #1f1f1f !important;
+    background-color: var(--bg-page) !important;
+    color: var(--text-main) !important;
     font-family: 'Google Sans', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif !important;
     -webkit-font-smoothing: antialiased !important;
     font-size: 15px !important;
@@ -18,66 +43,57 @@ html, body,
 
 /* ── 側邊欄 ─────────────────────────────────────── */
 [data-testid="stSidebar"] {
-    background-color: #ffffff !important;
-    border-right: 1px solid #dadce0 !important;
+    background-color: var(--bg-card) !important;
+    border-right: 1.5px solid var(--border) !important;
 }
 [data-testid="stSidebar"] * {
-    color: #1f1f1f !important;
+    color: var(--text-main) !important;
     font-size: 14px !important;
 }
 [data-testid="stSidebar"] h1,
 [data-testid="stSidebar"] h2,
 [data-testid="stSidebar"] h3 {
-    color: #1a73e8 !important;
+    color: var(--primary) !important;
     font-weight: 700 !important;
     font-size: 15px !important;
 }
-[data-testid="stSidebar"] label {
-    color: #1f1f1f !important;
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span {
+    color: var(--text-main) !important;
     font-size: 14px !important;
     font-weight: 500 !important;
 }
-[data-testid="stSidebar"] p,
-[data-testid="stSidebar"] span {
-    color: #3c4043 !important;
-    font-size: 14px !important;
-}
 
-/* ── 主標題 ─────────────────────────────────────── */
-h1 { color: #1f1f1f !important; font-weight: 700 !important; font-size: 26px !important; }
-h2 { color: #1f1f1f !important; font-weight: 700 !important; font-size: 22px !important; }
-h3 { color: #1f1f1f !important; font-weight: 600 !important; font-size: 18px !important; }
+/* ── 標題 ────────────────────────────────────────── */
+h1 { color: var(--text-main) !important; font-weight: 700 !important; font-size: 26px !important; }
+h2 { color: var(--text-main) !important; font-weight: 700 !important; font-size: 22px !important; }
+h3 { color: var(--text-main) !important; font-weight: 600 !important; font-size: 18px !important; }
+p, li, div, span { color: var(--text-main) !important; font-size: 15px !important; }
 
-/* ── 一般文字段落 ────────────────────────────────── */
-p, li, span, div {
-    color: #1f1f1f !important;
-    font-size: 15px !important;
-}
-
-/* ── caption / 說明文字 ─────────────────────────── */
 [data-testid="stCaptionContainer"] p,
 [data-testid="stCaptionContainer"] span {
-    color: #3c4043 !important;
+    color: var(--text-sub) !important;
     font-size: 13px !important;
 }
 
 /* ── 指標卡片 ─────────────────────────────────────*/
 [data-testid="metric-container"] {
-    background: #ffffff !important;
-    border: 1px solid #dadce0 !important;
+    background: var(--bg-card) !important;
+    border: 1.5px solid var(--border) !important;
     border-radius: 12px !important;
     padding: 16px 20px !important;
-    box-shadow: 0 1px 4px rgba(60,64,67,0.08) !important;
+    box-shadow: 0 1px 4px rgba(135,109,90,0.10) !important;
 }
 [data-testid="metric-container"] label {
-    color: #3c4043 !important;
-    font-size: 13px !important;
+    color: var(--text-sub) !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
 }
 [data-testid="metric-container"] [data-testid="stMetricValue"] {
-    color: #1f1f1f !important;
+    color: var(--text-main) !important;
     font-size: 28px !important;
     font-weight: 700 !important;
 }
@@ -85,12 +101,12 @@ p, li, span, div {
     font-size: 13px !important;
 }
 
-/* ── 分頁 Tab ─────────────────────────────────────── */
+/* ── 分頁 Tab ────────────────────────────────────── */
 [data-testid="stTabs"] [role="tablist"] {
-    border-bottom: 1.5px solid #dadce0 !important;
+    border-bottom: 1.5px solid var(--border) !important;
 }
 [data-testid="stTabs"] button {
-    color: #3c4043 !important;
+    color: var(--text-sub) !important;
     font-weight: 600 !important;
     font-size: 15px !important;
     padding: 12px 24px !important;
@@ -98,216 +114,174 @@ p, li, span, div {
     background: transparent !important;
 }
 [data-testid="stTabs"] button:hover {
-    color: #1a73e8 !important;
-    background: #f1f8ff !important;
+    color: var(--primary) !important;
+    background: var(--bg-strip) !important;
 }
 [data-testid="stTabs"] button[aria-selected="true"] {
-    color: #1a73e8 !important;
+    color: var(--primary) !important;
     font-weight: 700 !important;
-    border-bottom: 2.5px solid #1a73e8 !important;
+    border-bottom: 2.5px solid var(--primary) !important;
     background: transparent !important;
 }
-[data-testid="stTabs"] button p {
-    color: inherit !important;
-    font-size: inherit !important;
-}
+[data-testid="stTabs"] button p { color: inherit !important; font-size: inherit !important; }
 
 /* ── 下拉選單 ────────────────────────────────────── */
 div[data-baseweb="select"] > div {
-    border: 1.5px solid #dadce0 !important;
+    border: 1.5px solid var(--border-dark) !important;
     border-radius: 8px !important;
-    background-color: #ffffff !important;
+    background-color: var(--bg-card) !important;
     font-size: 15px !important;
 }
-div[data-baseweb="select"] > div:hover {
-    border-color: #1a73e8 !important;
-}
+div[data-baseweb="select"] > div:hover { border-color: var(--primary) !important; }
 div[data-baseweb="select"] span,
 div[data-baseweb="select"] div {
-    color: #1f1f1f !important;
-    background-color: #ffffff !important;
+    color: var(--text-main) !important;
+    background-color: var(--bg-card) !important;
     font-size: 15px !important;
 }
 div[data-baseweb="popover"] {
-    background-color: #ffffff !important;
-    border: 1px solid #dadce0 !important;
+    background-color: var(--bg-card) !important;
+    border: 1.5px solid var(--border) !important;
     border-radius: 8px !important;
-    box-shadow: 0 4px 20px rgba(60,64,67,0.15) !important;
+    box-shadow: 0 4px 20px rgba(135,109,90,0.18) !important;
 }
 div[data-baseweb="popover"] li {
-    color: #1f1f1f !important;
+    color: var(--text-main) !important;
     font-size: 15px !important;
 }
 div[data-baseweb="popover"] li:hover {
-    background-color: #e8f0fe !important;
+    background-color: var(--bg-strip) !important;
 }
-
-/* ── 멀티셀렉트 태그 ─────────────────────────────── */
 [data-baseweb="tag"] {
-    background-color: #e8f0fe !important;
+    background-color: var(--bg-strip) !important;
+    border: 1px solid var(--border-dark) !important;
 }
-[data-baseweb="tag"] span {
-    color: #1a3a6e !important;
-    font-size: 13px !important;
-}
+[data-baseweb="tag"] span { color: var(--text-main) !important; font-size: 13px !important; }
 
-/* ── 입력박스 ────────────────────────────────────── */
-input[type="number"],
-input[type="text"],
-textarea {
-    background-color: #ffffff !important;
-    color: #1f1f1f !important;
-    border: 1.5px solid #dadce0 !important;
+/* ── 輸入框 ─────────────────────────────────────── */
+input[type="number"], input[type="text"], textarea {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border: 1.5px solid var(--border-dark) !important;
     border-radius: 8px !important;
     font-size: 15px !important;
 }
 input:focus, textarea:focus {
-    border-color: #1a73e8 !important;
-    box-shadow: 0 0 0 2px rgba(26,115,232,0.15) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 2px rgba(135,109,90,0.18) !important;
 }
-/* number input 라벨 */
-[data-testid="stNumberInput"] label p {
-    color: #1f1f1f !important;
+[data-testid="stNumberInput"] label p,
+[data-testid="stSelectbox"] label p,
+[data-testid="stMultiSelect"] label p,
+[data-testid="stToggle"] label p,
+[data-testid="stCheckbox"] label p {
+    color: var(--text-main) !important;
     font-size: 14px !important;
-    font-weight: 500 !important;
-}
-/* selectbox 라벨 */
-[data-testid="stSelectbox"] label p {
-    color: #1f1f1f !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-}
-/* multiselect 라벨 */
-[data-testid="stMultiSelect"] label p {
-    color: #1f1f1f !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-}
-/* toggle 라벨 */
-[data-testid="stCheckbox"] label p,
-[data-testid="stToggle"] label p {
-    color: #1f1f1f !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
 }
 
 /* ── 버튼 ────────────────────────────────────────── */
 [data-testid="stDownloadButton"] button,
 [data-testid="stButton"] button {
-    background-color: #1a73e8 !important;
-    color: #ffffff !important;
+    background-color: var(--primary) !important;
+    color: #FDFAF6 !important;
     border: none !important;
     border-radius: 8px !important;
     font-weight: 600 !important;
     font-size: 14px !important;
-    padding: 8px 20px !important;
+    padding: 9px 22px !important;
 }
 [data-testid="stDownloadButton"] button:hover,
 [data-testid="stButton"] button:hover {
-    background-color: #1557b0 !important;
+    background-color: var(--primary-dark) !important;
 }
 [data-testid="stDownloadButton"] button p,
-[data-testid="stButton"] button p {
-    color: #ffffff !important;
-    font-size: 14px !important;
-}
-/* secondary 버튼 */
+[data-testid="stButton"] button p { color: #FDFAF6 !important; }
+
 [data-testid="stButton"] button[kind="secondary"] {
-    background-color: #ffffff !important;
-    color: #1a73e8 !important;
-    border: 1.5px solid #1a73e8 !important;
+    background-color: var(--bg-card) !important;
+    color: var(--primary) !important;
+    border: 1.5px solid var(--primary) !important;
 }
-[data-testid="stButton"] button[kind="secondary"] p {
-    color: #1a73e8 !important;
-}
+[data-testid="stButton"] button[kind="secondary"] p { color: var(--primary) !important; }
 
 /* ── 訊息框 ──────────────────────────────────────── */
-[data-testid="stAlert"] {
-    border-radius: 10px !important;
-    font-size: 14px !important;
-}
-[data-testid="stAlert"] p {
-    font-size: 14px !important;
-    color: inherit !important;
-}
+[data-testid="stAlert"] { border-radius: 10px !important; font-size: 14px !important; }
+[data-testid="stAlert"] p { font-size: 14px !important; color: inherit !important; }
 
 /* ── File Uploader ───────────────────────────────── */
 [data-testid="stFileUploader"] {
-    background: #ffffff !important;
-    border: 2px dashed #dadce0 !important;
+    background: var(--bg-card) !important;
+    border: 2px dashed var(--border-dark) !important;
     border-radius: 12px !important;
 }
-[data-testid="stFileUploader"]:hover {
-    border-color: #1a73e8 !important;
-}
+[data-testid="stFileUploader"]:hover { border-color: var(--primary) !important; }
 [data-testid="stFileUploader"] span,
-[data-testid="stFileUploader"] p {
-    color: #3c4043 !important;
-    font-size: 14px !important;
-}
+[data-testid="stFileUploader"] p { color: var(--text-sub) !important; font-size: 14px !important; }
 
 /* ── Expander ────────────────────────────────────── */
 [data-testid="stExpander"] {
-    background: #ffffff !important;
-    border: 1px solid #dadce0 !important;
+    background: var(--bg-card) !important;
+    border: 1.5px solid var(--border) !important;
     border-radius: 10px !important;
 }
 [data-testid="stExpander"] summary {
-    color: #1f1f1f !important;
+    color: var(--text-main) !important;
     font-weight: 600 !important;
     font-size: 15px !important;
 }
 [data-testid="stExpander"] summary p {
-    color: #1f1f1f !important;
+    color: var(--text-main) !important;
     font-size: 15px !important;
 }
 
 /* ── Dataframe ───────────────────────────────────── */
 [data-testid="stDataFrame"] {
-    border: 1px solid #dadce0 !important;
+    border: 1.5px solid var(--border) !important;
     border-radius: 10px !important;
     overflow: hidden !important;
 }
 [data-testid="stDataFrame"] th {
-    background-color: #f1f3f4 !important;
-    color: #1f1f1f !important;
+    background-color: var(--bg-strip) !important;
+    color: var(--text-main) !important;
     font-size: 14px !important;
     font-weight: 600 !important;
 }
 [data-testid="stDataFrame"] td {
-    color: #1f1f1f !important;
+    color: var(--text-main) !important;
     font-size: 14px !important;
 }
 
-/* ── 水平分隔線 ──────────────────────────────────── */
-hr { border-color: #dadce0 !important; margin: 20px 0 !important; }
+/* ── 分隔線 ──────────────────────────────────────── */
+hr { border-color: var(--border) !important; margin: 20px 0 !important; }
 
 /* ── 自訂元件 ────────────────────────────────────── */
 .spec-banner {
-    background: linear-gradient(135deg, #1a73e8, #4285f4) !important;
-    color: #ffffff !important;
+    background: linear-gradient(135deg, #876D5A, #9D7553) !important;
+    color: #FDFAF6 !important;
     border-radius: 12px !important;
     padding: 18px 28px !important;
     margin-bottom: 20px !important;
     font-size: 15px !important;
     line-height: 2 !important;
+    box-shadow: 0 4px 14px rgba(135,109,90,0.25) !important;
 }
-.spec-banner b { color: #fef08a !important; font-weight: 700 !important; }
-.spec-banner span { color: #ffffff !important; }
+.spec-banner b  { color: #FDFAF6 !important; font-weight: 700 !important; }
+.spec-banner span { color: #FDFAF6 !important; }
 
 .section-title {
     font-size: 16px !important;
     font-weight: 700 !important;
-    color: #1f1f1f !important;
-    border-left: 4px solid #1a73e8 !important;
+    color: var(--text-main) !important;
+    border-left: 4px solid var(--primary) !important;
     padding-left: 12px !important;
     margin: 24px 0 12px 0 !important;
 }
 
 .signal-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .signal-table th {
-    background: #1a73e8;
-    color: #ffffff;
+    background: var(--primary);
+    color: #FDFAF6;
     padding: 11px 14px;
     text-align: center;
     font-weight: 600;
@@ -316,83 +290,122 @@ hr { border-color: #dadce0 !important; margin: 20px 0 !important; }
 .signal-table td {
     padding: 10px 14px;
     text-align: center;
-    border-bottom: 1px solid #dadce0;
-    color: #1f1f1f;
-    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+    background: var(--bg-card);
     font-size: 14px;
 }
-.signal-table tr:nth-child(even) td { background-color: #f8f9fb; }
-.sig-green  { color: #0d6e2f; font-weight: 700; }
-.sig-yellow { color: #8a5c00; font-weight: 700; }
-.sig-red    { color: #b71c1c; font-weight: 700; }
-.sig-gray   { color: #5f6368; }
+.signal-table tr:nth-child(even) td { background-color: var(--bg-strip); }
+.sig-green  { color: #3D6B4A; font-weight: 700; }
+.sig-yellow { color: #7A5500; font-weight: 700; }
+.sig-red    { color: #9A3B2E; font-weight: 700; }
+.sig-gray   { color: #876D5A; }
 
-/* ── 隱藏頁腳 ────────────────────────────────────── */
 footer { visibility: hidden !important; }
 #MainMenu { visibility: hidden !important; }
 </style>
 """
 
 
+# ══════════════════════════════════════════════════════
+#  Plotly 圖表共用樣式（奶茶色系）
+#  在 app.py 裡的所有 fig.update_layout() 都帶入這個 dict
+# ══════════════════════════════════════════════════════
+CHART_THEME = dict(
+    plot_bgcolor  = "#FDFAF6",
+    paper_bgcolor = "#FDFAF6",
+    font          = dict(color="#2C1F14", family="'Google Sans','Microsoft JhengHei',sans-serif"),
+    xaxis = dict(
+        gridcolor  = "#DABEA7",
+        tickfont   = dict(color="#2C1F14", size=11),
+        title      = dict(font=dict(color="#2C1F14", size=12)),
+        linecolor  = "#A98B73",
+        zerolinecolor = "#A98B73",
+    ),
+    yaxis = dict(
+        gridcolor  = "#DABEA7",
+        tickfont   = dict(color="#2C1F14", size=11),
+        title      = dict(font=dict(color="#2C1F14", size=12)),
+        linecolor  = "#A98B73",
+        zerolinecolor = "#A98B73",
+    ),
+    legend = dict(
+        bgcolor     = "#FDFAF6",
+        bordercolor = "#DABEA7",
+        borderwidth = 1,
+        font        = dict(size=12, color="#2C1F14"),
+    ),
+    hoverlabel = dict(
+        bgcolor   = "#FDFAF6",
+        font_size = 13,
+        font_color= "#2C1F14",
+        bordercolor="#A98B73",
+    ),
+)
+
+
 def render_landing():
     st.markdown("""
     <style>
     .landing-wrap {
-        font-family: 'Google Sans', 'Microsoft JhengHei', sans-serif;
-        background: #ffffff;
-        border: 1px solid #dadce0;
-        border-radius: 12px;
+        font-family: 'Google Sans','Microsoft JhengHei',sans-serif;
+        background: #FDFAF6;
+        border: 1.5px solid #DABEA7;
+        border-radius: 14px;
         overflow: hidden;
         margin-bottom: 24px;
+        box-shadow: 0 2px 12px rgba(135,109,90,0.10);
     }
     .lp-header {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 14px 28px; border-bottom: 1px solid #dadce0; background: #ffffff;
+        display:flex; align-items:center; justify-content:space-between;
+        padding:15px 28px; border-bottom:1.5px solid #DABEA7; background:#FDFAF6;
     }
-    .lp-logo { display: flex; align-items: center; gap: 10px; }
+    .lp-logo { display:flex; align-items:center; gap:10px; }
     .lp-logo-icon {
-        width: 32px; height: 32px; background: #1a73e8;
-        border-radius: 6px; display: flex; align-items: center; justify-content: center;
+        width:32px; height:32px; background:#876D5A;
+        border-radius:7px; display:flex; align-items:center; justify-content:center;
     }
-    .lp-logo-name { font-size: 16px; font-weight: 700; color: #1f1f1f; }
-    .lp-version { font-size: 12px; color: #5f6368; letter-spacing: 1px; text-transform: uppercase; }
-    .lp-hero { padding: 56px 28px 44px 28px; text-align: center; background: #ffffff; }
+    .lp-logo-name { font-size:16px; font-weight:700; color:#2C1F14; }
+    .lp-version   { font-size:12px; color:#876D5A; letter-spacing:1px; text-transform:uppercase; }
+
+    .lp-hero { padding:56px 28px 44px 28px; text-align:center; background:#FDFAF6; }
     .lp-tag {
-        display: inline-block; background: #f1f3f4; border: 1px solid #dadce0;
-        border-radius: 20px; padding: 5px 16px;
-        font-size: 12px; color: #3c4043; letter-spacing: 1.5px;
-        text-transform: uppercase; margin-bottom: 20px;
+        display:inline-block; background:#EFE3D5; border:1px solid #DABEA7;
+        border-radius:20px; padding:5px 16px;
+        font-size:12px; color:#5C4033; letter-spacing:1.5px; text-transform:uppercase;
+        margin-bottom:20px;
     }
-    .lp-title { font-size: 34px; font-weight: 700; color: #1f1f1f; margin: 0 0 16px 0; line-height: 1.25; }
-    .lp-sub { font-size: 16px; color: #3c4043; max-width: 420px; margin: 0 auto 36px auto; line-height: 1.8; }
-    .lp-cta-row { display: flex; gap: 12px; justify-content: center; align-items: center; }
+    .lp-title { font-size:34px; font-weight:700; color:#2C1F14; margin:0 0 16px 0; line-height:1.25; }
+    .lp-sub   { font-size:16px; color:#5C4033; max-width:420px; margin:0 auto 36px auto; line-height:1.8; }
+    .lp-cta-row { display:flex; gap:12px; justify-content:center; align-items:center; }
     .lp-btn-primary {
-        background: #1a73e8; color: #ffffff; border-radius: 8px;
-        padding: 11px 26px; font-size: 15px; font-weight: 600; cursor: default;
+        background:#876D5A; color:#FDFAF6; border-radius:8px;
+        padding:11px 26px; font-size:15px; font-weight:600; cursor:default;
     }
     .lp-btn-secondary {
-        border: 1.5px solid #dadce0; border-radius: 8px; padding: 11px 26px;
-        font-size: 15px; color: #3c4043; cursor: default; background: #ffffff;
+        border:1.5px solid #DABEA7; border-radius:8px; padding:11px 26px;
+        font-size:15px; color:#5C4033; cursor:default; background:#FDFAF6;
     }
     .lp-strip {
-        text-align: center; padding: 13px 28px;
-        background: #f8f9fb; border-top: 1px solid #dadce0; border-bottom: 1px solid #dadce0;
-        font-size: 13px; color: #3c4043; letter-spacing: 0.5px;
+        text-align:center; padding:13px 28px;
+        background:#EFE3D5; border-top:1px solid #DABEA7; border-bottom:1px solid #DABEA7;
+        font-size:13px; color:#5C4033; letter-spacing:0.5px;
     }
-    .lp-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
-    .lp-card { padding: 30px 28px; background: #ffffff; border-right: 1px solid #dadce0; }
-    .lp-card:last-child { border-right: none; }
+    .lp-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
+    .lp-card  { padding:30px 28px; background:#FDFAF6; border-right:1px solid #DABEA7; }
+    .lp-card:last-child { border-right:none; }
     .lp-card-icon {
-        width: 40px; height: 40px; border-radius: 10px;
-        display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+        width:42px; height:42px; border-radius:10px;
+        display:flex; align-items:center; justify-content:center; margin-bottom:16px;
     }
-    .lp-card-title { font-size: 16px; font-weight: 700; color: #1f1f1f; margin-bottom: 10px; }
-    .lp-card-desc { font-size: 14px; color: #3c4043; line-height: 1.7; }
-    .lp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid #dadce0; }
-    .lp-stat { padding: 22px 16px; text-align: center; background: #f8f9fb; border-right: 1px solid #dadce0; }
-    .lp-stat:last-child { border-right: none; }
-    .lp-stat-num { font-size: 24px; font-weight: 700; color: #1f1f1f; margin-bottom: 6px; }
-    .lp-stat-label { font-size: 13px; color: #3c4043; }
+    .lp-card-title { font-size:16px; font-weight:700; color:#2C1F14; margin-bottom:10px; }
+    .lp-card-desc  { font-size:14px; color:#5C4033; line-height:1.7; }
+
+    .lp-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:0; border-top:1px solid #DABEA7; }
+    .lp-stat  { padding:22px 16px; text-align:center; background:#EFE3D5; border-right:1px solid #DABEA7; }
+    .lp-stat:last-child { border-right:none; }
+    .lp-stat-num   { font-size:24px; font-weight:700; color:#2C1F14; margin-bottom:6px; }
+    .lp-stat-label { font-size:13px; color:#5C4033; }
     </style>
 
     <div class="landing-wrap">
@@ -400,8 +413,8 @@ def render_landing():
         <div class="lp-logo">
           <div class="lp-logo-icon">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="5" stroke="white" stroke-width="1.5"/>
-              <circle cx="8" cy="8" r="2" fill="white"/>
+              <circle cx="8" cy="8" r="5" stroke="#FDFAF6" stroke-width="1.5"/>
+              <circle cx="8" cy="8" r="2" fill="#FDFAF6"/>
             </svg>
           </div>
           <span class="lp-logo-name">AegisCore</span>
@@ -425,33 +438,33 @@ def render_landing():
 
       <div class="lp-cards">
         <div class="lp-card">
-          <div class="lp-card-icon" style="background:#e8f0fe;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <polyline points="2,14 6,8 11,10 16,3" stroke="#1a73e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <div class="lp-card-icon" style="background:#EFE3D5;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <polyline points="2,16 7,9 12,11 18,3" stroke="#876D5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
           <div class="lp-card-title">趨勢監控</div>
           <div class="lp-card-desc">生產順序異常管制圖，±3σ 即時標示，7B 異常批次自動高亮顯示。</div>
         </div>
         <div class="lp-card">
-          <div class="lp-card-icon" style="background:#e6f4ea;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <rect x="2" y="10" width="4" height="6" rx="1" fill="#1e8e3e"/>
-              <rect x="7" y="7"  width="4" height="9" rx="1" fill="#1e8e3e"/>
-              <rect x="12" y="3" width="4" height="13" rx="1" fill="#1e8e3e"/>
+          <div class="lp-card-icon" style="background:#EFE3D5;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="2"  y="11" width="4" height="7" rx="1" fill="#9D7553"/>
+              <rect x="8"  y="7"  width="4" height="11" rx="1" fill="#9D7553"/>
+              <rect x="14" y="3"  width="4" height="15" rx="1" fill="#9D7553"/>
             </svg>
           </div>
           <div class="lp-card-title">跨月比對</div>
           <div class="lp-card-desc">鎖定規格條件後選擇月份，燈號總表一眼看出哪個月份哪個參數出現異常。</div>
         </div>
         <div class="lp-card">
-          <div class="lp-card-icon" style="background:#fce8e6;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <circle cx="9" cy="9" r="6.5" stroke="#d93025" stroke-width="2"/>
-              <line x1="9" y1="3.5" x2="9" y2="6.5" stroke="#d93025" stroke-width="2" stroke-linecap="round"/>
-              <line x1="9" y1="11.5" x2="9" y2="14.5" stroke="#d93025" stroke-width="2" stroke-linecap="round"/>
-              <line x1="11.5" y1="9" x2="14.5" y2="9" stroke="#d93025" stroke-width="2" stroke-linecap="round"/>
-              <line x1="3.5" y1="9" x2="6.5" y2="9" stroke="#d93025" stroke-width="2" stroke-linecap="round"/>
+          <div class="lp-card-icon" style="background:#EFE3D5;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="7.5" stroke="#9A6852" stroke-width="2"/>
+              <line x1="10" y1="4"  x2="10" y2="7"  stroke="#9A6852" stroke-width="2" stroke-linecap="round"/>
+              <line x1="10" y1="13" x2="10" y2="16" stroke="#9A6852" stroke-width="2" stroke-linecap="round"/>
+              <line x1="13" y1="10" x2="16" y2="10" stroke="#9A6852" stroke-width="2" stroke-linecap="round"/>
+              <line x1="4"  y1="10" x2="7"  y2="10" stroke="#9A6852" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </div>
           <div class="lp-card-title">製程能力</div>
