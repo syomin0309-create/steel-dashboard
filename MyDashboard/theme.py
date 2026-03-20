@@ -315,6 +315,159 @@ hr { border-color: var(--border) !important; margin: 20px 0 !important; }
 .sig-red    { color: #9A3B2E; font-weight: 700; }
 .sig-gray   { color: #876D5A; }
 
+
+/* ── Expander 深色修正 ────────────────────────────── */
+[data-testid="stExpander"] {
+    background: #FDFAF6 !important;
+    background-color: #FDFAF6 !important;
+    border: 1.5px solid #DABEA7 !important;
+    border-radius: 10px !important;
+}
+[data-testid="stExpander"] > div,
+[data-testid="stExpander"] div[data-testid="stExpanderDetails"],
+[data-testid="stExpander"] div[role="group"] {
+    background: #FDFAF6 !important;
+    background-color: #FDFAF6 !important;
+}
+[data-testid="stExpander"] summary {
+    background: #EFE3D5 !important;
+    background-color: #EFE3D5 !important;
+    color: #2C1F14 !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+}
+[data-testid="stExpander"] summary p,
+[data-testid="stExpander"] summary span {
+    color: #2C1F14 !important;
+    font-size: 14px !important;
+}
+[data-testid="stExpander"] summary svg {
+    fill: #876D5A !important;
+    color: #876D5A !important;
+}
+
+/* ── Dataframe 深色修正 ──────────────────────────── */
+[data-testid="stDataFrame"],
+[data-testid="stDataFrame"] > div,
+[data-testid="stDataFrame"] iframe {
+    background: #FDFAF6 !important;
+    background-color: #FDFAF6 !important;
+    border: 1.5px solid #DABEA7 !important;
+    border-radius: 10px !important;
+}
+/* glide-data-grid 覆蓋 */
+.dvn-scroller,
+.dvn-underlay,
+[class*="dvn"],
+[class*="glide"] {
+    background: #FDFAF6 !important;
+    background-color: #FDFAF6 !important;
+    color: #2C1F14 !important;
+}
+
+/* ── 所有 div/section 強制奶茶底色覆蓋 ─────────────── */
+/* Plotly 圖表容器 */
+.js-plotly-plot .plotly,
+.js-plotly-plot .plotly .main-svg,
+.js-plotly-plot .plotly .bg {
+    fill: #FDFAF6 !important;
+    background: #FDFAF6 !important;
+}
+
+/* ── SPC 診斷卡內部背景 ──────────────────────────── */
+.diag-item {
+    background: #EFE3D5 !important;
+    border-radius: 0 6px 6px 0 !important;
+}
+.diag-text { color: #2C1F14 !important; }
+
+/* ── SPC 統計摘要列 ──────────────────────────────── */
+.spc-statsbar {
+    background: #EFE3D5 !important;
+    border: 1.5px solid #DABEA7 !important;
+    border-radius: 8px !important;
+}
+.spc-cell { border-right-color: #DABEA7 !important; }
+.spc-lbl  { color: #5C4033 !important; }
+.spc-val  { color: #2C1F14 !important; }
+
+/* ── SPC 指標卡片（深色 → 奶茶）────────────────────── */
+.spc-card {
+    background: #FDFAF6 !important;
+    border: 1.5px solid #DABEA7 !important;
+    border-radius: 10px !important;
+}
+.spc-card::before { opacity: 0.6; }
+.spc-lbl   { color: #5C4033 !important; font-size: 11px !important; font-family: 'Google Sans','Microsoft JhengHei',sans-serif !important; }
+.spc-badge { font-family: 'Google Sans','Microsoft JhengHei',sans-serif !important; }
+.spc-val   { font-family: 'Google Sans','Microsoft JhengHei',sans-serif !important; color: #2C1F14 !important; }
+.spc-sub   { color: #5C4033 !important; font-family: 'Google Sans','Microsoft JhengHei',sans-serif !important; }
+.spc-gauge { background: #DABEA7 !important; }
+.spc-sec   { color: #5C4033 !important; font-family: 'Google Sans','Microsoft JhengHei',sans-serif !important; letter-spacing: 1px !important; }
+.spc-sec::after { background: linear-gradient(90deg, #DABEA7, transparent) !important; }
+
+/* ── 月份高亮按鈕 ─────────────────────────────────── */
+button[kind="primary"] {
+    background-color: #876D5A !important;
+    color: #FDFAF6 !important;
+}
+button[kind="secondary"] {
+    background-color: #FDFAF6 !important;
+    color: #876D5A !important;
+    border: 1.5px solid #A98B73 !important;
+}
+
+/* ── Streamlit 系統 toast / notification ─────────── */
+[data-testid="stToast"],
+[data-baseweb="toast"] {
+    background: #FDFAF6 !important;
+    color: #2C1F14 !important;
+}
+
+/* ── Success / info / warning 訊息框文字 ──────────── */
+[data-testid="stAlert"] {
+    border-radius: 10px !important;
+}
+[data-testid="stAlert"] p,
+[data-testid="stAlert"] span,
+[data-testid="stAlert"] div {
+    font-size: 14px !important;
+}
+
+/* ── Number input +/- 按鈕 ───────────────────────── */
+[data-testid="stNumberInput"] button {
+    background-color: #EFE3D5 !important;
+    color: #2C1F14 !important;
+    border: 1px solid #DABEA7 !important;
+}
+[data-testid="stNumberInput"] button:hover {
+    background-color: #DABEA7 !important;
+}
+
+/* ── Toggle switch ───────────────────────────────── */
+[data-testid="stToggle"] label div[data-checked="true"] {
+    background-color: #876D5A !important;
+}
+
+/* ── Caption / 小字 ──────────────────────────────── */
+small, .caption, [class*="caption"] {
+    color: #5C4033 !important;
+    font-size: 13px !important;
+}
+
+/* ── Sidebar section divider ─────────────────────── */
+[data-testid="stSidebarContent"] hr {
+    border-color: #DABEA7 !important;
+}
+
+/* ── 所有白色背景容器改奶茶 ──────────────────────── */
+[data-testid="stVerticalBlock"],
+[data-testid="stHorizontalBlock"] {
+    background: transparent !important;
+}
+
 footer { visibility: hidden !important; }
 #MainMenu { visibility: hidden !important; }
 </style>
