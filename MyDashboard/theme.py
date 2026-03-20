@@ -210,14 +210,28 @@ input:focus, textarea:focus {
 [data-testid="stAlert"] p { font-size: 14px !important; color: inherit !important; }
 
 /* ── File Uploader ───────────────────────────────── */
-[data-testid="stFileUploader"] {
-    background: var(--bg-card) !important;
-    border: 2px dashed var(--border-dark) !important;
+[data-testid="stFileUploader"],
+[data-testid="stFileUploader"] > div,
+[data-testid="stFileUploader"] section {
+    background: #FDFAF6 !important;
+    background-color: #FDFAF6 !important;
+    border: 2px dashed #A98B73 !important;
     border-radius: 12px !important;
 }
-[data-testid="stFileUploader"]:hover { border-color: var(--primary) !important; }
+[data-testid="stFileUploader"]:hover { border-color: #876D5A !important; }
 [data-testid="stFileUploader"] span,
-[data-testid="stFileUploader"] p { color: var(--text-sub) !important; font-size: 14px !important; }
+[data-testid="stFileUploader"] p,
+[data-testid="stFileUploader"] small,
+[data-testid="stFileUploader"] label {
+    color: #5C4033 !important;
+    font-size: 14px !important;
+}
+[data-testid="stFileUploader"] button {
+    background-color: #876D5A !important;
+    color: #FDFAF6 !important;
+    border: none !important;
+    border-radius: 6px !important;
+}
 
 /* ── Expander ────────────────────────────────────── */
 [data-testid="stExpander"] {
