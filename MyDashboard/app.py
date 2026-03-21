@@ -492,7 +492,7 @@ with tab2:
 
         b1, b2 = st.columns(2)
         with b1:
-            st.markdown("<div style='font-size:14px;font-weight:600;color:#475569;margin-bottom:3px;'>組距 Bins</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:15px;font-weight:600;color:#475569;margin-bottom:3px;'>組距 Bins</div>", unsafe_allow_html=True)
             spc_bins = st.slider("", min_value=5, max_value=30, value=12,
                                  key=f"spc_bins_{selected_param}", label_visibility="collapsed")
         with b2:
@@ -520,54 +520,32 @@ with tab2:
         is_upper = "上限" in spec_type
         is_lower = "下限" in spec_type
 
-        sp1, sp2, sp3 = st.columns(3)
+        # LSL
+        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:14px;font-weight:700;color:#475569;">LSL　規格下限</span>
+          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 8px;font-weight:700;">下限</span>
+        </div>""", unsafe_allow_html=True)
+        lsl2 = st.number_input("", value=float(spc_mean - 4*spc_std),
+            key=f"spc_lsl_{selected_param}", disabled=is_upper,
+            format="%.3f", label_visibility="collapsed")
 
-        with sp1:
-            st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
-              <span style="font-size:13px;font-weight:700;color:#475569;">LSL 下限</span>
-              <span style="font-size:11px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:1px 7px;font-weight:700;">下限</span>
-            </div>""", unsafe_allow_html=True)
-            lsl2 = st.number_input("", value=float(spc_mean - 4*spc_std),
-                key=f"spc_lsl_{selected_param}", disabled=is_upper,
-                format="%.3f", label_visibility="collapsed")
+        # USL
+        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:8px;">
+          <span style="font-size:14px;font-weight:700;color:#475569;">USL　規格上限</span>
+          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 8px;font-weight:700;">上限</span>
+        </div>""", unsafe_allow_html=True)
+        usl2 = st.number_input("", value=float(spc_mean + 4*spc_std),
+            key=f"spc_usl_{selected_param}", disabled=is_lower,
+            format="%.3f", label_visibility="collapsed")
 
-        with sp2:
-            st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
-              <span style="font-size:13px;font-weight:700;color:#475569;">USL 上限</span>
-              <span style="font-size:11px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:1px 7px;font-weight:700;">上限</span>
-            </div>""", unsafe_allow_html=True)
-            usl2 = st.number_input("", value=float(spc_mean + 4*spc_std),
-                key=f"spc_usl_{selected_param}", disabled=is_lower,
-                format="%.3f", label_visibility="collapsed")
-
-        with sp3:
-            st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
-              <span style="font-size:13px;font-weight:700;color:#475569;">Target</span>
-              <span style="font-size:11px;background:#ede9fe;color:#5b21b6;border-radius:4px;padding:1px 7px;font-weight:700;">目標</span>
-            </div>""", unsafe_allow_html=True)
-            target2 = st.number_input("", value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
-                key=f"spc_target_{selected_param}", disabled=(not is_both),
-                format="%.3f", label_visibility="collapsed")
-
-        # 規格範圍色條
-        if is_both and usl2 > lsl2:
-            total = usl2 - lsl2
-            tgt_pct = int((target2 - lsl2) / total * 100) if total > 0 else 50
-            tgt_pct = max(5, min(95, tgt_pct))
-            st.markdown(f"""
-            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;margin-top:8px;">
-              <div style="position:relative;height:6px;background:#e2e8f0;border-radius:3px;margin:0 4px;">
-                <div style="position:absolute;left:0;right:0;height:100%;background:rgba(14,165,233,0.18);border-radius:3px;"></div>
-                <div style="position:absolute;left:0;width:2px;height:220%;top:-60%;background:#ef4444;"></div>
-                <div style="position:absolute;right:0;width:2px;height:220%;top:-60%;background:#ef4444;"></div>
-                <div style="position:absolute;left:{tgt_pct}%;width:2px;height:220%;top:-60%;transform:translateX(-50%);background:#7c3aed;"></div>
-              </div>
-              <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;">
-                <span style="color:#ef4444;font-weight:700;">LSL {lsl2:.3f}</span>
-                <span style="color:#7c3aed;font-weight:700;">Target {target2:.3f}</span>
-                <span style="color:#ef4444;font-weight:700;">USL {usl2:.3f}</span>
-              </div>
-            </div>""", unsafe_allow_html=True)
+        # Target
+        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:8px;">
+          <span style="font-size:14px;font-weight:700;color:#475569;">Target　中心值</span>
+          <span style="font-size:12px;background:#ede9fe;color:#5b21b6;border-radius:4px;padding:2px 8px;font-weight:700;">目標</span>
+        </div>""", unsafe_allow_html=True)
+        target2 = st.number_input("", value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
+            key=f"spc_target_{selected_param}", disabled=(not is_both),
+            format="%.3f", label_visibility="collapsed")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
