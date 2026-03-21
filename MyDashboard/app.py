@@ -588,6 +588,7 @@ with tab2:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Row 1：統計摘要 6 欄（全寬）──────────────────
+    p = int(spc_prec)
     st.markdown(f"""
     <div style="display:grid;grid-template-columns:repeat(6,1fr);background:#fff;
         border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:14px;">
@@ -597,23 +598,23 @@ with tab2:
       </div>
       <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
         <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">平均值 (MEAN)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_mean:.{{int(spc_prec)}}f}</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_mean:.{p}f}</div>
       </div>
       <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
         <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">中位數 (MED)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_median:.{{int(spc_prec)}}f}</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_median:.{p}f}</div>
       </div>
       <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
         <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">標準差 (STD)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_std:.{{int(spc_prec)}}f}</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_std:.{p}f}</div>
       </div>
       <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
         <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最小值 (MIN)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_min:.{{int(spc_prec)}}f}</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_min:.{p}f}</div>
       </div>
       <div style="padding:14px 16px;text-align:center;">
         <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最大值 (MAX)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_max:.{{int(spc_prec)}}f}</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_max:.{p}f}</div>
       </div>
     </div>""", unsafe_allow_html=True)
 
@@ -630,7 +631,7 @@ with tab2:
       <div style="font-size:15px;font-weight:700;color:{ca_c};letter-spacing:1px;
           text-transform:uppercase;margin-bottom:10px;">Ca（準確度）</div>
       <div style="font-size:42px;font-weight:800;color:{ca_c};line-height:1.1;margin-bottom:10px;">
-          {{f"{abs(ca2):.2f}%" if ca2 is not None else "N/A"}}</div>
+          {abs(ca2):.2f}% if ca2 is not None else "N/A"</div>
       <div style="display:inline-block;font-size:14px;font-weight:700;color:#fff;
           background:{ca_c};border-radius:20px;padding:4px 18px;">{ca_g}　{ca_d}</div>
     </div>""", unsafe_allow_html=True)
