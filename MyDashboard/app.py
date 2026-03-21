@@ -85,7 +85,7 @@ def load_and_clean_data(file_bytes: bytes, file_name: str):
 # ══════════════════════════════════════════════════════
 #  側邊欄
 # ══════════════════════════════════════════════════════
-_logo_candidates = ["logo_zheng.png", "MyDashboard/logo_zheng.svg"]
+_logo_candidates = ["logo_zheng.svg", "MyDashboard/logo_zheng.svg"]
 _logo_path = next((p for p in _logo_candidates if os.path.exists(p)), None)
 if _logo_path:
     try:
