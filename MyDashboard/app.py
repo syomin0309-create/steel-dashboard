@@ -747,37 +747,50 @@ with tab2:
             xanchor="right", yanchor="top"
         )
 
-        # 規格線：用 scatter 畫垂直線，hover 顯示標籤，游標移到線上即顯示
+        # 規格線：scatter 垂直線 + 頂部永久標籤框，hover 自動浮到最上層
         y_top = max(counts) if counts else 1
+        label_y = y_top * 1.06   # 標籤固定位置（柱頂上方）
 
-        def add_vline_hover(fig, x_val, color, dash, width, label, y_max_val):
-            """用兩點 scatter 模擬垂直線，hover 時顯示標籤"""
-            fig.add_trace(go.Scatter(
+        # 線條設定：(x值, 顏色, dash樣式, 線寬, 標籤文字, 背景色)
+        lines_to_draw = []
+        if is_both or is_lower:
+            lines_to_draw.append((lsl2,      "#ef4444", "solid",   3.0, f"LSL {lsl2:.{p}f}",      "#fee2e2"))
+        if show_mean2:
+            lines_to_draw.append((spc_mean,  "#059669", "dot",     3.0, f"平均 {spc_mean:.{p}f}",  "#d1fae5"))
+        if is_both and show_target2:
+            lines_to_draw.append((target2,   "#7c3aed", "dash",    3.0, f"目標 {target2:.{p}f}",   "#ede9fe"))
+        if show_median2:
+            lines_to_draw.append((spc_median,"#0284c7", "dashdot", 3.0, f"中位 {spc_median:.{p}f}","#e0f2fe"))
+        if is_both or is_upper:
+            lines_to_draw.append((usl2,      "#ef4444", "solid",   3.0, f"USL {usl2:.{p}f}",      "#fee2e2"))
+
+        for x_val, color, dash, width, label, bg in lines_to_draw:
+            # 垂直線 trace — hover 時自動浮到最上層（Plotly 原生行為）
+            fig_h.add_trace(go.Scatter(
                 x=[x_val, x_val],
-                y=[0, y_max_val * 1.05],
+                y=[0, label_y * 0.97],
                 mode="lines",
                 line=dict(color=color, width=width, dash=dash),
                 name=label,
                 hovertemplate=f"<b>{label}</b><extra></extra>",
-                hoverlabel=dict(bgcolor=color, font=dict(color="#fff", size=13)),
+                hoverlabel=dict(
+                    bgcolor=color,
+                    font=dict(color="#fff", size=14, weight=700),
+                    bordercolor=color
+                ),
                 showlegend=False
             ))
-
-        if is_both or is_lower:
-            add_vline_hover(fig_h, lsl2, "#ef4444", "solid", 2.5,
-                f"LSL　{lsl2:.{p}f}", y_top)
-        if is_both or is_upper:
-            add_vline_hover(fig_h, usl2, "#ef4444", "solid", 2.5,
-                f"USL　{usl2:.{p}f}", y_top)
-        if show_mean2:
-            add_vline_hover(fig_h, spc_mean, "#10b981", "dot", 2.5,
-                f"平均值　{spc_mean:.{p}f}", y_top)
-        if is_both and show_target2:
-            add_vline_hover(fig_h, target2, "#7c3aed", "dash", 2.5,
-                f"目標值　{target2:.{p}f}", y_top)
-        if show_median2:
-            add_vline_hover(fig_h, spc_median, "#94a3b8", "dashdot", 2.5,
-                f"中位數　{spc_median:.{p}f}", y_top)
+            # 頂部帶框標籤（永遠顯示，hover 時跟著線浮到最前）
+            fig_h.add_annotation(
+                x=x_val, y=label_y,
+                text=f"<b>{label}</b>",
+                font=dict(color=color, size=11),
+                bgcolor=bg,
+                bordercolor=color, borderwidth=1.5, borderpad=4,
+                showarrow=False,
+                yanchor="bottom", xanchor="center",
+                yref="y", xref="x"
+            )
 
 
 
@@ -795,9 +808,10 @@ with tab2:
                 gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
                 title=dict(text="次數 (Frequency)", font=dict(color="#64748b", size=15)),
                 linecolor="#94a3b8", linewidth=1.5, gridwidth=0.8,
+                range=[0, y_top * 1.42]
             ),
             showlegend=False,
-            bargap=0.04, margin=dict(t=50, b=55, l=65, r=20)
+            bargap=0.04, margin=dict(t=80, b=55, l=65, r=20)
         )
         st.plotly_chart(fig_h, use_container_width=True)
 
