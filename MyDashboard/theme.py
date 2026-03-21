@@ -226,6 +226,21 @@ hr { border-color: #e2e8f0 !important; }
 .sig-red    { color: #dc2626; font-weight: 700; }
 .sig-gray   { color: #94a3b8; }
 
+/* ══ Plotly 圖表圓角 ════════════════════════════════════ */
+[data-testid="stPlotlyChart"] {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+}
+[data-testid="stPlotlyChart"] > div {
+    border-radius: 14px !important;
+    overflow: hidden !important;
+}
+[data-testid="stPlotlyChart"] iframe {
+    border-radius: 14px !important;
+}
+
 /* ══ 隱藏頁腳 ════════════════════════════════════════════ */
 footer { visibility: hidden !important; }
 </style>
