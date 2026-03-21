@@ -241,11 +241,11 @@ st.markdown(f"""
     <div style="display:flex;gap:16px;">
         <span style="font-size:13px;color:#64748b;">
             📅 月份涵蓋：
-            <b style="color:#0ea5e9;">{df['生產年月'].nunique() if '生產年月' in df.columns else '—'} 個月</b>
+            <b style="color:#0ea5e9;font-size:16px;">{df['生產年月'].nunique() if '生產年月' in df.columns else '—'} 個月</b>
         </span>
         <span style="font-size:13px;color:#64748b;">
             📊 可分析參數：
-            <b style="color:#0ea5e9;">{len(available_params)} 項</b>
+            <b style="color:#0ea5e9;font-size:16px;">{len(available_params)} 項</b>
         </span>
     </div>
 </div>
@@ -593,28 +593,28 @@ with tab2:
     <div style="display:grid;grid-template-columns:repeat(6,1fr);background:#fff;
         border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:14px;">
       <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
-        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">樣本數 (N)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_n:,}</div>
+        <div style="font-size:14px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">樣本數 (N)</div>
+        <div style="font-size:24px;font-weight:700;color:#0f172a;">{spc_n:,}</div>
       </div>
       <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
-        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">平均值 (MEAN)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_mean:.{p}f}</div>
+        <div style="font-size:14px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">平均值 (MEAN)</div>
+        <div style="font-size:24px;font-weight:700;color:#0f172a;">{spc_mean:.{p}f}</div>
       </div>
       <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
-        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">中位數 (MED)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_median:.{p}f}</div>
+        <div style="font-size:14px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">中位數 (MED)</div>
+        <div style="font-size:24px;font-weight:700;color:#0f172a;">{spc_median:.{p}f}</div>
       </div>
       <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
-        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">標準差 (STD)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_std:.{p}f}</div>
+        <div style="font-size:14px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">標準差 (STD)</div>
+        <div style="font-size:24px;font-weight:700;color:#0f172a;">{spc_std:.{p}f}</div>
       </div>
       <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
-        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最小值 (MIN)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_min:.{p}f}</div>
+        <div style="font-size:14px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最小值 (MIN)</div>
+        <div style="font-size:24px;font-weight:700;color:#0f172a;">{spc_min:.{p}f}</div>
       </div>
       <div style="padding:14px 16px;text-align:center;">
-        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最大值 (MAX)</div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_max:.{p}f}</div>
+        <div style="font-size:14px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最大值 (MAX)</div>
+        <div style="font-size:24px;font-weight:700;color:#0f172a;">{spc_max:.{p}f}</div>
       </div>
     </div>""", unsafe_allow_html=True)
 
