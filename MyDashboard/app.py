@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import numpy as np
 import re
 import base64, os
-from theme import THEME_CSS, render_landing, CHART_THEME
+from theme import THEME_CSS, render_landing, show_loading, CHART_THEME
 
 st.set_page_config(page_title="AegisCore", layout="wide", page_icon="👁️", initial_sidebar_state="expanded")
 st.markdown(THEME_CSS, unsafe_allow_html=True)
@@ -125,7 +125,12 @@ if uploaded_file is None:
 # ══════════════════════════════════════════════════════
 #  已上傳：資料處理
 # ══════════════════════════════════════════════════════
+loading_placeholder = st.empty()
+with loading_placeholder:
+    show_loading()
+
 raw_df = load_and_clean_data(uploaded_file.read(), uploaded_file.name)
+loading_placeholder.empty()
 df = raw_df.copy()
 
 if '試驗等級' in df.columns:
