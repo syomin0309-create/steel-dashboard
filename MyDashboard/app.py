@@ -474,66 +474,104 @@ with tab2:
     spc_max    = float(spc_data.max())
     spc_cv     = spc_std / spc_mean * 100 if spc_mean != 0 else 0
 
-    # ── 規格設定（頂部，全寬，先讓使用者設定）────────
-    with st.expander("⚙️ 規格與顯示設定", expanded=True):
-        cfg1, cfg2, cfg3 = st.columns([1.2, 1, 1])
-        with cfg1:
-            spec_type = st.selectbox(
-                "規格類型",
-                ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)"],
-                key=f"spc_spectype_{file_key}"
-            )
-        with cfg2:
-            st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:2px;'>組距 Bins</div>", unsafe_allow_html=True)
+    # ── 設定區：兩張卡片並排 ────────────────────────
+    set_col1, set_col2 = st.columns(2)
+
+    with set_col1:
+        st.markdown("""
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <div style="width:3px;height:18px;background:#0ea5e9;border-radius:0;"></div>
+          <span style="font-size:14px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;">顯示設定</span>
+        </div>""", unsafe_allow_html=True)
+
+        spec_type = st.selectbox(
+            "規格類型",
+            ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)"],
+            key=f"spc_spectype_{file_key}"
+        )
+
+        b1, b2 = st.columns(2)
+        with b1:
+            st.markdown("<div style='font-size:14px;font-weight:600;color:#475569;margin-bottom:3px;'>組距 Bins</div>", unsafe_allow_html=True)
             spc_bins = st.slider("", min_value=5, max_value=30, value=12,
                                  key=f"spc_bins_{selected_param}", label_visibility="collapsed")
-        with cfg3:
-            st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:2px;'>小數位數</div>", unsafe_allow_html=True)
+        with b2:
+            st.markdown("<div style='font-size:14px;font-weight:600;color:#475569;margin-bottom:3px;'>小數位數</div>", unsafe_allow_html=True)
             spc_prec = st.slider("", min_value=0, max_value=6, value=3,
                                  key=f"spc_prec_{selected_param}", label_visibility="collapsed")
 
-        tg1, tg2, tg3, tg4 = st.columns(4)
+        st.markdown("<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;'>", unsafe_allow_html=True)
+        tg1, tg2 = st.columns(2)
+        tg3, tg4 = st.columns(2)
         show_mean2   = tg1.toggle("平均值線", value=True,  key=f"spc_mean_{selected_param}")
         show_curve2  = tg2.toggle("常態曲線", value=True,  key=f"spc_curve_{selected_param}")
         show_median2 = tg3.toggle("中位數線", value=False, key=f"spc_med_{selected_param}")
         show_target2 = tg4.toggle("目標值線", value=True,  key=f"spc_tgt_{selected_param}")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with set_col2:
+        st.markdown("""
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <div style="width:3px;height:18px;background:#ef4444;border-radius:0;"></div>
+          <span style="font-size:14px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;">規格設定</span>
+        </div>""", unsafe_allow_html=True)
 
         is_both  = "雙邊" in spec_type
         is_upper = "上限" in spec_type
         is_lower = "下限" in spec_type
 
         sp1, sp2, sp3 = st.columns(3)
-        lsl2 = sp1.number_input("LSL 規格下限",
-            value=float(spc_mean - 4*spc_std),
-            key=f"spc_lsl_{selected_param}", disabled=is_upper, format="%.3f")
-        usl2 = sp2.number_input("USL 規格上限",
-            value=float(spc_mean + 4*spc_std),
-            key=f"spc_usl_{selected_param}", disabled=is_lower, format="%.3f")
-        target2 = sp3.number_input("Target 中心值",
-            value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
-            key=f"spc_target_{selected_param}", disabled=(not is_both), format="%.3f")
 
-        # 規格範圍視覺化
+        with sp1:
+            st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-size:13px;font-weight:700;color:#475569;">LSL 下限</span>
+              <span style="font-size:11px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:1px 7px;font-weight:700;">下限</span>
+            </div>""", unsafe_allow_html=True)
+            lsl2 = st.number_input("", value=float(spc_mean - 4*spc_std),
+                key=f"spc_lsl_{selected_param}", disabled=is_upper,
+                format="%.3f", label_visibility="collapsed")
+
+        with sp2:
+            st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-size:13px;font-weight:700;color:#475569;">USL 上限</span>
+              <span style="font-size:11px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:1px 7px;font-weight:700;">上限</span>
+            </div>""", unsafe_allow_html=True)
+            usl2 = st.number_input("", value=float(spc_mean + 4*spc_std),
+                key=f"spc_usl_{selected_param}", disabled=is_lower,
+                format="%.3f", label_visibility="collapsed")
+
+        with sp3:
+            st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-size:13px;font-weight:700;color:#475569;">Target</span>
+              <span style="font-size:11px;background:#ede9fe;color:#5b21b6;border-radius:4px;padding:1px 7px;font-weight:700;">目標</span>
+            </div>""", unsafe_allow_html=True)
+            target2 = st.number_input("", value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
+                key=f"spc_target_{selected_param}", disabled=(not is_both),
+                format="%.3f", label_visibility="collapsed")
+
+        # 規格範圍色條
         if is_both and usl2 > lsl2:
             total = usl2 - lsl2
             tgt_pct = int((target2 - lsl2) / total * 100) if total > 0 else 50
             tgt_pct = max(5, min(95, tgt_pct))
             st.markdown(f"""
-            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-top:4px;">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;margin-top:8px;">
               <div style="position:relative;height:6px;background:#e2e8f0;border-radius:3px;margin:0 4px;">
-                <div style="position:absolute;left:0;right:0;height:100%;background:rgba(14,165,233,0.2);border-radius:3px;"></div>
-                <div style="position:absolute;left:0;width:2px;height:200%;top:-50%;background:#ef4444;"></div>
-                <div style="position:absolute;right:0;width:2px;height:200%;top:-50%;background:#ef4444;"></div>
-                <div style="position:absolute;left:{tgt_pct}%;width:2px;height:200%;top:-50%;transform:translateX(-50%);background:#7c3aed;"></div>
+                <div style="position:absolute;left:0;right:0;height:100%;background:rgba(14,165,233,0.18);border-radius:3px;"></div>
+                <div style="position:absolute;left:0;width:2px;height:220%;top:-60%;background:#ef4444;"></div>
+                <div style="position:absolute;right:0;width:2px;height:220%;top:-60%;background:#ef4444;"></div>
+                <div style="position:absolute;left:{tgt_pct}%;width:2px;height:220%;top:-60%;transform:translateX(-50%);background:#7c3aed;"></div>
               </div>
-              <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;">
+              <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;">
                 <span style="color:#ef4444;font-weight:700;">LSL {lsl2:.3f}</span>
                 <span style="color:#7c3aed;font-weight:700;">Target {target2:.3f}</span>
                 <span style="color:#ef4444;font-weight:700;">USL {usl2:.3f}</span>
               </div>
             </div>""", unsafe_allow_html=True)
 
-    # ── 計算 ─────────────────────────────────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── 計算 ─────────────────────────────────────────
     if is_both and (usl2 - lsl2) != 0:
         ca2 = (spc_mean - target2) / ((usl2 - lsl2) / 2) * 100
     else:
