@@ -734,9 +734,9 @@ with tab2:
 
         # 右上角統計資訊框（報告用）
         stats_text = (
-            f"<b>N = {spc_n:,}</b>　"
-            f"X̄ = {spc_mean:.{p}f}　"
-            f"σ = {spc_std:.{p}f}"
+            f"<b>樣本數 {spc_n:,}</b>　"
+            f"平均值 {spc_mean:.{p}f}　"
+            f"標準差 {spc_std:.{p}f}"
         )
         fig_h.add_annotation(
             xref="paper", yref="paper", x=0.99, y=0.99,
@@ -759,18 +759,27 @@ with tab2:
         if show_median2:
             fig_h.add_vline(x=spc_median, line_color="#94a3b8", line_width=1.8, line_dash="dashdot")
 
-        # 圖表下方標籤說明列（圖外，用 Streamlit markdown 顯示）
-        label_parts = []
+
+
+        # 組合標籤列（圖表上方，圖外不重疊）
+        label_header_parts = []
         if is_both or is_lower:
-            label_parts.append(f'<span style="color:#ef4444;font-weight:700;background:#fee2e2;padding:3px 10px;border-radius:5px;border:1px solid #ef4444;">LSL　{lsl2:.{p}f}</span>')
+            label_header_parts.append(f'<span style="color:#ef4444;font-weight:700;font-size:13px;background:#fee2e2;padding:4px 12px;border-radius:6px;border:1.5px solid #ef4444;">LSL　{lsl2:.{p}f}</span>')
         if show_mean2:
-            label_parts.append(f'<span style="color:#059669;font-weight:700;background:#d1fae5;padding:3px 10px;border-radius:5px;border:1px solid #10b981;">X̄　{spc_mean:.{p}f}</span>')
+            label_header_parts.append(f'<span style="color:#059669;font-weight:700;font-size:13px;background:#d1fae5;padding:4px 12px;border-radius:6px;border:1.5px solid #10b981;">平均　{spc_mean:.{p}f}</span>')
         if is_both and show_target2:
-            label_parts.append(f'<span style="color:#7c3aed;font-weight:700;background:#ede9fe;padding:3px 10px;border-radius:5px;border:1px solid #7c3aed;">Target　{target2:.{p}f}</span>')
+            label_header_parts.append(f'<span style="color:#7c3aed;font-weight:700;font-size:13px;background:#ede9fe;padding:4px 12px;border-radius:6px;border:1.5px solid #7c3aed;">目標　{target2:.{p}f}</span>')
         if show_median2:
-            label_parts.append(f'<span style="color:#64748b;font-weight:700;background:#f1f5f9;padding:3px 10px;border-radius:5px;border:1px solid #94a3b8;">Med　{spc_median:.{p}f}</span>')
+            label_header_parts.append(f'<span style="color:#64748b;font-weight:700;font-size:13px;background:#f1f5f9;padding:4px 12px;border-radius:6px;border:1.5px solid #94a3b8;">中位　{spc_median:.{p}f}</span>')
         if is_both or is_upper:
-            label_parts.append(f'<span style="color:#ef4444;font-weight:700;background:#fee2e2;padding:3px 10px;border-radius:5px;border:1px solid #ef4444;">USL　{usl2:.{p}f}</span>')
+            label_header_parts.append(f'<span style="color:#ef4444;font-weight:700;font-size:13px;background:#fee2e2;padding:4px 12px;border-radius:6px;border:1.5px solid #ef4444;">USL　{usl2:.{p}f}</span>')
+
+        if label_header_parts:
+            header_html = "".join(label_header_parts)
+            st.markdown(
+                f'<div style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0 6px 0;">{header_html}</div>',
+                unsafe_allow_html=True
+            )
 
         fig_h.update_layout(
             template="simple_white",
@@ -792,12 +801,7 @@ with tab2:
             bargap=0.04, margin=dict(t=50, b=55, l=65, r=20)
         )
         st.plotly_chart(fig_h, use_container_width=True)
-        if label_parts:
-            labels_html = "".join(label_parts)
-            st.markdown(
-                f'<div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 0 2px 0;">{labels_html}</div>',
-                unsafe_allow_html=True
-            )
+
 
     with col_side:
         # 良品率大數字卡（右上）
