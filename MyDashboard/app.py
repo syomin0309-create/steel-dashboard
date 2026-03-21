@@ -631,7 +631,7 @@ with tab2:
       <div style="font-size:15px;font-weight:700;color:{ca_c};letter-spacing:1px;
           text-transform:uppercase;margin-bottom:10px;">Ca（準確度）</div>
       <div style="font-size:42px;font-weight:800;color:{ca_c};line-height:1.1;margin-bottom:10px;">
-          {abs(ca2):.2f}% if ca2 is not None else "N/A"</div>
+          {("N/A" if ca2 is None else f"{abs(ca2):.2f}%")}</div>
       <div style="display:inline-block;font-size:14px;font-weight:700;color:#fff;
           background:{ca_c};border-radius:20px;padding:4px 18px;">{ca_g}　{ca_d}</div>
     </div>""", unsafe_allow_html=True)
