@@ -291,3 +291,14 @@ def render_landing():
             <div style="font-size: 13px; color: #64748b; line-height: 1.7;">{desc}</div>
         </div>
         """, unsafe_allow_html=True)
+
+
+# ── Plotly 圖表主題（CHART_THEME）────────────────────────
+CHART_THEME = {
+    'plot_bgcolor': '#ffffff',
+    'paper_bgcolor': '#ffffff',
+    'font': {'family': 'Microsoft JhengHei, Noto Sans TC, sans-serif', 'color': '#1e293b'},
+    'colorway': ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#f97316'],
+    'xaxis': {'gridcolor': '#e2e8f0', 'linecolor': '#cbd5e1', 'zerolinecolor': '#e2e8f0'},
+    'yaxis': {'gridcolor': '#e2e8f0', 'linecolor': '#cbd5e1', 'zerolinecolor': '#e2e8f0'},
+}
