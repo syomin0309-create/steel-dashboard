@@ -229,6 +229,29 @@ input[type="number"], input[type="text"], textarea {
         padding: 2px !important;
         min-width: 0 !important;
     }
+    /* ── 已上傳檔案刪除按鈕（藍色膠囊）────────────────── */
+    [data-testid="stFileUploaderDeleteBtn"] button,
+    [data-testid="stFileUploaderDeleteBtn"] button:hover,
+    button[title="Delete"],
+    button[aria-label="Delete"] {
+        background-color: #e2e8f0 !important;
+        background: #e2e8f0 !important;
+        color: #64748b !important;
+        border-radius: 50% !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    /* 膠囊形狀的 X tag */
+    [data-testid="stFileUploader"] [data-testid="stTag"],
+    [data-testid="stUploadedFile"] span[data-baseweb="tag"],
+    span[data-baseweb="tag"] {
+        background-color: #e2e8f0 !important;
+        color: #475569 !important;
+        border-radius: 6px !important;
+    }
+    span[data-baseweb="tag"] span {
+        color: #475569 !important;
+    }
 footer { visibility: hidden !important; }
 </style>
 """
