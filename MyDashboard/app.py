@@ -726,7 +726,7 @@ with tab2:
             yc = (1/(spc_std*np.sqrt(2*np.pi))) * np.exp(-0.5*((xc-spc_mean)/spc_std)**2)
             fig_h.add_trace(go.Scatter(
                 x=xc, y=yc*spc_n*step_h, mode='lines',
-                line=dict(color="#0ea5e9", width=3), name='常態曲線'
+                line=dict(color="#1e293b", width=2.5), name='常態曲線'
             ))
 
         # ── 規格線：線條畫在圖內，標籤顯示在圖表下方說明區 ──
