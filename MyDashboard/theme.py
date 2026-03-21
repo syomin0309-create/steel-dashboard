@@ -17,14 +17,14 @@ html, body,
 html, body, [class*="css"], button, input, select, textarea {
     font-family: 'Microsoft JhengHei', 'Noto Sans TC', 'Inter', 'Segoe UI', sans-serif !important;
     -webkit-font-smoothing: antialiased !important;
-    font-size: 16px !important;
+    font-size: 18px !important;
 }
 
 /* ══ 標題字級 ════════════════════════════════════════════ */
-h1 { color: #0f172a !important; font-weight: 800 !important; font-size: 2.2rem !important; }
-h2 { color: #1e293b !important; font-weight: 700 !important; font-size: 1.7rem !important; }
-h3 { color: #334155 !important; font-weight: 600 !important; font-size: 1.35rem !important; }
-p, li { font-size: 15px !important; }
+h1 { color: #0f172a !important; font-weight: 800 !important; font-size: 2.4rem !important; }
+h2 { color: #1e293b !important; font-weight: 700 !important; font-size: 1.9rem !important; }
+h3 { color: #334155 !important; font-weight: 600 !important; font-size: 1.5rem !important; }
+p, li { font-size: 17px !important; }
 
 /* ══ 側邊欄 ══════════════════════════════════════════════ */
 [data-testid="stSidebar"] {
@@ -53,14 +53,14 @@ p, li { font-size: 15px !important; }
 }
 [data-testid="metric-container"] label {
     color: #64748b !important;
-    font-size: 12px !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }
 [data-testid="metric-container"] [data-testid="stMetricValue"] {
     color: #0f172a !important;
-    font-size: 28px !important;
+    font-size: 32px !important;
     font-weight: 700 !important;
 }
 
@@ -68,9 +68,9 @@ p, li { font-size: 15px !important; }
 [data-testid="stTabs"] button {
     color: #64748b !important;
     font-weight: 600 !important;
-    font-size: 15px !important;
+    font-size: 17px !important;
     border-radius: 8px 8px 0 0 !important;
-    padding: 10px 20px !important;
+    padding: 10px 22px !important;
 }
 [data-testid="stTabs"] button[aria-selected="true"] {
     color: #0ea5e9 !important;
@@ -81,7 +81,7 @@ p, li { font-size: 15px !important; }
 
 /* ══ 下拉選單 ════════════════════════════════════════════ */
 div[data-baseweb="select"] * {
-    font-size: 15px !important;
+    font-size: 17px !important;
     font-weight: 500 !important;
     color: #1e293b !important;
     background-color: #ffffff !important;
@@ -106,7 +106,7 @@ input[type="number"], input[type="text"], textarea {
     color: #1e293b !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
-    font-size: 15px !important;
+    font-size: 17px !important;
 }
 input:focus { border-color: #0ea5e9 !important; box-shadow: 0 0 0 3px rgba(14,165,233,0.15) !important; }
 
@@ -118,8 +118,8 @@ input:focus { border-color: #0ea5e9 !important; box-shadow: 0 0 0 3px rgba(14,16
     border: none !important;
     border-radius: 8px !important;
     font-weight: 700 !important;
-    font-size: 15px !important;
-    padding: 10px 22px !important;
+    font-size: 17px !important;
+    padding: 12px 24px !important;
     transition: background 0.2s !important;
 }
 [data-testid="stDownloadButton"] button:hover,
@@ -164,18 +164,18 @@ button[kind="secondary"]:hover { background-color: #e2e8f0 !important; }
 [data-testid="stExpander"] summary {
     color: #334155 !important;
     font-weight: 600 !important;
-    font-size: 15px !important;
+    font-size: 17px !important;
 }
 
 /* ══ Toggle ══════════════════════════════════════════════ */
-[data-testid="stToggle"] label { font-size: 15px !important; color: #1e293b !important; }
+[data-testid="stToggle"] label { font-size: 17px !important; color: #1e293b !important; }
 
 /* ══ Dataframe ═══════════════════════════════════════════ */
 [data-testid="stDataFrame"] {
     border: 1px solid #e2e8f0 !important;
     border-radius: 10px !important;
     overflow: hidden !important;
-    font-size: 14px !important;
+    font-size: 15px !important;
 }
 
 /* ══ 水平分隔線 ══════════════════════════════════════════ */
