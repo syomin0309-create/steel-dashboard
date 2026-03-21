@@ -253,8 +253,8 @@ hr { border-color: #e2e8f0 !important; }
     font-size: 16px !important;
     font-weight: 600 !important;
     color: #0f172a !important;
-    background: #f8fafc !important;
-    border: 1.5px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
     padding: 10px 14px !important;
 }
 [data-testid="stNumberInput"] input:focus {
