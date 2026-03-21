@@ -729,53 +729,72 @@ with tab2:
                 line=dict(color="#0ea5e9", width=3), name='常態曲線'
             ))
 
-        # ── 規格線（加粗，標籤改用旗幟位置避免重疊）──
+        # ── 規格線：所有標籤統一置頂，不擋直方圖 ──
         y_max = max(counts) if counts else 1
+
+        # 統計資訊放右上角（報告用）
+        stats_text = (
+            f"<b>N = {spc_n:,}</b><br>"
+            f"X̄ = {spc_mean:.{p}f}<br>"
+            f"σ = {spc_std:.{p}f}"
+        )
+        fig_h.add_annotation(
+            xref="paper", yref="paper", x=0.99, y=0.99,
+            text=stats_text,
+            font=dict(color="#475569", size=12),
+            bgcolor="#f8fafc", bordercolor="#e2e8f0", borderwidth=1,
+            borderpad=8, showarrow=False, align="left",
+            xanchor="right", yanchor="top"
+        )
+
+        # 頂部標籤列（全部齊頂，不重疊柱子）
+        top_y = y_max * 1.18
 
         if is_both or is_lower:
             fig_h.add_vline(x=lsl2, line_color="#ef4444", line_width=2.5, line_dash="solid")
-            fig_h.add_annotation(x=lsl2, y=y_max*1.02, text=f"LSL<br>{lsl2:.{p}f}",
+            fig_h.add_annotation(x=lsl2, y=top_y,
+                text=f"LSL　{lsl2:.{p}f}",
                 font=dict(color="#ef4444", size=12, weight=700),
                 bgcolor="#fee2e2", bordercolor="#ef4444", borderwidth=1.5,
                 borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
 
         if is_both or is_upper:
             fig_h.add_vline(x=usl2, line_color="#ef4444", line_width=2.5, line_dash="solid")
-            fig_h.add_annotation(x=usl2, y=y_max*1.02, text=f"USL<br>{usl2:.{p}f}",
+            fig_h.add_annotation(x=usl2, y=top_y,
+                text=f"USL　{usl2:.{p}f}",
                 font=dict(color="#ef4444", size=12, weight=700),
                 bgcolor="#fee2e2", bordercolor="#ef4444", borderwidth=1.5,
                 borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
 
-        if is_both and show_target2:
-            fig_h.add_vline(x=target2, line_color="#7c3aed", line_width=2, line_dash="dash")
-            fig_h.add_annotation(x=target2, y=y_max*0.72, text=f"Target<br>{target2:.{p}f}",
-                font=dict(color="#7c3aed", size=11),
-                bgcolor="#ede9fe", bordercolor="#7c3aed", borderwidth=1,
-                borderpad=3, showarrow=True, arrowcolor="#7c3aed",
-                arrowsize=0.6, ax=28, ay=0, yanchor="middle", xanchor="left")
-
         if show_mean2:
             fig_h.add_vline(x=spc_mean, line_color="#10b981", line_width=2.2, line_dash="dot")
-            fig_h.add_annotation(x=spc_mean, y=y_max*0.88, text=f"X̄  {spc_mean:.{p}f}",
-                font=dict(color="#10b981", size=11, weight=700),
-                bgcolor="#d1fae5", bordercolor="#10b981", borderwidth=1,
-                borderpad=3, showarrow=True, arrowcolor="#10b981",
-                arrowsize=0.6, ax=-30, ay=0, yanchor="middle", xanchor="right")
+            fig_h.add_annotation(x=spc_mean, y=top_y,
+                text=f"X̄　{spc_mean:.{p}f}",
+                font=dict(color="#059669", size=12, weight=700),
+                bgcolor="#d1fae5", bordercolor="#10b981", borderwidth=1.5,
+                borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
+
+        if is_both and show_target2:
+            fig_h.add_vline(x=target2, line_color="#7c3aed", line_width=2, line_dash="dash")
+            fig_h.add_annotation(x=target2, y=top_y,
+                text=f"Target　{target2:.{p}f}",
+                font=dict(color="#7c3aed", size=12),
+                bgcolor="#ede9fe", bordercolor="#7c3aed", borderwidth=1.5,
+                borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
 
         if show_median2:
             fig_h.add_vline(x=spc_median, line_color="#94a3b8", line_width=1.8, line_dash="dashdot")
-            fig_h.add_annotation(x=spc_median, y=y_max*0.55, text=f"Med {spc_median:.{p}f}",
-                font=dict(color="#64748b", size=11),
-                bgcolor="#f1f5f9", bordercolor="#94a3b8", borderwidth=1,
-                borderpad=3, showarrow=True, arrowcolor="#94a3b8",
-                arrowsize=0.6, ax=28, ay=0, yanchor="middle", xanchor="left")
+            fig_h.add_annotation(x=spc_median, y=top_y,
+                text=f"Med　{spc_median:.{p}f}",
+                font=dict(color="#64748b", size=12),
+                bgcolor="#f1f5f9", bordercolor="#94a3b8", borderwidth=1.5,
+                borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
 
         fig_h.update_layout(
             template="simple_white",
             plot_bgcolor="#fafafa", paper_bgcolor=CHART_BG,
-            title=dict(text=f"【{selected_param}】 直方圖 · 常態分佈",
-                font=dict(color=CHART_TEXT, size=16), x=0),
-            height=520, font=dict(color=CHART_TEXT, size=15),
+            title=None,
+            height=540, font=dict(color=CHART_TEXT, size=15),
             xaxis=dict(
                 gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
                 title=dict(text=selected_param, font=dict(color="#64748b", size=15)),
@@ -785,14 +804,15 @@ with tab2:
             yaxis=dict(
                 gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
                 title=dict(text="次數 (Frequency)", font=dict(color="#64748b", size=15)),
-                linecolor="#94a3b8", linewidth=1.5, gridwidth=0.8
+                linecolor="#94a3b8", linewidth=1.5, gridwidth=0.8,
+                range=[0, y_max * 1.40]
             ),
             legend=dict(
                 bgcolor="#ffffff", bordercolor="#e2e8f0", borderwidth=1,
                 font=dict(size=13, color=CHART_TEXT),
                 orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
             ),
-            bargap=0.04, margin=dict(t=80, b=55, l=65, r=20)
+            bargap=0.04, margin=dict(t=60, b=55, l=65, r=20)
         )
         st.plotly_chart(fig_h, use_container_width=True)
 
