@@ -387,12 +387,12 @@ with tab1:
         plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
         title=dict(text=f"【{selected_param}】 SPC 趨勢管制圖",
                    font=dict(color=CHART_TEXT, size=17), x=0),
-        height=440, hovermode="closest",
+        height=500, hovermode="closest",
         font=dict(color=CHART_TEXT, size=14),
-        xaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=13),
+        xaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=14),
                    title=dict(font=dict(color="#64748b", size=14)),
                    linecolor=CHART_AXIS, showgrid=True),
-        yaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=13),
+        yaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=14),
                    linecolor=CHART_AXIS, showgrid=True),
         legend=dict(bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1,
                     font=dict(color=CHART_TEXT, size=13),
@@ -429,13 +429,13 @@ with tab1:
     fig_box.update_layout(
         template="simple_white",
         plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
-        height=460, showlegend=False,
+        height=500, showlegend=False,
         font=dict(color=CHART_TEXT, size=14),
         title=dict(font=dict(color=CHART_TEXT, size=17)),
         xaxis=dict(title=dict(text="群組分類", font=dict(color="#64748b", size=14)),
-                   gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=13),
+                   gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=14),
                    linecolor=CHART_AXIS),
-        yaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=13),
+        yaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=14),
                    linecolor=CHART_AXIS),
         margin=dict(t=60, b=60, l=60, r=30)
     )
@@ -763,16 +763,16 @@ with tab2:
             plot_bgcolor="#fafafa", paper_bgcolor=CHART_BG,
             title=dict(text=f"【{selected_param}】 直方圖 · 常態分佈",
                 font=dict(color=CHART_TEXT, size=16), x=0),
-            height=440, font=dict(color=CHART_TEXT, size=14),
+            height=520, font=dict(color=CHART_TEXT, size=15),
             xaxis=dict(
-                gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=13),
-                title=dict(text=selected_param, font=dict(color="#64748b", size=14)),
+                gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
+                title=dict(text=selected_param, font=dict(color="#64748b", size=15)),
                 linecolor="#94a3b8", linewidth=1.5, showgrid=True,
                 gridwidth=0.8, zeroline=False
             ),
             yaxis=dict(
-                gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=13),
-                title=dict(text="次數 (Frequency)", font=dict(color="#64748b", size=14)),
+                gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
+                title=dict(text="次數 (Frequency)", font=dict(color="#64748b", size=15)),
                 linecolor="#94a3b8", linewidth=1.5, gridwidth=0.8
             ),
             legend=dict(
