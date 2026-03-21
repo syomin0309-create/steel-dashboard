@@ -573,54 +573,69 @@ with tab2:
     cp_g, cp_c, cp_d   = _grade_cp(cp2)
     cpk_g, cpk_c, cpk_d = _grade_cp(cpk2)
 
+    def _light_bg(color):
+        """根據等級顏色回傳淡色背景"""
+        m = {
+            "#059669": "#d1fae5",  # A+ 淡綠
+            "#10b981": "#d1fae5",  # A  淡綠
+            "#f59e0b": "#fef9c3",  # B  淡黃
+            "#f97316": "#ffedd5",  # C  淡橙
+            "#ef4444": "#fee2e2",  # D  淡紅
+            "#64748b": "#f1f5f9",  # N/A 淡灰
+        }
+        return m.get(color, "#f8fafc")
+
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Row 1：4 KPI 卡（全寬）────────────────────────
     k1, k2, k3, k4 = st.columns(4)
     k1.markdown(f"""
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+    <div style="background:#e0f2fe;border:1px solid #bae6fd;border-radius:12px;
         padding:16px;border-top:4px solid #0ea5e9;">
-      <div style="font-size:11px;color:#64748b;font-weight:700;letter-spacing:1px;
+      <div style="font-size:11px;color:#0369a1;font-weight:700;letter-spacing:1px;
           text-transform:uppercase;margin-bottom:8px;">標準差 σ</div>
       <div style="font-size:28px;font-weight:700;color:#0f172a;line-height:1.1;">{spc_std:.3f}</div>
-      <div style="font-size:13px;color:#94a3b8;margin-top:6px;">變異係數 {spc_cv:.1f}%</div>
+      <div style="font-size:13px;color:#0284c7;margin-top:6px;">變異係數 {spc_cv:.1f}%</div>
     </div>""", unsafe_allow_html=True)
 
+    _ca_bg = _light_bg(ca_c)
     k2.markdown(f"""
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+    <div style="background:{_ca_bg};border:1px solid {ca_c}40;border-radius:12px;
         padding:16px;border-top:4px solid {ca_c};">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:11px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Ca 準確度</span>
-        <span style="font-size:11px;font-weight:700;color:{ca_c};background:{ca_c}18;
-            border:1px solid {ca_c};border-radius:4px;padding:2px 8px;">{ca_g}</span>
+        <span style="font-size:11px;color:{ca_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Ca 準確度</span>
+        <span style="font-size:11px;font-weight:700;color:#fff;background:{ca_c};
+            border-radius:4px;padding:2px 8px;">{ca_g}</span>
       </div>
       <div style="font-size:28px;font-weight:700;color:{ca_c};line-height:1.1;">
           {f"{abs(ca2):.1f}%" if ca2 is not None else "N/A"}</div>
-      <div style="font-size:13px;color:#94a3b8;margin-top:6px;">{ca_d}</div>
+      <div style="font-size:13px;color:{ca_c};opacity:0.8;margin-top:6px;">{ca_d}</div>
     </div>""", unsafe_allow_html=True)
 
+    _cp_bg = _light_bg(cp_c)
     k3.markdown(f"""
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+    <div style="background:{_cp_bg};border:1px solid {cp_c}40;border-radius:12px;
         padding:16px;border-top:4px solid {cp_c};">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:11px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cp 精密度</span>
-        <span style="font-size:11px;font-weight:700;color:{cp_c};background:{cp_c}18;
-            border:1px solid {cp_c};border-radius:4px;padding:2px 8px;">{cp_g}</span>
+        <span style="font-size:11px;color:{cp_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cp 精密度</span>
+        <span style="font-size:11px;font-weight:700;color:#fff;background:{cp_c};
+            border-radius:4px;padding:2px 8px;">{cp_g}</span>
       </div>
       <div style="font-size:28px;font-weight:700;color:{cp_c};line-height:1.1;">{cp2:.3f}</div>
-      <div style="font-size:13px;color:#94a3b8;margin-top:6px;">{cp_d}</div>
+      <div style="font-size:13px;color:{cp_c};opacity:0.8;margin-top:6px;">{cp_d}</div>
     </div>""", unsafe_allow_html=True)
 
+    _cpk_bg = _light_bg(cpk_c)
     k4.markdown(f"""
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+    <div style="background:{_cpk_bg};border:1px solid {cpk_c}40;border-radius:12px;
         padding:16px;border-top:4px solid {cpk_c};">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:11px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cpk 製程能力</span>
-        <span style="font-size:11px;font-weight:700;color:{cpk_c};background:{cpk_c}18;
-            border:1px solid {cpk_c};border-radius:4px;padding:2px 8px;">{cpk_g}</span>
+        <span style="font-size:11px;color:{cpk_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cpk 製程能力</span>
+        <span style="font-size:11px;font-weight:700;color:#fff;background:{cpk_c};
+            border-radius:4px;padding:2px 8px;">{cpk_g}</span>
       </div>
       <div style="font-size:28px;font-weight:700;color:{cpk_c};line-height:1.1;">{cpk2:.3f}</div>
-      <div style="font-size:13px;color:#94a3b8;margin-top:6px;">{cpk_d}</div>
+      <div style="font-size:13px;color:{cpk_c};opacity:0.8;margin-top:6px;">{cpk_d}</div>
     </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
