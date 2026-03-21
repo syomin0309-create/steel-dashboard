@@ -739,12 +739,12 @@ with tab2:
             f"　｜　標準差　{spc_std:.{p}f}"
         )
         fig_h.add_annotation(
-            xref="paper", yref="paper", x=0.98, y=0.97,
+            xref="paper", yref="paper", x=0.98, y=0.04,
             text=stats_text,
             font=dict(color="#1e293b", size=13, weight=700),
             bgcolor="#f8fafc", bordercolor="#cbd5e1", borderwidth=1.5,
             borderpad=8, showarrow=False, align="left",
-            xanchor="right", yanchor="top"
+            xanchor="right", yanchor="bottom"
         )
 
         # 規格線：scatter 垂直線 + 頂部永久標籤框，hover 自動浮到最上層
@@ -766,17 +766,19 @@ with tab2:
             lines_to_draw.append((usl2,      "#ef4444", "solid",   2.5, f"USL {usl2:.{p}f}",      "#fee2e2"))
 
         for x_val, color, dash, width, label, bg in lines_to_draw:
-            # 線延伸到圖表最頂（y2 超出 y_top，由 yaxis range 控制）
+            # 密集多點讓整條線都可以 hover
+            n_pts = 60
+            ys = [y_top * 1.38 * i / (n_pts - 1) for i in range(n_pts)]
             fig_h.add_trace(go.Scatter(
-                x=[x_val, x_val],
-                y=[0, y_top * 1.38],
+                x=[x_val] * n_pts,
+                y=ys,
                 mode="lines",
                 line=dict(color=color, width=width, dash=dash),
                 name=label,
                 hovertemplate=f"<b>{label}</b><extra></extra>",
                 hoverlabel=dict(
                     bgcolor=color,
-                    font=dict(color="#fff", size=14, weight=700),
+                    font=dict(color="#fff", size=14),
                     bordercolor=color
                 ),
                 showlegend=False
@@ -790,7 +792,8 @@ with tab2:
                 bgcolor=bg,
                 bordercolor=color, borderwidth=1.5, borderpad=4,
                 showarrow=False,
-                yanchor="top", xanchor="center"
+                yanchor="bottom", xanchor="center",
+                y=1.01
             )
 
 
@@ -812,7 +815,7 @@ with tab2:
                 range=[0, y_top * 1.42]
             ),
             showlegend=False,
-            bargap=0.04, margin=dict(t=80, b=55, l=65, r=30)
+            bargap=0.04, margin=dict(t=44, b=55, l=65, r=30)
         )
         st.plotly_chart(fig_h, use_container_width=True)
 
