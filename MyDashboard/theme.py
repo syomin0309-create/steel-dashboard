@@ -247,25 +247,32 @@ hr { border-color: #e2e8f0 !important; }
 }
 [data-testid="stNumberInput"] > div {
     gap: 0 !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
 }
 [data-testid="stNumberInput"] input {
-    border-radius: 8px !important;
+    border-radius: 0 !important;
     font-size: 16px !important;
     font-weight: 600 !important;
     color: #0f172a !important;
     background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
+    border: none !important;
     padding: 10px 14px !important;
+    box-shadow: none !important;
 }
-[data-testid="stNumberInput"] input:focus {
+[data-testid="stNumberInput"] > div:focus-within {
     border-color: #0ea5e9 !important;
     box-shadow: 0 0 0 3px rgba(14,165,233,0.12) !important;
-    background: #ffffff !important;
+}
+[data-testid="stNumberInput"]:has(input:disabled) > div {
+    background: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
 }
 [data-testid="stNumberInput"] input:disabled {
     background: #f1f5f9 !important;
     color: #94a3b8 !important;
-    border-color: #e2e8f0 !important;
 }
 
 /* ══ 隱藏頁腳 ════════════════════════════════════════════ */
