@@ -241,6 +241,33 @@ hr { border-color: #e2e8f0 !important; }
     border-radius: 14px !important;
 }
 
+/* ══ Number Input：隱藏 +/- 按鈕，讓輸入框乾淨 ════════ */
+[data-testid="stNumberInput"] button {
+    display: none !important;
+}
+[data-testid="stNumberInput"] > div {
+    gap: 0 !important;
+}
+[data-testid="stNumberInput"] input {
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+    background: #f8fafc !important;
+    border: 1.5px solid #e2e8f0 !important;
+    padding: 10px 14px !important;
+}
+[data-testid="stNumberInput"] input:focus {
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.12) !important;
+    background: #ffffff !important;
+}
+[data-testid="stNumberInput"] input:disabled {
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+}
+
 /* ══ 隱藏頁腳 ════════════════════════════════════════════ */
 footer { visibility: hidden !important; }
 </style>
