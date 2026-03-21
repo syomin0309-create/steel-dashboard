@@ -544,84 +544,33 @@ with tab2:
         in2      = spc_n - out_usl2 - out_lsl2
         yield2   = in2 / spc_n * 100
 
-        def _grade_ca(v):
-            if v is None: return "—", "#64748b", "需雙邊規格"
-            a = abs(v)
-            if a < 6.25:  return "A+", "#0f766e", "準確度極佳"
-            if a < 12.5:  return "A",  "#1a73e8", "準確度良好"
-            if a < 25.0:  return "B",  "#d97706", "建議調整 Offset"
-            if a < 50.0:  return "C",  "#dc2626", "能力不足"
-            return             "D",  "#991b1b", "能力極差"
+        def _card(col, label, grade, value_str, desc, bg, tc, bc):
+            col.markdown(f"""
+            <div style="background:{bg};border:1px solid {bc}40;border-radius:14px;
+                padding:20px 16px;text-align:center;
+                box-shadow:0 2px 10px {bc}18;min-height:160px;">
+              <div style="width:48px;height:48px;border-radius:50%;background:{bc};
+                  display:flex;align-items:center;justify-content:center;
+                  margin:0 auto 12px;box-shadow:0 4px 12px {bc}50;">
+                <span style="font-size:18px;font-weight:800;color:#ffffff;">{grade}</span>
+              </div>
+              <div style="font-size:11px;color:{tc};letter-spacing:1px;
+                  text-transform:uppercase;font-weight:700;margin-bottom:6px;">{label}</div>
+              <div style="font-size:24px;font-weight:800;color:{tc};line-height:1.1;
+                  margin-bottom:6px;">{value_str}</div>
+              <div style="font-size:13px;color:{tc};opacity:0.75;">{desc}</div>
+            </div>""", unsafe_allow_html=True)
 
-        def _grade_cp(v):
-            if v >= 1.67: return "A+", "#0f766e", "精密度極佳"
-            if v >= 1.33: return "A",  "#1a73e8", "精密度良好"
-            if v >= 1.00: return "B",  "#d97706", "尚可，加強管制"
-            if v >= 0.67: return "C",  "#dc2626", "能力不足"
-            return             "D",  "#991b1b", "能力極差"
-
-        ca_g, ca_c, ca_d   = _grade_ca(ca2)
-        cp_g, cp_c, cp_d   = _grade_cp(cp2)
-        cpk_g, cpk_c, cpk_d = _grade_cp(cpk2)
-
-        # ── 4 張能力指標卡 ──────────────────────────────
-        k1, k2, k3, k4 = st.columns(4)
-
-        k1.markdown(f"""
-        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
-            padding:16px;border-top:4px solid #0ea5e9;
-            box-shadow:0 2px 8px rgba(14,165,233,0.08);">
-          <div style="font-size:11px;color:#64748b;letter-spacing:1px;
-              text-transform:uppercase;margin-bottom:8px;font-weight:700;">標準差 σ</div>
-          <div style="font-size:26px;font-weight:700;color:#0f172a;line-height:1.1;">{spc_std:.3f}</div>
-          <div style="font-size:13px;color:#64748b;margin-top:6px;">變異係數 {spc_cv:.1f}%</div>
-        </div>""", unsafe_allow_html=True)
-
-        k2.markdown(f"""
-        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
-            padding:16px;border-top:4px solid {ca_c};
-            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span style="font-size:11px;color:#64748b;letter-spacing:1px;
-                text-transform:uppercase;font-weight:700;">Ca 準確度</span>
-            <span style="font-size:11px;font-weight:700;color:{ca_c};
-                background:{ca_c}18;border:1px solid {ca_c};
-                border-radius:4px;padding:2px 8px;">{ca_g}</span>
-          </div>
-          <div style="font-size:26px;font-weight:700;color:{ca_c};line-height:1.1;">
-              {f'{abs(ca2):.1f}%' if ca2 is not None else 'N/A'}</div>
-          <div style="font-size:13px;color:#64748b;margin-top:6px;">{ca_d}</div>
-        </div>""", unsafe_allow_html=True)
-
-        k3.markdown(f"""
-        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
-            padding:16px;border-top:4px solid {cp_c};
-            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span style="font-size:11px;color:#64748b;letter-spacing:1px;
-                text-transform:uppercase;font-weight:700;">Cp 精密度</span>
-            <span style="font-size:11px;font-weight:700;color:{cp_c};
-                background:{cp_c}18;border:1px solid {cp_c};
-                border-radius:4px;padding:2px 8px;">{cp_g}</span>
-          </div>
-          <div style="font-size:26px;font-weight:700;color:{cp_c};line-height:1.1;">{cp2:.3f}</div>
-          <div style="font-size:13px;color:#64748b;margin-top:6px;">{cp_d}</div>
-        </div>""", unsafe_allow_html=True)
-
-        k4.markdown(f"""
-        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
-            padding:16px;border-top:4px solid {cpk_c};
-            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span style="font-size:11px;color:#64748b;letter-spacing:1px;
-                text-transform:uppercase;font-weight:700;">Cpk 製程能力</span>
-            <span style="font-size:11px;font-weight:700;color:{cpk_c};
-                background:{cpk_c}18;border:1px solid {cpk_c};
-                border-radius:4px;padding:2px 8px;">{cpk_g}</span>
-          </div>
-          <div style="font-size:26px;font-weight:700;color:{cpk_c};line-height:1.1;">{cpk2:.3f}</div>
-          <div style="font-size:13px;color:#64748b;margin-top:6px;">{cpk_d}</div>
-        </div>""", unsafe_allow_html=True)
+        _card(k1, "標準差 σ", "σ",
+              f"{spc_std:.3f}", f"變異係數 {spc_cv:.1f}%",
+              "#f0f9ff", "#0369a1", "#0ea5e9")
+        _card(k2, "Ca 準確度", ca_g,
+              f'{abs(ca2):.1f}%' if ca2 is not None else 'N/A',
+              ca_d, ca_bg, ca_tc, ca_bc)
+        _card(k3, "Cp 精密度", cp_g,
+              f"{cp2:.3f}", cp_d, cp_bg, cp_tc, cp_bc)
+        _card(k4, "Cpk 製程能力", cpk_g,
+              f"{cpk2:.3f}", cpk_d, cpk_bg, cpk_tc, cpk_bc)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -835,13 +784,13 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
-        _color_map = {"ok": "#16a34a", "warning": "#d97706", "error": "#dc2626"}
+        _color_map = {"ok": "#16a34a", "warning": "#d97706", "error": "#ef4444"}
         with st.expander("📋 查看完整診斷報告", expanded=False):
             for lvl, icon, msg, action in diags:
                 clr = _color_map[lvl]
                 st.markdown(f"""
                 <div style="border-left:4px solid {clr};background:#f8fafc;
-                    border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:8px;">
+                    border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:8px;background:#f8fafc;">
                   <span style="color:{clr};font-weight:700;margin-right:10px;
                       font-size:15px;">{icon}</span>
                   <span style="font-size:14px;color:#1e293b;">{msg}</span>
