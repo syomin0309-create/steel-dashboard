@@ -4,7 +4,7 @@ import streamlit.components.v1 as components
 # ── 主題 CSS（米白底色，SkyAgent 天藍色系）────────────────
 THEME_CSS = """
 <style>
-/* ── 全域底色與文字 ─────────────────────────────── */
+/* ══ 全域底色：藍白灰 ════════════════════════════════════ */
 html, body,
 [data-testid="stAppViewContainer"],
 [data-testid="stMain"],
@@ -13,13 +13,20 @@ html, body,
     color: #1e293b !important;
 }
 
-/* ── 字體 ───────────────────────────────────────── */
+/* ══ 字體 ════════════════════════════════════════════════ */
 html, body, [class*="css"], button, input, select, textarea {
     font-family: 'Microsoft JhengHei', 'Noto Sans TC', 'Inter', 'Segoe UI', sans-serif !important;
     -webkit-font-smoothing: antialiased !important;
+    font-size: 16px !important;
 }
 
-/* ── 側邊欄 ─────────────────────────────────────── */
+/* ══ 標題字級 ════════════════════════════════════════════ */
+h1 { color: #0f172a !important; font-weight: 800 !important; font-size: 2.2rem !important; }
+h2 { color: #1e293b !important; font-weight: 700 !important; font-size: 1.7rem !important; }
+h3 { color: #334155 !important; font-weight: 600 !important; font-size: 1.35rem !important; }
+p, li { font-size: 15px !important; }
+
+/* ══ 側邊欄 ══════════════════════════════════════════════ */
 [data-testid="stSidebar"] {
     background-color: #ffffff !important;
     border-right: 1px solid #e2e8f0 !important;
@@ -30,50 +37,51 @@ html, body, [class*="css"], button, input, select, textarea {
 [data-testid="stSidebar"] h3 {
     color: #0ea5e9 !important;
     font-weight: 700 !important;
+    font-size: 1.05rem !important;
 }
+[data-testid="stSidebar"] small,
+[data-testid="stSidebar"] .stCaption { color: #64748b !important; font-size: 13px !important; }
 
-/* ── 主標題 ─────────────────────────────────────── */
-h1 { color: #0f172a !important; font-weight: 800 !important; }
-h2 { color: #1e293b !important; font-weight: 700 !important; }
-h3 { color: #334155 !important; font-weight: 600 !important; }
-
-/* ── 指標卡片 ─────────────────────────────────────*/
+/* ══ 指標卡片 ════════════════════════════════════════════ */
 [data-testid="metric-container"] {
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
+    border-top: 3px solid #0ea5e9 !important;
     border-radius: 12px !important;
     padding: 16px 20px !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+    box-shadow: 0 2px 8px rgba(14,165,233,0.08) !important;
 }
 [data-testid="metric-container"] label {
     color: #64748b !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
 }
 [data-testid="metric-container"] [data-testid="stMetricValue"] {
     color: #0f172a !important;
-    font-size: 26px !important;
+    font-size: 28px !important;
     font-weight: 700 !important;
 }
 
-/* ── 分頁 Tab ────────────────────────────────────── */
+/* ══ 分頁 Tab ════════════════════════════════════════════ */
 [data-testid="stTabs"] button {
     color: #64748b !important;
     font-weight: 600 !important;
-    font-size: 14px !important;
+    font-size: 15px !important;
     border-radius: 8px 8px 0 0 !important;
+    padding: 10px 20px !important;
 }
 [data-testid="stTabs"] button[aria-selected="true"] {
     color: #0ea5e9 !important;
-    border-bottom: 2px solid #0ea5e9 !important;
+    border-bottom: 3px solid #0ea5e9 !important;
     background: #f0f9ff !important;
+    font-weight: 700 !important;
 }
 
-/* ── 下拉選單 ────────────────────────────────────── */
+/* ══ 下拉選單 ════════════════════════════════════════════ */
 div[data-baseweb="select"] * {
-    font-size: 14px !important;
+    font-size: 15px !important;
     font-weight: 500 !important;
     color: #1e293b !important;
     background-color: #ffffff !important;
@@ -87,45 +95,67 @@ div[data-baseweb="popover"] {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 8px !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.10) !important;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.10) !important;
 }
 div[data-baseweb="popover"] li { color: #1e293b !important; }
 div[data-baseweb="popover"] li:hover { background-color: #f0f9ff !important; }
 
-/* ── 輸入框 ─────────────────────────────────────── */
+/* ══ 輸入框 ══════════════════════════════════════════════ */
 input[type="number"], input[type="text"], textarea {
     background-color: #ffffff !important;
     color: #1e293b !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
+    font-size: 15px !important;
 }
+input:focus { border-color: #0ea5e9 !important; box-shadow: 0 0 0 3px rgba(14,165,233,0.15) !important; }
 
-/* ── 按鈕 ────────────────────────────────────────── */
+/* ══ 按鈕 ════════════════════════════════════════════════ */
 [data-testid="stDownloadButton"] button,
 [data-testid="stButton"] button {
     background-color: #0ea5e9 !important;
     color: #ffffff !important;
     border: none !important;
     border-radius: 8px !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    padding: 10px 22px !important;
+    transition: background 0.2s !important;
 }
 [data-testid="stDownloadButton"] button:hover,
-[data-testid="stButton"] button:hover {
-    background-color: #0284c7 !important;
+[data-testid="stButton"] button:hover { background-color: #0284c7 !important; }
+button[kind="secondary"] {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
 }
+button[kind="secondary"]:hover { background-color: #e2e8f0 !important; }
 
-/* ── 提示訊息框 ─────────────────────────────────── */
-[data-testid="stAlert"] { border-radius: 10px !important; }
+/* ══ 提示訊息框 ══════════════════════════════════════════ */
+[data-testid="stAlert"] { border-radius: 10px !important; font-size: 15px !important; }
 
-/* ── File uploader ──────────────────────────────── */
-[data-testid="stFileUploader"] {
-    background: #ffffff !important;
-    border: 2px dashed #cbd5e1 !important;
+/* ══ File Uploader ═══════════════════════════════════════ */
+[data-testid="stFileUploader"] > div,
+[data-testid="stFileUploader"] > div > div,
+[data-testid="stFileUploader"] > div > div > div {
+    background-color: #f0f9ff !important;
+    border: 2px dashed #7dd3fc !important;
     border-radius: 12px !important;
+    color: #0369a1 !important;
 }
-[data-testid="stFileUploader"] * { color: #475569 !important; }
+[data-testid="stFileDropzoneInstructions"],
+[data-testid="stFileDropzoneInstructions"] div span { color: #0ea5e9 !important; font-size: 15px !important; }
+[data-testid="stFileDropzoneInstructions"] div small { color: #64748b !important; }
+[data-testid="stSidebar"] [data-testid="stFileUploader"] button {
+    background-color: #0ea5e9 !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+[data-testid="uploadedFileData"],
+[data-testid="uploadedFileName"] { background: #ffffff !important; color: #1e293b !important; }
 
-/* ── Expander ───────────────────────────────────── */
+/* ══ Expander ════════════════════════════════════════════ */
 [data-testid="stExpander"] {
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
@@ -134,50 +164,61 @@ input[type="number"], input[type="text"], textarea {
 [data-testid="stExpander"] summary {
     color: #334155 !important;
     font-weight: 600 !important;
+    font-size: 15px !important;
 }
 
-/* ── Dataframe ──────────────────────────────────── */
+/* ══ Toggle ══════════════════════════════════════════════ */
+[data-testid="stToggle"] label { font-size: 15px !important; color: #1e293b !important; }
+
+/* ══ Dataframe ═══════════════════════════════════════════ */
 [data-testid="stDataFrame"] {
     border: 1px solid #e2e8f0 !important;
     border-radius: 10px !important;
     overflow: hidden !important;
+    font-size: 14px !important;
 }
 
-/* ── 自訂元件 ────────────────────────────────────── */
+/* ══ 水平分隔線 ══════════════════════════════════════════ */
+hr { border-color: #e2e8f0 !important; }
+
+/* ══ 自訂元件 ════════════════════════════════════════════ */
 .spec-banner {
     background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
     color: #ffffff !important;
-    border-radius: 12px !important;
-    padding: 18px 28px !important;
+    border-radius: 14px !important;
+    padding: 20px 30px !important;
     margin-bottom: 20px !important;
-    font-size: 15px !important;
+    font-size: 16px !important;
     line-height: 2.2 !important;
-    box-shadow: 0 4px 14px rgba(14,165,233,0.25) !important;
+    box-shadow: 0 6px 20px rgba(14,165,233,0.25) !important;
 }
-.spec-banner b { color: #fef9c3 !important; }
+.spec-banner b { color: #fef9c3 !important; font-size: 17px !important; }
 
 .section-title {
-    font-size: 17px !important;
+    font-size: 18px !important;
     font-weight: 700 !important;
     color: #0f172a !important;
-    border-left: 4px solid #0ea5e9 !important;
-    padding-left: 12px !important;
-    margin: 24px 0 12px 0 !important;
+    border-left: 5px solid #0ea5e9 !important;
+    padding-left: 14px !important;
+    margin: 28px 0 14px 0 !important;
 }
 
-.signal-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.signal-table { width: 100%; border-collapse: collapse; font-size: 15px; }
 .signal-table th {
     background-color: #0ea5e9;
     color: #ffffff;
-    padding: 10px 14px;
+    padding: 12px 16px;
     text-align: center;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
 }
 .signal-table td {
-    padding: 9px 14px;
+    padding: 10px 16px;
     text-align: center;
     border-bottom: 1px solid #e2e8f0;
     color: #1e293b;
+    font-size: 14px;
 }
 .signal-table tr:nth-child(even) { background-color: #f8fafc; }
 .sig-green  { color: #16a34a; font-weight: 700; }
@@ -185,73 +226,7 @@ input[type="number"], input[type="text"], textarea {
 .sig-red    { color: #dc2626; font-weight: 700; }
 .sig-gray   { color: #94a3b8; }
 
-/* ── 隱藏頁腳 ────────────────────────────────────── */
-    /* ── File uploader 深色覆蓋 ─────────────────────────── */
-    [data-testid="stFileUploader"] > div,
-    [data-testid="stFileUploader"] > div > div,
-    [data-testid="stFileUploader"] > div > div > div {
-        background-color: #f0f9ff !important;
-        color: #0369a1 !important;
-    }
-    [data-testid="stFileDropzoneInstructions"],
-    [data-testid="stFileDropzoneInstructions"] div span {
-        color: #0369a1 !important;
-    }
-    [data-testid="stFileDropzoneInstructions"] div small {
-        color: #64748b !important;
-    }
-    [data-testid="stSidebar"] [data-testid="stFileUploader"] > div {
-        background-color: #f0f9ff !important;
-        border: 2px dashed #7dd3fc !important;
-        border-radius: 12px !important;
-    }
-    [data-testid="stSidebar"] [data-testid="stFileUploader"] button {
-        background-color: #0ea5e9 !important;
-        color: #ffffff !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-    }
-    [data-testid="uploadedFileData"],
-    [data-testid="uploadedFileName"] {
-        background: #ffffff !important;
-        color: #1e293b !important;
-    }
-    /* ── 已上傳檔案 X 按鈕 ──────────────────────────────── */
-    [data-testid="stFileUploader"] button[kind="secondary"],
-    [data-testid="stFileUploader"] button[kind="secondary"]:hover,
-    [data-testid="baseButton-secondary"],
-    [data-testid="baseButton-secondary"]:hover {
-        background-color: transparent !important;
-        background: transparent !important;
-        color: #94a3b8 !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 2px !important;
-        min-width: 0 !important;
-    }
-    /* ── 已上傳檔案刪除按鈕（藍色膠囊）────────────────── */
-    [data-testid="stFileUploaderDeleteBtn"] button,
-    [data-testid="stFileUploaderDeleteBtn"] button:hover,
-    button[title="Delete"],
-    button[aria-label="Delete"] {
-        background-color: #e2e8f0 !important;
-        background: #e2e8f0 !important;
-        color: #64748b !important;
-        border-radius: 50% !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-    /* 膠囊形狀的 X tag */
-    [data-testid="stFileUploader"] [data-testid="stTag"],
-    [data-testid="stUploadedFile"] span[data-baseweb="tag"],
-    span[data-baseweb="tag"] {
-        background-color: #e2e8f0 !important;
-        color: #475569 !important;
-        border-radius: 6px !important;
-    }
-    span[data-baseweb="tag"] span {
-        color: #475569 !important;
-    }
+/* ══ 隱藏頁腳 ════════════════════════════════════════════ */
 footer { visibility: hidden !important; }
 </style>
 """
@@ -286,61 +261,146 @@ def show_loading():
     )
     return components.html(html, height=900)
 
+
 # ── 封面頁（Landing Page）────────────────────────────────
 def render_landing():
     import streamlit.components.v1 as components
 
-    left_col, right_col = st.columns([1.2, 1])
+    left_col, right_col = st.columns([1.1, 1])
 
     with left_col:
         st.markdown("""
-        <div style="padding: 48px 0 24px 0;">
+        <div style="padding: 52px 0 28px 0;">
             <div style="
                 display: inline-block;
                 background: linear-gradient(135deg, #0ea5e9, #0284c7);
                 border-radius: 14px;
-                padding: 12px 18px;
-                margin-bottom: 24px;
-                box-shadow: 0 6px 18px rgba(14,165,233,0.28);
+                padding: 14px 22px;
+                margin-bottom: 28px;
+                box-shadow: 0 8px 24px rgba(14,165,233,0.28);
             ">
-                <span style="font-size: 32px; letter-spacing: 2px; color: #fff; font-weight: 800;">
+                <span style="font-size: 30px; letter-spacing: 3px; color: #fff; font-weight: 800;">
                     ⬡ AegisCore
                 </span>
             </div>
             <h1 style="
-                font-size: 40px; font-weight: 800; color: #0f172a;
-                margin: 0 0 14px 0; line-height: 1.2; letter-spacing: -1px;
+                font-size: 42px;
+                font-weight: 800;
+                color: #0f172a;
+                margin: 0 0 16px 0;
+                line-height: 1.2;
+                letter-spacing: -1px;
             ">智能鋼捲<br>品質監控平台</h1>
             <p style="
-                font-size: 16px; color: #64748b; line-height: 1.9;
-                margin: 0 0 36px 0; max-width: 420px;
-            ">上傳產線 RAW DATA，即時呈現品質趨勢、<br>跨月比對與製程能力（Cpk）分析報告</p>
+                font-size: 17px;
+                color: #64748b;
+                line-height: 1.9;
+                margin: 0 0 40px 0;
+                max-width: 440px;
+            ">
+                上傳產線 RAW DATA，即時呈現品質趨勢、<br>
+                跨月比對與製程能力（Cpk）分析報告
+            </p>
             <div style="
-                display: inline-block; background: #0ea5e9; color: white;
-                border-radius: 10px; padding: 12px 28px;
-                font-size: 15px; font-weight: 700;
-                box-shadow: 0 4px 12px rgba(14,165,233,0.35);
+                display: inline-block;
+                background: #0ea5e9;
+                color: #ffffff;
+                border-radius: 10px;
+                padding: 14px 30px;
+                font-size: 16px;
+                font-weight: 700;
+                box-shadow: 0 4px 14px rgba(14,165,233,0.35);
+                letter-spacing: 0.5px;
             ">👈 從左側上傳 RAW DATA 開始分析</div>
         </div>
         """, unsafe_allow_html=True)
 
     with right_col:
-        hero_html = (
-            '<div style="display:flex;justify-content:center;align-items:center;padding:20px 0;">'
-            '<div id="lottie-hero" style="width:300px;height:300px;"></div>'
-            '</div>'
-            '<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>'
-            '<script>lottie.loadAnimation({'
-            'container:document.getElementById("lottie-hero"),'
-            'renderer:"svg",loop:false,autoplay:true,'
-            'animationData:' + _LOTTIE_HERO +
-            '});</script>'
-        )
-        components.html(hero_html, height=340)
+        icon_cloud_html = """
+        <div style="display:flex;justify-content:center;align-items:center;height:360px;background:transparent;">
+            <canvas id="iconCloud" width="340" height="340" style="cursor:grab;"></canvas>
+        </div>
+        <script>
+        (function(){
+            const slugs = [
+                "python","github","docker","postgresql","amazonaws","microsoftexcel",
+                "jupyter","anaconda","git","visualstudiocode","googlecloud",
+                "microsoftazure","linux","tableau","pandas","plotly","streamlit",
+                "numpy","scipy","scikitlearn"
+            ];
+            const labels = [
+                "Python","GitHub","Docker","PostgreSQL","AWS","Excel",
+                "Jupyter","Anaconda","Git","VSCode","GCP",
+                "Azure","Linux","Tableau","Pandas","Plotly","Streamlit",
+                "NumPy","SciPy","scikit"
+            ];
+            const N = slugs.length;
+            const R = 130;
+            const canvas = document.getElementById("iconCloud");
+            const ctx = canvas.getContext("2d");
+            const cx = canvas.width/2, cy = canvas.height/2;
 
-    st.markdown("<hr style='border-color:#e2e8f0;margin:8px 0 28px 0;'>", unsafe_allow_html=True)
+            const pts = [];
+            const phi = Math.PI*(3-Math.sqrt(5));
+            for(let i=0;i<N;i++){
+                const y=1-(i/(N-1))*2, r=Math.sqrt(1-y*y), theta=phi*i;
+                pts.push({ox:Math.cos(theta)*r,oy:y,oz:Math.sin(theta)*r,x:0,y:0,z:0,label:labels[i],slug:slugs[i],img:null,loaded:false});
+            }
+            pts.forEach(p=>{
+                const im=new Image(); im.crossOrigin="anonymous";
+                im.onload=()=>{p.img=im;p.loaded=true;};
+                im.onerror=()=>{p.loaded=false;};
+                im.src=`https://cdn.simpleicons.org/${p.slug}/0ea5e9`;
+            });
 
-    # 三張功能卡片（各含 Lottie 動畫）
+            let rotX=0.3,rotY=0,vx=0.002,vy=0.004;
+            let dragging=false,lastMX=0,lastMY=0;
+            canvas.addEventListener("mousedown",e=>{dragging=true;lastMX=e.clientX;lastMY=e.clientY;canvas.style.cursor="grabbing";});
+            canvas.addEventListener("mouseup",()=>{dragging=false;canvas.style.cursor="grab";});
+            canvas.addEventListener("mousemove",e=>{
+                if(!dragging)return;
+                const dx=e.clientX-lastMX,dy=e.clientY-lastMY;
+                vy+=dx*0.005;vx+=dy*0.005;lastMX=e.clientX;lastMY=e.clientY;
+            });
+
+            function rotate(p){
+                const cosY=Math.cos(rotY),sinY=Math.sin(rotY);
+                const x1=p.ox*cosY+p.oz*sinY,z1=-p.ox*sinY+p.oz*cosY;
+                const cosX=Math.cos(rotX),sinX=Math.sin(rotX);
+                p.x=x1;p.y=p.oy*cosX-z1*sinX;p.z=p.oy*sinX+z1*cosX;
+            }
+
+            function draw(){
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                pts.forEach(p=>rotate(p));
+                [...pts].sort((a,b)=>a.z-b.z).forEach(p=>{
+                    const scale=(p.z+1.6)/2.6,alpha=0.3+scale*0.7,size=20+scale*22;
+                    const px=cx+p.x*R,py=cy+p.y*R;
+                    ctx.save();ctx.globalAlpha=alpha;
+                    if(p.loaded&&p.img){
+                        ctx.drawImage(p.img,px-size/2,py-size/2,size,size);
+                    } else {
+                        ctx.fillStyle=`rgba(14,165,233,${alpha})`;
+                        ctx.font=`bold ${Math.floor(10+scale*6)}px Arial,sans-serif`;
+                        ctx.textAlign="center";ctx.textBaseline="middle";
+                        ctx.fillText(p.label,px,py);
+                    }
+                    ctx.restore();
+                });
+                rotY+=vy;rotX+=vx;
+                vx*=0.98;vy*=0.98;
+                if(Math.abs(vx)<0.001)vx=0.002;
+                if(Math.abs(vy)<0.001)vy=0.004;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+        </script>
+        """
+        components.html(icon_cloud_html, height=380)
+
+    st.markdown("<hr style='border-color:#e2e8f0;margin:8px 0 32px 0;'>", unsafe_allow_html=True)
+
     cards = [
         ("趨勢監控", "即時追蹤各參數生產走勢，±3σ 管制線一眼辨識異常點", _LOTTIE_TREND,   "card-trend"),
         ("跨月比對", "鎖定規格條件，對比不同月份品質表現與異常燈號",        _LOTTIE_COMPARE, "card-compare"),
@@ -351,18 +411,24 @@ def render_landing():
     for col, (title, desc, lottie_json, cid) in zip(cols, cards):
         with col:
             card_html = (
-                '<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;'
-                'padding:24px 20px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);'
-                'display:flex;flex-direction:column;align-items:center;">'
-                f'<div id="{cid}" style="width:100px;height:100px;margin-bottom:12px;"></div>'
-                f'<div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;">{title}</div>'
-                f'<div style="font-size:13px;color:#64748b;line-height:1.7;">{desc}</div>'
-                '</div>'
-                '<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>'
-                f'<script>lottie.loadAnimation({{container:document.getElementById("{cid}"),'
-                f'renderer:"svg",loop:true,autoplay:true,animationData:{lottie_json}}});</script>'
+                "<div style='"
+                "background:#ffffff;"
+                "border:1px solid #e2e8f0;"
+                "border-top:4px solid #0ea5e9;"
+                "border-radius:14px;"
+                "padding:28px 22px 24px;"
+                "text-align:center;"
+                "box-shadow:0 4px 16px rgba(14,165,233,0.08);"
+                "display:flex;flex-direction:column;align-items:center;'>"
+                f"<div id='{cid}' style='width:110px;height:110px;margin-bottom:14px;'></div>"
+                f"<div style='font-size:17px;font-weight:700;color:#0f172a;margin-bottom:10px;'>{title}</div>"
+                f"<div style='font-size:14px;color:#64748b;line-height:1.8;'>{desc}</div>"
+                "</div>"
+                "<script src='https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js'></script>"
+                f"<script>lottie.loadAnimation({{container:document.getElementById('{cid}'),"
+                f"renderer:'svg',loop:true,autoplay:true,animationData:{lottie_json}}});</script>"
             )
-            components.html(card_html, height=280)
+            components.html(card_html, height=300)
 
 
 # ── Plotly 圖表主題（CHART_THEME）────────────────────────
