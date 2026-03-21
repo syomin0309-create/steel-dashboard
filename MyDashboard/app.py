@@ -732,18 +732,18 @@ with tab2:
         # ── 規格線：線條畫在圖內，標籤顯示在圖表下方說明區 ──
         y_max = max(counts) if counts else 1
 
-        # 右上角統計資訊框（報告用）
+        # 右上角統計資訊框（報告用）- 統一字體，避免截圖時被裁切
         stats_text = (
-            f"<b>樣本數 {spc_n:,}</b>　"
-            f"平均值 {spc_mean:.{p}f}　"
-            f"標準差 {spc_std:.{p}f}"
+            f"<b>樣本數　{spc_n:,}</b>"
+            f"　｜　平均值　{spc_mean:.{p}f}"
+            f"　｜　標準差　{spc_std:.{p}f}"
         )
         fig_h.add_annotation(
-            xref="paper", yref="paper", x=0.99, y=0.99,
+            xref="paper", yref="paper", x=0.98, y=0.97,
             text=stats_text,
-            font=dict(color="#475569", size=12),
-            bgcolor="#f8fafc", bordercolor="#e2e8f0", borderwidth=1,
-            borderpad=6, showarrow=False, align="right",
+            font=dict(color="#1e293b", size=13, weight=700),
+            bgcolor="#f8fafc", bordercolor="#cbd5e1", borderwidth=1.5,
+            borderpad=8, showarrow=False, align="left",
             xanchor="right", yanchor="top"
         )
 
@@ -811,7 +811,7 @@ with tab2:
                 range=[0, y_top * 1.42]
             ),
             showlegend=False,
-            bargap=0.04, margin=dict(t=80, b=55, l=65, r=20)
+            bargap=0.04, margin=dict(t=80, b=55, l=65, r=30)
         )
         st.plotly_chart(fig_h, use_container_width=True)
 
