@@ -216,6 +216,19 @@ input[type="number"], input[type="text"], textarea {
         background: #ffffff !important;
         color: #1e293b !important;
     }
+    /* ── 已上傳檔案 X 按鈕 ──────────────────────────────── */
+    [data-testid="stFileUploader"] button[kind="secondary"],
+    [data-testid="stFileUploader"] button[kind="secondary"]:hover,
+    [data-testid="baseButton-secondary"],
+    [data-testid="baseButton-secondary"]:hover {
+        background-color: transparent !important;
+        background: transparent !important;
+        color: #94a3b8 !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 2px !important;
+        min-width: 0 !important;
+    }
 footer { visibility: hidden !important; }
 </style>
 """
