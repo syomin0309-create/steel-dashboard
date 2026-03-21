@@ -821,7 +821,7 @@ with tab2:
         st.markdown(f"""
         <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
             padding:22px;text-align:center;margin-bottom:12px;">
-          <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+          <div style="font-size:16px;color:#94a3b8;font-weight:700;text-transform:uppercase;
               letter-spacing:1px;margin-bottom:12px;">規格符合率</div>
           <div style="font-size:52px;font-weight:800;color:{yield_color};line-height:1;">{yield2:.1f}%</div>
           <div style="font-size:16px;color:#94a3b8;margin:8px 0 18px;">良品率</div>
