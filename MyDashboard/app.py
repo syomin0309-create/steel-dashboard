@@ -125,13 +125,25 @@ if uploaded_file is None:
 # ══════════════════════════════════════════════════════
 #  已上傳：資料處理
 # ══════════════════════════════════════════════════════
-loading_placeholder = st.empty()
-with loading_placeholder:
-    show_loading()
+# ── 有上傳檔案 ───────────────────────────────────────────
 
-raw_df = load_and_clean_data(uploaded_file.read(), uploaded_file.name)
-loading_placeholder.empty()
+# 第一次上傳：先顯示載入動畫，rerun 後才跑分析
+file_id = uploaded_file.name + str(uploaded_file.size)
+
+if st.session_state.get("loaded_file_id") != file_id:
+    # 尚未載入，顯示動畫
+    show_loading()
+    # 讀資料存進 session_state
+    st.session_state["raw_df"] = load_and_clean_data(
+        uploaded_file.read(), uploaded_file.name
+    )
+    st.session_state["loaded_file_id"] = file_id
+    st.rerun()  # 重跑一次，這次直接走下方分析邏輯
+
+# 已載入，直接取快取
+raw_df = st.session_state["raw_df"]
 df = raw_df.copy()
+# ... 以下不變
 
 if '試驗等級' in df.columns:
     df = df.dropna(subset=['試驗等級'])
