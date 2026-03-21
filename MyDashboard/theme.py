@@ -266,11 +266,30 @@ def show_loading():
 def render_landing():
     import streamlit.components.v1 as components
 
+    # 鎖住頁面，禁止滾動，讓封面剛好一屏
+    st.markdown("""
+    <style>
+        html, body, [data-testid="stAppViewContainer"],
+        [data-testid="stMain"], [data-testid="block-container"] {
+            overflow: hidden !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+        }
+        [data-testid="block-container"] {
+            padding-top: 1rem !important;
+            padding-bottom: 0 !important;
+        }
+        /* 隱藏 Streamlit 頂部工具列空白 */
+        [data-testid="stHeader"] { height: 0 !important; }
+        section[data-testid="stSidebar"] ~ div { overflow: hidden !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
     left_col, right_col = st.columns([1.1, 1])
 
     with left_col:
         st.markdown("""
-        <div style="padding: 52px 0 28px 0;">
+        <div style="padding: 24px 0 12px 0;">
             <div style="
                 display: inline-block;
                 background: linear-gradient(135deg, #0ea5e9, #0284c7);
