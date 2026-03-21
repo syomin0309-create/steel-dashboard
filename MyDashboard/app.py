@@ -231,7 +231,7 @@ st.markdown(f"""
     <div style="display:flex;align-items:center;gap:12px;">
         <div style="width:8px;height:8px;border-radius:50%;background:#10b981;
             box-shadow:0 0 6px #10b981;"></div>
-        <span style="font-size:15px;font-weight:700;color:#0f172a;">
+        <span style="font-size:17px;font-weight:700;color:#0f172a;">
             {uploaded_file.name}
         </span>
         <span style="font-size:13px;color:#64748b;">
@@ -301,7 +301,7 @@ with tab1:
     st.markdown("""
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
         <div style="width:4px;height:22px;background:#0ea5e9;border-radius:2px;"></div>
-        <span style="font-size:18px;font-weight:700;color:#0f172a;">生產順序異常監控圖</span>
+        <span style="font-size:20px;font-weight:700;color:#0f172a;">生產順序異常監控圖</span>
         <span style="font-size:13px;color:#64748b;margin-left:4px;">SPC ±3σ 管制界限</span>
     </div>
     """, unsafe_allow_html=True)
@@ -410,7 +410,7 @@ with tab1:
     st.markdown("""
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
         <div style="width:4px;height:22px;background:#0ea5e9;border-radius:2px;"></div>
-        <span style="font-size:18px;font-weight:700;color:#0f172a;">群組數據分佈箱型圖</span>
+        <span style="font-size:20px;font-weight:700;color:#0f172a;">群組數據分佈箱型圖</span>
         <span style="font-size:13px;color:#64748b;margin-left:4px;">月份 × 等級 分群比對</span>
     </div>
     """, unsafe_allow_html=True)
@@ -445,7 +445,7 @@ with tab1:
     st.markdown("""
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
         <div style="width:4px;height:22px;background:#0ea5e9;border-radius:2px;"></div>
-        <span style="font-size:18px;font-weight:700;color:#0f172a;">數據匯出</span>
+        <span style="font-size:20px;font-weight:700;color:#0f172a;">數據匯出</span>
     </div>
     """, unsafe_allow_html=True)
     st.download_button(
@@ -603,13 +603,13 @@ with tab2:
     <div style="background:{_ca_bg};border:1px solid {ca_c}40;border-radius:12px;
         padding:16px;border-top:4px solid {ca_c};">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:11px;color:{ca_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Ca 準確度</span>
-        <span style="font-size:11px;font-weight:700;color:#fff;background:{ca_c};
+        <span style="font-size:13px;color:{ca_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Ca 準確度</span>
+        <span style="font-size:13px;font-weight:700;color:#fff;background:{ca_c};
             border-radius:4px;padding:2px 8px;">{ca_g}</span>
       </div>
       <div style="font-size:28px;font-weight:700;color:{ca_c};line-height:1.1;">
           {f"{abs(ca2):.1f}%" if ca2 is not None else "N/A"}</div>
-      <div style="font-size:13px;color:{ca_c};opacity:0.8;margin-top:6px;">{ca_d}</div>
+      <div style="font-size:15px;color:{ca_c};opacity:0.9;margin-top:6px;">{ca_d}</div>
     </div>""", unsafe_allow_html=True)
 
     _cp_bg = _light_bg(cp_c)
@@ -617,12 +617,12 @@ with tab2:
     <div style="background:{_cp_bg};border:1px solid {cp_c}40;border-radius:12px;
         padding:16px;border-top:4px solid {cp_c};">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:11px;color:{cp_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cp 精密度</span>
-        <span style="font-size:11px;font-weight:700;color:#fff;background:{cp_c};
+        <span style="font-size:13px;color:{cp_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cp 精密度</span>
+        <span style="font-size:13px;font-weight:700;color:#fff;background:{cp_c};
             border-radius:4px;padding:2px 8px;">{cp_g}</span>
       </div>
       <div style="font-size:28px;font-weight:700;color:{cp_c};line-height:1.1;">{cp2:.3f}</div>
-      <div style="font-size:13px;color:{cp_c};opacity:0.8;margin-top:6px;">{cp_d}</div>
+      <div style="font-size:15px;color:{cp_c};opacity:0.9;margin-top:6px;">{cp_d}</div>
     </div>""", unsafe_allow_html=True)
 
     _cpk_bg = _light_bg(cpk_c)
@@ -630,12 +630,12 @@ with tab2:
     <div style="background:{_cpk_bg};border:1px solid {cpk_c}40;border-radius:12px;
         padding:16px;border-top:4px solid {cpk_c};">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:11px;color:{cpk_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cpk 製程能力</span>
-        <span style="font-size:11px;font-weight:700;color:#fff;background:{cpk_c};
+        <span style="font-size:13px;color:{cpk_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cpk 製程能力</span>
+        <span style="font-size:13px;font-weight:700;color:#fff;background:{cpk_c};
             border-radius:4px;padding:2px 8px;">{cpk_g}</span>
       </div>
       <div style="font-size:28px;font-weight:700;color:{cpk_c};line-height:1.1;">{cpk2:.3f}</div>
-      <div style="font-size:13px;color:{cpk_c};opacity:0.8;margin-top:6px;">{cpk_d}</div>
+      <div style="font-size:15px;color:{cpk_c};opacity:0.9;margin-top:6px;">{cpk_d}</div>
     </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -645,24 +645,24 @@ with tab2:
     <div style="display:grid;grid-template-columns:repeat(5,1fr);background:#fff;
         border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:16px;">
       <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
-        <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">平均值 X̄</div>
-        <div style="font-size:18px;font-weight:700;color:#0f172a;">{spc_mean:.{int(spc_prec)}f}</div>
+        <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">平均值 X̄</div>
+        <div style="font-size:20px;font-weight:700;color:#0f172a;">{spc_mean:.{int(spc_prec)}f}</div>
       </div>
       <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
-        <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">中位數</div>
-        <div style="font-size:18px;font-weight:700;color:#0f172a;">{spc_median:.{int(spc_prec)}f}</div>
+        <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">中位數</div>
+        <div style="font-size:20px;font-weight:700;color:#0f172a;">{spc_median:.{int(spc_prec)}f}</div>
       </div>
       <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
-        <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">標準差 σ</div>
-        <div style="font-size:18px;font-weight:700;color:#0f172a;">{spc_std:.{int(spc_prec)}f}</div>
+        <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">標準差 σ</div>
+        <div style="font-size:20px;font-weight:700;color:#0f172a;">{spc_std:.{int(spc_prec)}f}</div>
       </div>
       <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
-        <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">最小值</div>
-        <div style="font-size:18px;font-weight:700;color:#0f172a;">{spc_min:.{int(spc_prec)}f}</div>
+        <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最小值</div>
+        <div style="font-size:20px;font-weight:700;color:#0f172a;">{spc_min:.{int(spc_prec)}f}</div>
       </div>
       <div style="padding:12px 16px;text-align:center;">
-        <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">最大值</div>
-        <div style="font-size:18px;font-weight:700;color:#0f172a;">{spc_max:.{int(spc_prec)}f}</div>
+        <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最大值</div>
+        <div style="font-size:20px;font-weight:700;color:#0f172a;">{spc_max:.{int(spc_prec)}f}</div>
       </div>
     </div>""", unsafe_allow_html=True)
 
@@ -792,15 +792,15 @@ with tab2:
             padding:20px;text-align:center;margin-bottom:12px;">
           <div style="font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;
               letter-spacing:1px;margin-bottom:10px;">規格符合率</div>
-          <div style="font-size:44px;font-weight:800;color:{yield_color};line-height:1;">{yield2:.1f}%</div>
-          <div style="font-size:13px;color:#94a3b8;margin:6px 0 16px;">良品率</div>
+          <div style="font-size:48px;font-weight:800;color:{yield_color};line-height:1;">{yield2:.1f}%</div>
+          <div style="font-size:15px;color:#94a3b8;margin:6px 0 16px;">良品率</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
             <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;">
-              <div style="font-size:18px;font-weight:700;color:#10b981;">{in2:,}</div>
+              <div style="font-size:20px;font-weight:700;color:#10b981;">{in2:,}</div>
               <div style="font-size:11px;color:#94a3b8;margin-top:3px;">符合規格</div>
             </div>
             <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px;">
-              <div style="font-size:18px;font-weight:700;color:#ef4444;">{out_usl2+out_lsl2:,}</div>
+              <div style="font-size:20px;font-weight:700;color:#ef4444;">{out_usl2+out_lsl2:,}</div>
               <div style="font-size:11px;color:#94a3b8;margin-top:3px;">規格外</div>
             </div>
           </div>
@@ -809,38 +809,38 @@ with tab2:
         # 等級說明卡（右下）
         st.markdown("""
         <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;">
-          <div style="font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+          <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;
               letter-spacing:1px;margin-bottom:12px;">等級說明</div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             <div style="display:flex;align-items:center;gap:10px;">
               <div style="width:28px;height:28px;border-radius:50%;background:#d1fae5;
                   display:flex;align-items:center;justify-content:center;
                   font-size:11px;font-weight:700;color:#059669;flex-shrink:0;">A+</div>
-              <div style="font-size:13px;color:#475569;">Cpk ≥ 1.67　精密度極佳</div>
+              <div style="font-size:15px;color:#475569;">Cpk ≥ 1.67　精密度極佳</div>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <div style="width:28px;height:28px;border-radius:50%;background:#d1fae5;
                   display:flex;align-items:center;justify-content:center;
                   font-size:11px;font-weight:700;color:#10b981;flex-shrink:0;">A</div>
-              <div style="font-size:13px;color:#475569;">1.33 – 1.67　精密度良好</div>
+              <div style="font-size:15px;color:#475569;">1.33 – 1.67　精密度良好</div>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <div style="width:28px;height:28px;border-radius:50%;background:#fef9c3;
                   display:flex;align-items:center;justify-content:center;
                   font-size:11px;font-weight:700;color:#b45309;flex-shrink:0;">B</div>
-              <div style="font-size:13px;color:#475569;">1.00 – 1.33　尚可管制</div>
+              <div style="font-size:15px;color:#475569;">1.00 – 1.33　尚可管制</div>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <div style="width:28px;height:28px;border-radius:50%;background:#ffedd5;
                   display:flex;align-items:center;justify-content:center;
                   font-size:11px;font-weight:700;color:#c2410c;flex-shrink:0;">C</div>
-              <div style="font-size:13px;color:#475569;">0.67 – 1.00　能力不足</div>
+              <div style="font-size:15px;color:#475569;">0.67 – 1.00　能力不足</div>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <div style="width:28px;height:28px;border-radius:50%;background:#fee2e2;
                   display:flex;align-items:center;justify-content:center;
                   font-size:11px;font-weight:700;color:#b91c1c;flex-shrink:0;">D</div>
-              <div style="font-size:13px;color:#475569;">&lt; 0.67　能力極差</div>
+              <div style="font-size:15px;color:#475569;">&lt; 0.67　能力極差</div>
             </div>
           </div>
         </div>""", unsafe_allow_html=True)
@@ -912,8 +912,8 @@ with tab2:
             display:flex;align-items:center;justify-content:center;
             font-size:17px;flex-shrink:0;">{si}</div>
         <div style="flex:1;">
-          <div style="font-size:15px;font-weight:600;color:{stc};margin-bottom:6px;">{worst[2]}</div>
-          <div style="font-size:14px;color:{sac};">建議行動：{worst[3]}</div>
+          <div style="font-size:17px;font-weight:600;color:{stc};margin-bottom:6px;">{worst[2]}</div>
+          <div style="font-size:16px;color:{sac};">建議行動：{worst[3]}</div>
         </div>
       </div>
     </div>
@@ -927,8 +927,8 @@ with tab2:
             <div style="border-left:4px solid {clr};background:#f8fafc;
                 border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:8px;">
               <span style="color:{clr};font-weight:700;margin-right:10px;font-size:15px;">{icon}</span>
-              <span style="font-size:14px;color:#1e293b;">{msg}</span>
-              {"<div style='font-size:13px;color:#64748b;margin-top:6px;padding-left:26px;'>→ " + action + "</div>" if action else ""}
+              <span style="font-size:16px;color:#1e293b;">{msg}</span>
+              {"<div style='font-size:15px;color:#64748b;margin-top:6px;padding-left:26px;'>→ " + action + "</div>" if action else ""}
             </div>
             """, unsafe_allow_html=True)
 
