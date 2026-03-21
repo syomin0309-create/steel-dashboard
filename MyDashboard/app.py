@@ -747,44 +747,43 @@ with tab2:
             xanchor="right", yanchor="top"
         )
 
-        # 規格線（只畫線，不在圖內加標籤）
+        # 規格線：用 scatter 畫垂直線，hover 顯示標籤，游標移到線上即顯示
+        y_top = max(counts) if counts else 1
+
+        def add_vline_hover(fig, x_val, color, dash, width, label, y_max_val):
+            """用兩點 scatter 模擬垂直線，hover 時顯示標籤"""
+            fig.add_trace(go.Scatter(
+                x=[x_val, x_val],
+                y=[0, y_max_val * 1.05],
+                mode="lines",
+                line=dict(color=color, width=width, dash=dash),
+                name=label,
+                hovertemplate=f"<b>{label}</b><extra></extra>",
+                hoverlabel=dict(bgcolor=color, font=dict(color="#fff", size=13)),
+                showlegend=False
+            ))
+
         if is_both or is_lower:
-            fig_h.add_vline(x=lsl2, line_color="#ef4444", line_width=2.5, line_dash="solid")
+            add_vline_hover(fig_h, lsl2, "#ef4444", "solid", 2.5,
+                f"LSL　{lsl2:.{p}f}", y_top)
         if is_both or is_upper:
-            fig_h.add_vline(x=usl2, line_color="#ef4444", line_width=2.5, line_dash="solid")
+            add_vline_hover(fig_h, usl2, "#ef4444", "solid", 2.5,
+                f"USL　{usl2:.{p}f}", y_top)
         if show_mean2:
-            fig_h.add_vline(x=spc_mean, line_color="#10b981", line_width=2.2, line_dash="dot")
+            add_vline_hover(fig_h, spc_mean, "#10b981", "dot", 2.5,
+                f"平均值　{spc_mean:.{p}f}", y_top)
         if is_both and show_target2:
-            fig_h.add_vline(x=target2, line_color="#7c3aed", line_width=2, line_dash="dash")
+            add_vline_hover(fig_h, target2, "#7c3aed", "dash", 2.5,
+                f"目標值　{target2:.{p}f}", y_top)
         if show_median2:
-            fig_h.add_vline(x=spc_median, line_color="#94a3b8", line_width=1.8, line_dash="dashdot")
+            add_vline_hover(fig_h, spc_median, "#94a3b8", "dashdot", 2.5,
+                f"中位數　{spc_median:.{p}f}", y_top)
 
 
-
-        # 組合標籤列（圖表上方，圖外不重疊）
-        label_header_parts = []
-        if is_both or is_lower:
-            label_header_parts.append(f'<span style="color:#ef4444;font-weight:700;font-size:13px;background:#fee2e2;padding:4px 12px;border-radius:6px;border:1.5px solid #ef4444;">LSL　{lsl2:.{p}f}</span>')
-        if show_mean2:
-            label_header_parts.append(f'<span style="color:#059669;font-weight:700;font-size:13px;background:#d1fae5;padding:4px 12px;border-radius:6px;border:1.5px solid #10b981;">平均　{spc_mean:.{p}f}</span>')
-        if is_both and show_target2:
-            label_header_parts.append(f'<span style="color:#7c3aed;font-weight:700;font-size:13px;background:#ede9fe;padding:4px 12px;border-radius:6px;border:1.5px solid #7c3aed;">目標　{target2:.{p}f}</span>')
-        if show_median2:
-            label_header_parts.append(f'<span style="color:#64748b;font-weight:700;font-size:13px;background:#f1f5f9;padding:4px 12px;border-radius:6px;border:1.5px solid #94a3b8;">中位　{spc_median:.{p}f}</span>')
-        if is_both or is_upper:
-            label_header_parts.append(f'<span style="color:#ef4444;font-weight:700;font-size:13px;background:#fee2e2;padding:4px 12px;border-radius:6px;border:1.5px solid #ef4444;">USL　{usl2:.{p}f}</span>')
-
-        if label_header_parts:
-            header_html = "".join(label_header_parts)
-            st.markdown(
-                f'<div style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0 6px 0;">{header_html}</div>',
-                unsafe_allow_html=True
-            )
 
         fig_h.update_layout(
             template="simple_white",
             plot_bgcolor="#fafafa", paper_bgcolor=CHART_BG,
-            title=None,
             height=500, font=dict(color=CHART_TEXT, size=15),
             xaxis=dict(
                 gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
