@@ -399,7 +399,10 @@ with tab1:
                     orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         margin=dict(t=60, b=50, l=60, r=80)
     )
+    st.markdown('<div style="border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;">',
+        unsafe_allow_html=True)
     st.plotly_chart(fig_line, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if abnormal_count > 0:
         st.warning(f"⚠️ 趨勢圖中共標示了 **{abnormal_count} 顆** 7B 異常鋼捲（黃色點），請重點追蹤。")
@@ -439,7 +442,10 @@ with tab1:
                    linecolor=CHART_AXIS),
         margin=dict(t=60, b=60, l=60, r=30)
     )
+    st.markdown('<div style="border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;">',
+        unsafe_allow_html=True)
     st.plotly_chart(fig_box, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("---")
     st.markdown("""
@@ -813,8 +819,10 @@ with tab2:
             showlegend=False,
             bargap=0.04, margin=dict(t=80, b=55, l=65, r=30)
         )
+        st.markdown('<div style="border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;">',
+            unsafe_allow_html=True)
         st.plotly_chart(fig_h, use_container_width=True)
-
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col_side:
         # 良品率大數字卡（右上）
