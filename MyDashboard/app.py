@@ -125,25 +125,18 @@ if uploaded_file is None:
 # ══════════════════════════════════════════════════════
 #  已上傳：資料處理
 # ══════════════════════════════════════════════════════
-# ── 有上傳檔案 ───────────────────────────────────────────
-
-# 第一次上傳：先顯示載入動畫，rerun 後才跑分析
 file_id = uploaded_file.name + str(uploaded_file.size)
 
 if st.session_state.get("loaded_file_id") != file_id:
-    # 尚未載入，顯示動畫
     show_loading()
-    # 讀資料存進 session_state
     st.session_state["raw_df"] = load_and_clean_data(
         uploaded_file.read(), uploaded_file.name
     )
     st.session_state["loaded_file_id"] = file_id
-    st.rerun()  # 重跑一次，這次直接走下方分析邏輯
+    st.rerun()
 
-# 已載入，直接取快取
 raw_df = st.session_state["raw_df"]
 df = raw_df.copy()
-# ... 以下不變
 
 if '試驗等級' in df.columns:
     df = df.dropna(subset=['試驗等級'])
@@ -172,42 +165,23 @@ with st.sidebar:
             st.session_state[k] = [x for x in st.session_state[k] if x in opts]
         return st.multiselect(label, options=opts, key=k)
 
-    f_month  = cascading_filter('生產年月',    df,   "🗓️ 生產年月")
+    f_month  = cascading_filter('生產年月',      df,   "🗓️ 生產年月")
     df_f1 = df[df['生產年月'].astype(str).isin(f_month)] if f_month else df.copy()
 
-    f_thick  = cascading_filter('訂單厚度',   df_f1, "📏 訂單厚度")
+    f_thick  = cascading_filter('訂單厚度',      df_f1, "📏 訂單厚度")
     df_f2 = df_f1[df_f1['訂單厚度'].astype(str).isin(f_thick)] if f_thick else df_f1.copy()
 
-    f_width  = cascading_filter('訂單寬度',   df_f2, "↔️ 訂單寬度")
+    f_width  = cascading_filter('訂單寬度',      df_f2, "↔️ 訂單寬度")
     df_f3 = df_f2[df_f2['訂單寬度'].astype(str).isin(f_width)] if f_width else df_f2.copy()
 
-    f_mat    = cascading_filter('熱軋材質',   df_f3, "🪨 熱軋材質")
+    f_mat    = cascading_filter('熱軋材質',      df_f3, "🪨 熱軋材質")
     df_f4 = df_f3[df_f3['熱軋材質'].astype(str).isin(f_mat)] if f_mat else df_f3.copy()
 
-    f_spec   = cascading_filter('產品規格代碼', df_f4, "📋 產品規格代碼")
+    f_spec   = cascading_filter('產品規格代碼',  df_f4, "📋 產品規格代碼")
     df_f5 = df_f4[df_f4['產品規格代碼'].astype(str).isin(f_spec)] if f_spec else df_f4.copy()
 
-    f_coat   = cascading_filter('上鍍層',     df_f5, "🔩 上鍍層")
+    f_coat   = cascading_filter('上鍍層',        df_f5, "🔩 上鍍層")
     filtered_df = df_f5[df_f5['上鍍層'].astype(str).isin(f_coat)] if f_coat else df_f5.copy()
-
-    # ── 快速比對入口（上傳後才出現）────────────────
-    st.markdown("---")
-    st.subheader("⚡ 快速月份比對")
-    st.caption("選兩個月份，直接跳到燈號比對")
-
-    month_opts_all = sorted(df['生產年月'].dropna().unique().tolist(), key=str)
-    if len(month_opts_all) >= 2:
-        qc_a = st.selectbox("比對月份 A", month_opts_all,
-                             index=max(0, len(month_opts_all)-2),
-                             key=f"qc_a_{file_key}")
-        qc_b = st.selectbox("比對月份 B", month_opts_all,
-                             index=len(month_opts_all)-1,
-                             key=f"qc_b_{file_key}")
-        if st.button("立即比對 →", key=f"qc_go_{file_key}"):
-            st.session_state[f"filter_{file_key}_生產年月"] = [qc_a, qc_b]
-            st.rerun()
-    else:
-        st.caption("需要至少 2 個月份的資料")
 
 if filtered_df.empty:
     st.warning("⚠️ 目前篩選條件下沒有找到任何數據，請放寬左側的篩選條件！")
@@ -253,14 +227,12 @@ avg_val    = float(plot_df[selected_param].mean())
 std_val    = float(plot_df[selected_param].std())
 median_val = float(plot_df[selected_param].median())
 
-# 異常品（7B）
 is_7b = plot_df['試驗等級'].astype(str).str.upper().str.replace(' ','').str.contains('7B', na=False) \
         if '試驗等級' in plot_df.columns else pd.Series([False]*len(plot_df), index=plot_df.index)
 abnormal_count = int(is_7b.sum())
 yield_rate = (len(plot_df) - abnormal_count) / len(plot_df) * 100 if len(plot_df) > 0 else 100.0
 months_count = plot_df['生產年月'].nunique() if '生產年月' in plot_df.columns else 0
 
-# ── 5 指標卡片（無趨勢箭頭）────────────────────────
 c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("總鋼捲數",   f"{len(plot_df):,} 顆")
 c2.metric("平均值",     f"{avg_val:.3f}")
@@ -284,13 +256,11 @@ tab1, tab2 = st.tabs(["📊 數據總覽 & 趨勢分析", "📐 製程能力分�
 with tab1:
     st.markdown("### 📈 生產順序異常監控圖")
 
-    # 月份高亮按鈕列
     months_list = sorted(plot_df['生產年月'].unique().tolist(), key=str) \
                   if '生產年月' in plot_df.columns else []
 
     hl_key = f"hl_month_{file_key}_{selected_param}"
     if hl_key not in st.session_state:
-        # 預設：最新一個月高亮
         st.session_state[hl_key] = months_list[-1] if months_list else "全部"
 
     if months_list:
@@ -311,10 +281,8 @@ with tab1:
             st.rerun()
 
     selected_month = st.session_state.get(hl_key, "全部")
-
     x_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else None
 
-    # 趨勢折線圖（選中月份全彩，其他月份半透明）
     fig_line = go.Figure()
     month_palette = px.colors.qualitative.Bold
 
@@ -329,24 +297,20 @@ with tab1:
 
         fig_line.add_trace(go.Scatter(
             x=x_data, y=m_df[selected_param],
-            mode='lines+markers',
-            name=month,
+            mode='lines+markers', name=month,
             line=dict(color=color, width=2 if is_highlighted else 1),
             marker=dict(size=6 if is_highlighted else 4, color=color, opacity=opacity),
-            opacity=opacity,
-            connectgaps=True,
+            opacity=opacity, connectgaps=True,
             hovertemplate="<b>%{x}</b><br>數值: %{y:.3f}<extra></extra>"
         ))
 
-    # 7B 異常點
     if '試驗等級' in plot_df.columns:
         ab_df = plot_df[is_7b]
         if not ab_df.empty:
             x_ab = ab_df[x_col] if x_col else ab_df.index
             fig_line.add_trace(go.Scatter(
                 x=x_ab, y=ab_df[selected_param],
-                mode='markers',
-                name='異常 (7B)',
+                mode='markers', name='異常 (7B)',
                 marker=dict(color='#FFD700', size=12, symbol='circle',
                             line=dict(color='black', width=1.5)),
                 hovertemplate="<b>%{x}</b><br>7B 異常: %{y:.3f}<extra></extra>"
@@ -354,19 +318,18 @@ with tab1:
 
     ucl = avg_val + 3 * std_val
     lcl = avg_val - 3 * std_val
-    fig_line.add_hline(y=avg_val, line_dash="dash",  line_color="#3D6B4A",
+    fig_line.add_hline(y=avg_val, line_dash="dash", line_color="#3D6B4A",
                        annotation_text=f"平均值: {avg_val:.3f}", annotation_position="bottom right")
-    fig_line.add_hline(y=ucl,     line_dash="dot",   line_color="#9A3B2E",
+    fig_line.add_hline(y=ucl, line_dash="dot", line_color="#9A3B2E",
                        annotation_text=f"+3σ: {ucl:.3f}", annotation_position="top right")
-    fig_line.add_hline(y=lcl,     line_dash="dot",   line_color="#9A3B2E",
+    fig_line.add_hline(y=lcl, line_dash="dot", line_color="#9A3B2E",
                        annotation_text=f"-3σ: {lcl:.3f}", annotation_position="bottom right")
     fig_line.update_xaxes(showticklabels=False, title_text="生產順序（依照時間/鋼捲號碼）")
     fig_line.update_layout(
         template="simple_white",
         plot_bgcolor="#FDFAF6", paper_bgcolor="#FDFAF6",
         title=dict(text=f"【{selected_param}】 單一趨勢管制圖", font=dict(color="#2C1F14", size=15)),
-        height=420, hovermode="closest",
-        font=dict(color="#2C1F14"),
+        height=420, hovermode="closest", font=dict(color="#2C1F14"),
         xaxis=dict(gridcolor="#DABEA7", tickfont=dict(color="#2C1F14", size=12),
                    title=dict(font=dict(color="#2C1F14", size=13)),
                    linecolor="#A98B73", showgrid=True),
@@ -384,7 +347,6 @@ with tab1:
     else:
         st.success("✅ 目前顯示的鋼捲中，沒有出現 7B 等級。")
 
-    # 箱型圖
     st.markdown("---")
     st.markdown("### 📦 群組數據分佈箱型圖")
     st.caption("依照「月份與等級」分群對比，可直觀看出不同群組的變異程度與極端值。")
@@ -395,15 +357,14 @@ with tab1:
         plot_df, x="比對群組", y=selected_param, color="比對群組",
         color_discrete_map=group_palette,
         title=f"【{selected_param}】 群組箱型圖對比",
-        points="all"
-    , template="simple_white")
+        points="all", template="simple_white"
+    )
     fig_box.add_hline(y=avg_val, line_dash="dash", line_color="#3D6B4A",
                       annotation_text=f"平均值: {avg_val:.3f}")
     fig_box.update_layout(
         template="simple_white",
         plot_bgcolor="#FDFAF6", paper_bgcolor="#FDFAF6",
-        height=450, showlegend=False,
-        font=dict(color="#2C1F14"),
+        height=450, showlegend=False, font=dict(color="#2C1F14"),
         xaxis=dict(title=dict(text="群組分類", font=dict(color="#2C1F14", size=13)),
                    gridcolor="#DABEA7", tickfont=dict(color="#2C1F14", size=11),
                    linecolor="#A98B73"),
@@ -412,7 +373,6 @@ with tab1:
     )
     st.plotly_chart(fig_box, use_container_width=True)
 
-    # 匯出
     st.markdown("---")
     st.markdown("### 💾 數據匯出")
     st.download_button(
@@ -441,11 +401,9 @@ with tab2:
     spc_max    = float(spc_data.max())
     spc_cv     = spc_std / spc_mean * 100 if spc_mean != 0 else 0
 
-    # 左右分欄：設定面板 | 主內容
     left_col, right_col = st.columns([1, 2.5])
 
     with left_col:
-        # 基本設定
         st.markdown("""
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
           <div style="width:4px;height:16px;background:#0d9488;border-radius:2px;"></div>
@@ -473,7 +431,6 @@ with tab2:
 
         st.markdown("---")
 
-        # 規格設定
         st.markdown("""
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
           <div style="width:4px;height:16px;background:#0d9488;border-radius:2px;"></div>
@@ -489,24 +446,21 @@ with tab2:
                                 key=f"spc_lsl_{selected_param}", disabled=is_upper)
         usl2 = st.number_input("USL 規格上限", value=float(spc_mean + 4*spc_std),
                                 key=f"spc_usl_{selected_param}", disabled=is_lower)
-        target2 = st.number_input("Target 中心值", value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
+        target2 = st.number_input("Target 中心值",
+                                   value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
                                    key=f"spc_target_{selected_param}", disabled=(not is_both))
 
     with right_col:
 
-        # ── Ca / Cp / Cpk 計算 ──────────────────────
         if is_both and (usl2 - lsl2) != 0:
             ca2 = (spc_mean - target2) / ((usl2 - lsl2) / 2) * 100
         else:
             ca2 = None
 
         if spc_std > 0:
-            if is_both:
-                cp2  = (usl2 - lsl2) / (6 * spc_std)
-            elif is_upper:
-                cp2  = (usl2 - spc_mean) / (3 * spc_std)
-            else:
-                cp2  = (spc_mean - lsl2) / (3 * spc_std)
+            if is_both:   cp2 = (usl2 - lsl2) / (6 * spc_std)
+            elif is_upper: cp2 = (usl2 - spc_mean) / (3 * spc_std)
+            else:          cp2 = (spc_mean - lsl2) / (3 * spc_std)
         else:
             cp2 = 0.0
 
@@ -537,9 +491,7 @@ with tab2:
         cp_g, cp_c, cp_d   = _grade_cp(cp2)
         cpk_g, cpk_c, cpk_d = _grade_cp(cpk2)
 
-        # σ / Ca / Cp / Cpk 卡片
         k1, k2, k3, k4 = st.columns(4)
-
         k1.markdown(f"""
         <div style="background:#FDFAF6;border:1.5px solid #DABEA7;border-radius:10px;padding:14px;border-top:3px solid #0d9488;">
           <div style="font-size:10px;color:#5C4033;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">標準差 σ</div>
@@ -563,7 +515,7 @@ with tab2:
             <span style="font-size:10px;color:#5C4033;letter-spacing:.8px;text-transform:uppercase;">Cp 精密度</span>
             <span style="font-size:10px;font-weight:700;color:{cp_c};background:{cp_c}18;border:1px solid {cp_c};border-radius:3px;padding:1px 7px;">{cp_g}</span>
           </div>
-          <div style="font-size:20px;font-weight:500;color:{cp_c};">{cp2:.3f}</div>
+          <div style="font-size:20px;font-weight:500;color:#2C1F14;">{cp2:.3f}</div>
           <div style="font-size:11px;color:#5C4033;margin-top:2px;">{cp_d}</div>
         </div>""", unsafe_allow_html=True)
 
@@ -579,7 +531,6 @@ with tab2:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 統計摘要列
         st.markdown(f"""
         <div style="display:grid;grid-template-columns:repeat(5,1fr);background:#EFE3D5;border:1.5px solid #DABEA7;border-radius:10px;overflow:hidden;margin-bottom:16px;">
           <div style="padding:10px 12px;text-align:center;border-right:0.5px solid #e8eaed;">
@@ -604,16 +555,15 @@ with tab2:
           </div>
         </div>""", unsafe_allow_html=True)
 
-        # 圖表：直方圖 + 圓餅圖
         ch1, ch2 = st.columns([1.6, 1])
 
         with ch1:
-            arr   = spc_data.values
-            bins  = int(spc_bins)
-            p     = int(spc_prec)
-            pad   = spc_std * 1.5
-            amin  = min(arr.min(), lsl2) - pad
-            amax  = max(arr.max(), usl2) + pad
+            arr    = spc_data.values
+            bins   = int(spc_bins)
+            p      = int(spc_prec)
+            pad    = spc_std * 1.5
+            amin   = min(arr.min(), lsl2) - pad
+            amax   = max(arr.max(), usl2) + pad
             step_h = (amax - amin) / bins
             edges  = [amin + i * step_h for i in range(bins + 1)]
             counts = [0] * bins
@@ -660,8 +610,7 @@ with tab2:
                 plot_bgcolor="#FDFAF6", paper_bgcolor="#FDFAF6",
                 title=dict(text=f"【{selected_param}】 直方圖 · 常態分佈",
                     font=dict(color="#5C4033", size=13), x=0),
-                height=380,
-                font=dict(color="#2C1F14"),
+                height=380, font=dict(color="#2C1F14"),
                 xaxis=dict(gridcolor="#DABEA7", tickfont=dict(color="#2C1F14", size=11),
                            title=dict(text=selected_param, font=dict(color="#2C1F14", size=12)),
                            linecolor="#A98B73", showgrid=False),
@@ -675,8 +624,6 @@ with tab2:
             st.plotly_chart(fig_h, use_container_width=True)
 
         with ch2:
-            yc_color = "#0f766e" if yield2 >= 99.73 else ("#1a73e8" if yield2 >= 99 else
-                        "#f29900" if yield2 >= 95 else "#d93025")
             fig_p = go.Figure(go.Pie(
                 values=[in2, out_usl2, out_lsl2],
                 labels=['符合規格', '超過 USL', '低於 LSL'],
@@ -693,11 +640,9 @@ with tab2:
                 font=dict(size=15, color='#2C1F14'), align="center"
             )
             fig_p.update_layout(
-                template="simple_white",
-                paper_bgcolor="#FDFAF6",
+                template="simple_white", paper_bgcolor="#FDFAF6",
                 title=dict(text="規格符合率", font=dict(color="#5C4033", size=13), x=0),
-                height=380,
-                font=dict(color="#2C1F14"),
+                height=380, font=dict(color="#2C1F14"),
                 legend=dict(orientation="h", yanchor="bottom", y=-0.18, xanchor="center", x=0.5,
                     font=dict(size=12, color="#2C1F14"),
                     bgcolor="#FDFAF6", bordercolor="#A98B73", borderwidth=1),
@@ -705,12 +650,9 @@ with tab2:
             )
             st.plotly_chart(fig_p, use_container_width=True)
 
-        # ── 診斷摘要卡（可展開）────────────────────
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 建立診斷項目
         diags = []
-        # 建議行動對照
         _actions = {
             "A+": "繼續維持，可考慮每季降低抽樣頻率以節省管制成本。",
             "A":  "繼續維持，持續監控趨勢變化。",
@@ -753,7 +695,6 @@ with tab2:
                 f"規格外品：超過 USL {out_usl2} 顆、低於 LSL {out_lsl2} 顆，共 {out_usl2+out_lsl2} 顆不良。",
                 "建議：立即隔離不良品，追蹤生產批次根因。"))
 
-        # 最嚴重等級
         has_error   = any(d[0] == "error"   for d in diags)
         has_warning = any(d[0] == "warning" for d in diags)
 
@@ -770,7 +711,6 @@ with tab2:
                 "#f0fdf4","#bbf7d0","#dcfce7","✓","#14532d","#166534"
             worst = diags[-1]
 
-        # 摘要卡
         st.markdown(f"""
         <div style="background:{summary_bg};border:1px solid {summary_border};border-radius:10px;padding:16px 20px;margin-bottom:8px;">
           <div style="display:flex;align-items:flex-start;gap:12px;">
@@ -783,7 +723,6 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
-        # 展開詳細診斷
         _color_map = {"ok": "#1e8e3e", "warning": "#d97706", "error": "#d93025"}
         with st.expander("查看完整診斷報告", expanded=False):
             for lvl, icon, msg, action in diags:
@@ -796,12 +735,11 @@ with tab2:
                 </div>
                 """, unsafe_allow_html=True)
 
-        # 評價對照表
         with st.expander("📋 評價基準對照表", expanded=False):
             st.dataframe(pd.DataFrame({
-                "等級":   ["A+",    "A",         "B",       "C",     "D"],
-                "Cp/Cpk": ["≥1.67", "1.33–1.67", "1.00–1.33","0.67–1.00","<0.67"],
-                "|Ca|":   ["<6.25%","6.25–12.5%","12.5–25%","25–50%",">50%"],
-                "判斷":   ["製程極佳","製程良好","製程尚可","能力不足","能力極差"],
+                "等級":   ["A+",    "A",         "B",         "C",        "D"],
+                "Cp/Cpk": ["≥1.67", "1.33–1.67", "1.00–1.33", "0.67–1.00","<0.67"],
+                "|Ca|":   ["<6.25%","6.25–12.5%","12.5–25%",  "25–50%",   ">50%"],
+                "判斷":   ["製程極佳","製程良好","製程尚可",   "能力不足", "能力極差"],
                 "建議":   ["可降低管制成本","繼續維持","加強管制","加強訓練","全面停機檢討"],
             }), use_container_width=True, hide_index=True)
