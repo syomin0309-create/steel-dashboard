@@ -396,7 +396,7 @@ with tab1:
                    linecolor=CHART_AXIS, showgrid=True),
         legend=dict(bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1,
                     font=dict(color=CHART_TEXT, size=13),
-                    showlegend=False),
+                    orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         margin=dict(t=60, b=50, l=60, r=80)
     )
     st.plotly_chart(fig_line, use_container_width=True)
@@ -729,13 +729,13 @@ with tab2:
                 line=dict(color="#0ea5e9", width=3), name='常態曲線'
             ))
 
-        # ── 規格線：所有標籤統一置頂，不擋直方圖 ──
+        # ── 規格線：線條畫在圖內，標籤顯示在圖表下方說明區 ──
         y_max = max(counts) if counts else 1
 
-        # 統計資訊放右上角（報告用）
+        # 右上角統計資訊框（報告用）
         stats_text = (
-            f"<b>N = {spc_n:,}</b><br>"
-            f"X̄ = {spc_mean:.{p}f}<br>"
+            f"<b>N = {spc_n:,}</b>　"
+            f"X̄ = {spc_mean:.{p}f}　"
             f"σ = {spc_std:.{p}f}"
         )
         fig_h.add_annotation(
@@ -743,58 +743,40 @@ with tab2:
             text=stats_text,
             font=dict(color="#475569", size=12),
             bgcolor="#f8fafc", bordercolor="#e2e8f0", borderwidth=1,
-            borderpad=8, showarrow=False, align="left",
+            borderpad=6, showarrow=False, align="right",
             xanchor="right", yanchor="top"
         )
 
-        # 頂部標籤列（全部齊頂，不重疊柱子）
-        top_y = y_max * 1.18
-
+        # 規格線（只畫線，不在圖內加標籤）
         if is_both or is_lower:
             fig_h.add_vline(x=lsl2, line_color="#ef4444", line_width=2.5, line_dash="solid")
-            fig_h.add_annotation(x=lsl2, y=top_y,
-                text=f"LSL　{lsl2:.{p}f}",
-                font=dict(color="#ef4444", size=12, weight=700),
-                bgcolor="#fee2e2", bordercolor="#ef4444", borderwidth=1.5,
-                borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
-
         if is_both or is_upper:
             fig_h.add_vline(x=usl2, line_color="#ef4444", line_width=2.5, line_dash="solid")
-            fig_h.add_annotation(x=usl2, y=top_y,
-                text=f"USL　{usl2:.{p}f}",
-                font=dict(color="#ef4444", size=12, weight=700),
-                bgcolor="#fee2e2", bordercolor="#ef4444", borderwidth=1.5,
-                borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
-
         if show_mean2:
             fig_h.add_vline(x=spc_mean, line_color="#10b981", line_width=2.2, line_dash="dot")
-            fig_h.add_annotation(x=spc_mean, y=top_y,
-                text=f"X̄　{spc_mean:.{p}f}",
-                font=dict(color="#059669", size=12, weight=700),
-                bgcolor="#d1fae5", bordercolor="#10b981", borderwidth=1.5,
-                borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
-
         if is_both and show_target2:
             fig_h.add_vline(x=target2, line_color="#7c3aed", line_width=2, line_dash="dash")
-            fig_h.add_annotation(x=target2, y=top_y,
-                text=f"Target　{target2:.{p}f}",
-                font=dict(color="#7c3aed", size=12),
-                bgcolor="#ede9fe", bordercolor="#7c3aed", borderwidth=1.5,
-                borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
-
         if show_median2:
             fig_h.add_vline(x=spc_median, line_color="#94a3b8", line_width=1.8, line_dash="dashdot")
-            fig_h.add_annotation(x=spc_median, y=top_y,
-                text=f"Med　{spc_median:.{p}f}",
-                font=dict(color="#64748b", size=12),
-                bgcolor="#f1f5f9", bordercolor="#94a3b8", borderwidth=1.5,
-                borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
+
+        # 圖表下方標籤說明列（圖外，用 Streamlit markdown 顯示）
+        label_parts = []
+        if is_both or is_lower:
+            label_parts.append(f'<span style="color:#ef4444;font-weight:700;background:#fee2e2;padding:3px 10px;border-radius:5px;border:1px solid #ef4444;">LSL　{lsl2:.{p}f}</span>')
+        if show_mean2:
+            label_parts.append(f'<span style="color:#059669;font-weight:700;background:#d1fae5;padding:3px 10px;border-radius:5px;border:1px solid #10b981;">X̄　{spc_mean:.{p}f}</span>')
+        if is_both and show_target2:
+            label_parts.append(f'<span style="color:#7c3aed;font-weight:700;background:#ede9fe;padding:3px 10px;border-radius:5px;border:1px solid #7c3aed;">Target　{target2:.{p}f}</span>')
+        if show_median2:
+            label_parts.append(f'<span style="color:#64748b;font-weight:700;background:#f1f5f9;padding:3px 10px;border-radius:5px;border:1px solid #94a3b8;">Med　{spc_median:.{p}f}</span>')
+        if is_both or is_upper:
+            label_parts.append(f'<span style="color:#ef4444;font-weight:700;background:#fee2e2;padding:3px 10px;border-radius:5px;border:1px solid #ef4444;">USL　{usl2:.{p}f}</span>')
 
         fig_h.update_layout(
             template="simple_white",
             plot_bgcolor="#fafafa", paper_bgcolor=CHART_BG,
             title=None,
-            height=540, font=dict(color=CHART_TEXT, size=15),
+            height=500, font=dict(color=CHART_TEXT, size=15),
             xaxis=dict(
                 gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
                 title=dict(text=selected_param, font=dict(color="#64748b", size=15)),
@@ -805,12 +787,17 @@ with tab2:
                 gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
                 title=dict(text="次數 (Frequency)", font=dict(color="#64748b", size=15)),
                 linecolor="#94a3b8", linewidth=1.5, gridwidth=0.8,
-                range=[0, y_max * 1.40]
             ),
             showlegend=False,
-            bargap=0.04, margin=dict(t=60, b=55, l=65, r=20)
+            bargap=0.04, margin=dict(t=50, b=55, l=65, r=20)
         )
         st.plotly_chart(fig_h, use_container_width=True)
+        if label_parts:
+            labels_html = "".join(label_parts)
+            st.markdown(
+                f'<div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 0 2px 0;">{labels_html}</div>',
+                unsafe_allow_html=True
+            )
 
     with col_side:
         # 良品率大數字卡（右上）
