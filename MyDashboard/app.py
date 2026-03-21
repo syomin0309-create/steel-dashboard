@@ -479,13 +479,15 @@ with tab2:
 
     with set_col1:
         st.markdown("""
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-          <div style="width:3px;height:18px;background:#0ea5e9;border-radius:0;"></div>
-          <span style="font-size:14px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;">顯示設定</span>
-        </div>""", unsafe_allow_html=True)
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:2px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+          <div style="width:3px;height:18px;background:#0ea5e9;"></div>
+          <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">顯示設定</span>
+        </div>
+        """, unsafe_allow_html=True)
 
         spec_type = st.selectbox(
-            "規格類型",
+            "📐 規格類型",
             ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)"],
             key=f"spc_spectype_{file_key}"
         )
@@ -511,37 +513,39 @@ with tab2:
 
     with set_col2:
         st.markdown("""
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-          <div style="width:3px;height:18px;background:#ef4444;border-radius:0;"></div>
-          <span style="font-size:14px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;">規格設定</span>
-        </div>""", unsafe_allow_html=True)
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:2px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+          <div style="width:3px;height:18px;background:#ef4444;"></div>
+          <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">規格設定</span>
+        </div>
+        """, unsafe_allow_html=True)
 
         is_both  = "雙邊" in spec_type
         is_upper = "上限" in spec_type
         is_lower = "下限" in spec_type
 
         # LSL
-        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <span style="font-size:14px;font-weight:700;color:#475569;">LSL　規格下限</span>
-          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 8px;font-weight:700;">下限</span>
+        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:15px;font-weight:700;color:#1e293b;">LSL　規格下限</span>
+          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 10px;font-weight:700;">下限</span>
         </div>""", unsafe_allow_html=True)
         lsl2 = st.number_input("", value=float(spc_mean - 4*spc_std),
             key=f"spc_lsl_{selected_param}", disabled=is_upper,
             format="%.3f", label_visibility="collapsed")
 
-        # USL
-        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:8px;">
-          <span style="font-size:14px;font-weight:700;color:#475569;">USL　規格上限</span>
-          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 8px;font-weight:700;">上限</span>
+        st.markdown("<div style='margin-top:4px;'>", unsafe_allow_html=True)
+        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:15px;font-weight:700;color:#1e293b;">USL　規格上限</span>
+          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 10px;font-weight:700;">上限</span>
         </div>""", unsafe_allow_html=True)
         usl2 = st.number_input("", value=float(spc_mean + 4*spc_std),
             key=f"spc_usl_{selected_param}", disabled=is_lower,
             format="%.3f", label_visibility="collapsed")
 
-        # Target
-        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:8px;">
-          <span style="font-size:14px;font-weight:700;color:#475569;">Target　中心值</span>
-          <span style="font-size:12px;background:#ede9fe;color:#5b21b6;border-radius:4px;padding:2px 8px;font-weight:700;">目標</span>
+        st.markdown("<div style='margin-top:4px;'>", unsafe_allow_html=True)
+        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:15px;font-weight:700;color:#1e293b;">Target　中心值</span>
+          <span style="font-size:12px;background:#ede9fe;color:#5b21b6;border-radius:4px;padding:2px 10px;font-weight:700;">目標</span>
         </div>""", unsafe_allow_html=True)
         target2 = st.number_input("", value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
             key=f"spc_target_{selected_param}", disabled=(not is_both),
