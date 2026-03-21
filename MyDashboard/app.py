@@ -797,7 +797,7 @@ with tab2:
         fig_h.update_layout(
             template="simple_white",
             plot_bgcolor="#fafafa", paper_bgcolor=CHART_BG,
-            height=500, font=dict(color=CHART_TEXT, size=15),
+            height=620, font=dict(color=CHART_TEXT, size=15),
             xaxis=dict(
                 gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
                 title=dict(text=selected_param, font=dict(color="#64748b", size=15)),
