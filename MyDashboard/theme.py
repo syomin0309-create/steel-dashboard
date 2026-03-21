@@ -259,7 +259,7 @@ def render_landing():
             lottie.loadAnimation({{
                 container: document.getElementById('lottie-container'),
                 renderer: 'svg',
-                loop: true,
+                loop: false,
                 autoplay: true,
                 animationData: animData
             }});
