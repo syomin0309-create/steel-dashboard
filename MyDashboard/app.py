@@ -457,7 +457,7 @@ with tab1:
 
 
 # ────────────────────────────────────────────────────
-# TAB 2：製程能力分析
+# TAB 2：製程能力分析（60/40 排版）
 # ────────────────────────────────────────────────────
 with tab2:
 
@@ -474,445 +474,407 @@ with tab2:
     spc_max    = float(spc_data.max())
     spc_cv     = spc_std / spc_mean * 100 if spc_mean != 0 else 0
 
-    left_col, right_col = st.columns([1, 2.5])
+    # ── 規格設定（頂部，全寬，先讓使用者設定）────────
+    with st.expander("⚙️ 規格與顯示設定", expanded=True):
+        cfg1, cfg2, cfg3 = st.columns([1.2, 1, 1])
+        with cfg1:
+            spec_type = st.selectbox(
+                "規格類型",
+                ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)"],
+                key=f"spc_spectype_{file_key}"
+            )
+        with cfg2:
+            st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:2px;'>組距 Bins</div>", unsafe_allow_html=True)
+            spc_bins = st.slider("", min_value=5, max_value=30, value=12,
+                                 key=f"spc_bins_{selected_param}", label_visibility="collapsed")
+        with cfg3:
+            st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:2px;'>小數位數</div>", unsafe_allow_html=True)
+            spc_prec = st.slider("", min_value=0, max_value=6, value=3,
+                                 key=f"spc_prec_{selected_param}", label_visibility="collapsed")
 
-    with left_col:
-        # ── 基本設定區塊 ──────────────────────────────
-        st.markdown("""
-        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;margin-bottom:12px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-            <div style="width:3px;height:16px;background:#0ea5e9;"></div>
-            <span style="font-size:12px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;">基本設定</span>
-          </div>
-        """, unsafe_allow_html=True)
-
-        spec_type = st.selectbox(
-            "規格類型",
-            ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)"],
-            key=f"spc_spectype_{file_key}"
-        )
-
-        # 組距：滑桿
-        st.markdown("""
-        <div style="font-size:13px;font-weight:600;color:#475569;margin-top:10px;margin-bottom:2px;">
-            組距 Bins
-        </div>""", unsafe_allow_html=True)
-        spc_bins = st.slider("", min_value=5, max_value=30, value=12,
-                             key=f"spc_bins_{selected_param}",
-                             label_visibility="collapsed")
-
-        # 小數位數：滑桿
-        st.markdown("""
-        <div style="font-size:13px;font-weight:600;color:#475569;margin-top:4px;margin-bottom:2px;">
-            小數位數
-        </div>""", unsafe_allow_html=True)
-        spc_prec = st.slider("", min_value=0, max_value=6, value=3,
-                             key=f"spc_prec_{selected_param}",
-                             label_visibility="collapsed")
-
-        st.markdown("<div style='margin-top:4px;'>", unsafe_allow_html=True)
-        show_mean2   = st.toggle("顯示平均值線", value=True,  key=f"spc_mean_{selected_param}")
-        show_curve2  = st.toggle("顯示常態曲線", value=True,  key=f"spc_curve_{selected_param}")
-        show_median2 = st.toggle("顯示中位數線", value=False, key=f"spc_med_{selected_param}")
-        show_target2 = st.toggle("顯示目標值線", value=True,  key=f"spc_tgt_{selected_param}")
-        st.markdown("</div></div>", unsafe_allow_html=True)
-
-        # ── 規格設定區塊 ──────────────────────────────
-        st.markdown("""
-        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-            <div style="width:3px;height:16px;background:#0ea5e9;"></div>
-            <span style="font-size:12px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;">規格設定</span>
-          </div>
-        """, unsafe_allow_html=True)
+        tg1, tg2, tg3, tg4 = st.columns(4)
+        show_mean2   = tg1.toggle("平均值線", value=True,  key=f"spc_mean_{selected_param}")
+        show_curve2  = tg2.toggle("常態曲線", value=True,  key=f"spc_curve_{selected_param}")
+        show_median2 = tg3.toggle("中位數線", value=False, key=f"spc_med_{selected_param}")
+        show_target2 = tg4.toggle("目標值線", value=True,  key=f"spc_tgt_{selected_param}")
 
         is_both  = "雙邊" in spec_type
         is_upper = "上限" in spec_type
         is_lower = "下限" in spec_type
 
-        lsl2 = st.number_input(
-            "LSL　規格下限",
+        sp1, sp2, sp3 = st.columns(3)
+        lsl2 = sp1.number_input("LSL 規格下限",
             value=float(spc_mean - 4*spc_std),
-            key=f"spc_lsl_{selected_param}",
-            disabled=is_upper,
-            format="%.3f"
-        )
-        usl2 = st.number_input(
-            "USL　規格上限",
+            key=f"spc_lsl_{selected_param}", disabled=is_upper, format="%.3f")
+        usl2 = sp2.number_input("USL 規格上限",
             value=float(spc_mean + 4*spc_std),
-            key=f"spc_usl_{selected_param}",
-            disabled=is_lower,
-            format="%.3f"
-        )
-        target2 = st.number_input(
-            "Target　中心值",
+            key=f"spc_usl_{selected_param}", disabled=is_lower, format="%.3f")
+        target2 = sp3.number_input("Target 中心值",
             value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
-            key=f"spc_target_{selected_param}",
-            disabled=(not is_both),
-            format="%.3f"
-        )
+            key=f"spc_target_{selected_param}", disabled=(not is_both), format="%.3f")
 
-        # 規格範圍視覺化色條
-        if not is_upper and not is_lower and usl2 > lsl2:
+        # 規格範圍視覺化
+        if is_both and usl2 > lsl2:
             total = usl2 - lsl2
             tgt_pct = int((target2 - lsl2) / total * 100) if total > 0 else 50
             tgt_pct = max(5, min(95, tgt_pct))
             st.markdown(f"""
-            <div style="margin-top:12px;background:#f8fafc;border:1px solid #e2e8f0;
-                border-radius:8px;padding:10px 12px;">
-              <div style="font-size:11px;color:#94a3b8;font-weight:600;
-                  text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">規格範圍</div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-top:4px;">
               <div style="position:relative;height:6px;background:#e2e8f0;border-radius:3px;margin:0 4px;">
-                <div style="position:absolute;left:0;right:0;height:100%;
-                    background:rgba(14,165,233,0.25);border-radius:3px;"></div>
-                <div style="position:absolute;left:0;width:2px;height:180%;top:-40%;
-                    background:#ef4444;border-radius:1px;"></div>
-                <div style="position:absolute;right:0;width:2px;height:180%;top:-40%;
-                    background:#ef4444;border-radius:1px;"></div>
-                <div style="position:absolute;left:{tgt_pct}%;width:2px;height:180%;top:-40%;
-                    transform:translateX(-50%);background:#7c3aed;border-radius:1px;"></div>
+                <div style="position:absolute;left:0;right:0;height:100%;background:rgba(14,165,233,0.2);border-radius:3px;"></div>
+                <div style="position:absolute;left:0;width:2px;height:200%;top:-50%;background:#ef4444;"></div>
+                <div style="position:absolute;right:0;width:2px;height:200%;top:-50%;background:#ef4444;"></div>
+                <div style="position:absolute;left:{tgt_pct}%;width:2px;height:200%;top:-50%;transform:translateX(-50%);background:#7c3aed;"></div>
               </div>
-              <div style="display:flex;justify-content:space-between;
-                  margin-top:6px;font-size:10px;">
-                <span style="color:#ef4444;font-weight:600;">LSL {lsl2:.2f}</span>
-                <span style="color:#7c3aed;font-weight:600;">T {target2:.2f}</span>
-                <span style="color:#ef4444;font-weight:600;">USL {usl2:.2f}</span>
+              <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;">
+                <span style="color:#ef4444;font-weight:700;">LSL {lsl2:.3f}</span>
+                <span style="color:#7c3aed;font-weight:700;">Target {target2:.3f}</span>
+                <span style="color:#ef4444;font-weight:700;">USL {usl2:.3f}</span>
               </div>
+            </div>""", unsafe_allow_html=True)
+
+    # ── 計算 ─────────────────────────────────────────
+    if is_both and (usl2 - lsl2) != 0:
+        ca2 = (spc_mean - target2) / ((usl2 - lsl2) / 2) * 100
+    else:
+        ca2 = None
+
+    if spc_std > 0:
+        if is_both:    cp2 = (usl2 - lsl2) / (6 * spc_std)
+        elif is_upper: cp2 = (usl2 - spc_mean) / (3 * spc_std)
+        else:          cp2 = (spc_mean - lsl2) / (3 * spc_std)
+    else:
+        cp2 = 0.0
+
+    cpk2 = cp2 * (1 - abs(ca2) / 100) if (is_both and ca2 is not None) else cp2
+
+    out_usl2 = int((spc_data > usl2).sum()) if not is_lower else 0
+    out_lsl2 = int((spc_data < lsl2).sum()) if not is_upper else 0
+    in2      = spc_n - out_usl2 - out_lsl2
+    yield2   = in2 / spc_n * 100
+
+    def _grade_ca(v):
+        if v is None: return "—", "#64748b", "需雙邊規格"
+        a = abs(v)
+        if a < 6.25:  return "A+", "#059669", "準確度極佳"
+        if a < 12.5:  return "A",  "#10b981", "準確度良好"
+        if a < 25.0:  return "B",  "#f59e0b", "建議調整 Offset"
+        if a < 50.0:  return "C",  "#f97316", "能力不足"
+        return             "D",  "#ef4444", "能力極差"
+
+    def _grade_cp(v):
+        if v >= 1.67: return "A+", "#059669", "精密度極佳"
+        if v >= 1.33: return "A",  "#10b981", "精密度良好"
+        if v >= 1.00: return "B",  "#f59e0b", "尚可，加強管制"
+        if v >= 0.67: return "C",  "#f97316", "能力不足"
+        return             "D",  "#ef4444", "能力極差"
+
+    ca_g, ca_c, ca_d   = _grade_ca(ca2)
+    cp_g, cp_c, cp_d   = _grade_cp(cp2)
+    cpk_g, cpk_c, cpk_d = _grade_cp(cpk2)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Row 1：4 KPI 卡（全寬）────────────────────────
+    k1, k2, k3, k4 = st.columns(4)
+    k1.markdown(f"""
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+        padding:16px;border-top:4px solid #0ea5e9;">
+      <div style="font-size:11px;color:#64748b;font-weight:700;letter-spacing:1px;
+          text-transform:uppercase;margin-bottom:8px;">標準差 σ</div>
+      <div style="font-size:28px;font-weight:700;color:#0f172a;line-height:1.1;">{spc_std:.3f}</div>
+      <div style="font-size:13px;color:#94a3b8;margin-top:6px;">變異係數 {spc_cv:.1f}%</div>
+    </div>""", unsafe_allow_html=True)
+
+    k2.markdown(f"""
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+        padding:16px;border-top:4px solid {ca_c};">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:11px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Ca 準確度</span>
+        <span style="font-size:11px;font-weight:700;color:{ca_c};background:{ca_c}18;
+            border:1px solid {ca_c};border-radius:4px;padding:2px 8px;">{ca_g}</span>
+      </div>
+      <div style="font-size:28px;font-weight:700;color:{ca_c};line-height:1.1;">
+          {f"{abs(ca2):.1f}%" if ca2 is not None else "N/A"}</div>
+      <div style="font-size:13px;color:#94a3b8;margin-top:6px;">{ca_d}</div>
+    </div>""", unsafe_allow_html=True)
+
+    k3.markdown(f"""
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+        padding:16px;border-top:4px solid {cp_c};">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:11px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cp 精密度</span>
+        <span style="font-size:11px;font-weight:700;color:{cp_c};background:{cp_c}18;
+            border:1px solid {cp_c};border-radius:4px;padding:2px 8px;">{cp_g}</span>
+      </div>
+      <div style="font-size:28px;font-weight:700;color:{cp_c};line-height:1.1;">{cp2:.3f}</div>
+      <div style="font-size:13px;color:#94a3b8;margin-top:6px;">{cp_d}</div>
+    </div>""", unsafe_allow_html=True)
+
+    k4.markdown(f"""
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+        padding:16px;border-top:4px solid {cpk_c};">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:11px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cpk 製程能力</span>
+        <span style="font-size:11px;font-weight:700;color:{cpk_c};background:{cpk_c}18;
+            border:1px solid {cpk_c};border-radius:4px;padding:2px 8px;">{cpk_g}</span>
+      </div>
+      <div style="font-size:28px;font-weight:700;color:{cpk_c};line-height:1.1;">{cpk2:.3f}</div>
+      <div style="font-size:13px;color:#94a3b8;margin-top:6px;">{cpk_d}</div>
+    </div>""", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Row 2：統計摘要（全寬）───────────────────────
+    st.markdown(f"""
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);background:#fff;
+        border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
+        <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">平均值 X̄</div>
+        <div style="font-size:18px;font-weight:700;color:#0f172a;">{spc_mean:.{int(spc_prec)}f}</div>
+      </div>
+      <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
+        <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">中位數</div>
+        <div style="font-size:18px;font-weight:700;color:#0f172a;">{spc_median:.{int(spc_prec)}f}</div>
+      </div>
+      <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
+        <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">標準差 σ</div>
+        <div style="font-size:18px;font-weight:700;color:#0f172a;">{spc_std:.{int(spc_prec)}f}</div>
+      </div>
+      <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
+        <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">最小值</div>
+        <div style="font-size:18px;font-weight:700;color:#0f172a;">{spc_min:.{int(spc_prec)}f}</div>
+      </div>
+      <div style="padding:12px 16px;text-align:center;">
+        <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">最大值</div>
+        <div style="font-size:18px;font-weight:700;color:#0f172a;">{spc_max:.{int(spc_prec)}f}</div>
+      </div>
+    </div>""", unsafe_allow_html=True)
+
+    # ── Row 3：60/40 主圖表區 ────────────────────────
+    col_main, col_side = st.columns([1.5, 1])
+
+    with col_main:
+        # 直方圖（主視覺 60%）
+        arr    = spc_data.values
+        bins   = int(spc_bins)
+        p      = int(spc_prec)
+        pad    = spc_std * 1.5
+        amin   = min(arr.min(), lsl2) - pad
+        amax   = max(arr.max(), usl2) + pad
+        step_h = (amax - amin) / bins
+        edges  = [amin + i * step_h for i in range(bins + 1)]
+        counts = [0] * bins
+        for v in arr:
+            idx = max(0, min(bins-1, int((v - amin) / step_h)))
+            counts[idx] += 1
+
+        bar_colors = []
+        for i in range(bins):
+            out = False
+            if is_both or is_lower: out = out or (edges[i+1] <= lsl2)
+            if is_both or is_upper: out = out or (edges[i]   >= usl2)
+            bar_colors.append(CHART_OUTLIER if out else CHART_NORMAL)
+
+        bar_x = [(edges[i]+edges[i+1])/2 for i in range(bins)]
+        fig_h = go.Figure()
+        fig_h.add_trace(go.Bar(
+            x=bar_x, y=counts, width=[step_h*0.98]*bins,
+            marker=dict(color=bar_colors, line=dict(width=0.5, color=CHART_GRID)),
+            name="分布",
+            hovertemplate=f"區間: %{{x:.{p}f}}<br>次數: %{{y}}<extra></extra>"
+        ))
+        if spc_std > 0 and show_curve2:
+            xc = np.linspace(amin, amax, 300)
+            yc = (1/(spc_std*np.sqrt(2*np.pi))) * np.exp(-0.5*((xc-spc_mean)/spc_std)**2)
+            fig_h.add_trace(go.Scatter(
+                x=xc, y=yc*spc_n*step_h, mode='lines',
+                line=dict(color=CHART_CURVE, width=2.5), name='常態曲線'
+            ))
+
+        spec_lines = []
+        if is_both or is_lower: spec_lines.append((lsl2, f"LSL:{lsl2:.{p}f}", "#ef4444", "solid"))
+        if is_both or is_upper: spec_lines.append((usl2, f"USL:{usl2:.{p}f}", "#ef4444", "solid"))
+        if is_both and show_target2: spec_lines.append((target2, f"Target:{target2:.{p}f}", "#7c3aed", "dash"))
+        if show_mean2:   spec_lines.append((spc_mean,   f"X̄:{spc_mean:.{p}f}",     CHART_AVG, "dot"))
+        if show_median2: spec_lines.append((spc_median, f"Med:{spc_median:.{p}f}", "#94a3b8", "dashdot"))
+
+        for xv, lb, cl, dk in spec_lines:
+            fig_h.add_vline(x=xv, line_dash=dk, line_color=cl, line_width=2,
+                annotation=dict(text=lb, font=dict(color=cl, size=12),
+                    bgcolor=CHART_BG, bordercolor=cl, borderwidth=1, borderpad=4))
+
+        fig_h.update_layout(
+            template="simple_white",
+            plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
+            title=dict(text=f"【{selected_param}】 直方圖 · 常態分佈",
+                font=dict(color=CHART_TEXT, size=16), x=0),
+            height=420, font=dict(color=CHART_TEXT, size=14),
+            xaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=13),
+                       title=dict(text=selected_param, font=dict(color="#64748b", size=14)),
+                       linecolor=CHART_AXIS, showgrid=False),
+            yaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=13),
+                       title=dict(text="次數", font=dict(color="#64748b", size=14)),
+                       linecolor=CHART_AXIS),
+            legend=dict(bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1,
+                font=dict(size=13, color=CHART_TEXT)),
+            bargap=0, margin=dict(t=60, b=55, l=60, r=20)
+        )
+        st.plotly_chart(fig_h, use_container_width=True)
+
+    with col_side:
+        # 良品率大數字卡（右上）
+        yield_color = "#10b981" if yield2 >= 99 else ("#f59e0b" if yield2 >= 95 else "#ef4444")
+        st.markdown(f"""
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+            padding:20px;text-align:center;margin-bottom:12px;">
+          <div style="font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+              letter-spacing:1px;margin-bottom:10px;">規格符合率</div>
+          <div style="font-size:44px;font-weight:800;color:{yield_color};line-height:1;">{yield2:.1f}%</div>
+          <div style="font-size:13px;color:#94a3b8;margin:6px 0 16px;">良品率</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;">
+              <div style="font-size:18px;font-weight:700;color:#10b981;">{in2:,}</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:3px;">符合規格</div>
+            </div>
+            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px;">
+              <div style="font-size:18px;font-weight:700;color:#ef4444;">{out_usl2+out_lsl2:,}</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:3px;">規格外</div>
+            </div>
+          </div>
+        </div>""", unsafe_allow_html=True)
+
+        # 等級說明卡（右下）
+        st.markdown("""
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;">
+          <div style="font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+              letter-spacing:1px;margin-bottom:12px;">等級說明</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:28px;height:28px;border-radius:50%;background:#d1fae5;
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:11px;font-weight:700;color:#059669;flex-shrink:0;">A+</div>
+              <div style="font-size:13px;color:#475569;">Cpk ≥ 1.67　精密度極佳</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:28px;height:28px;border-radius:50%;background:#d1fae5;
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:11px;font-weight:700;color:#10b981;flex-shrink:0;">A</div>
+              <div style="font-size:13px;color:#475569;">1.33 – 1.67　精密度良好</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:28px;height:28px;border-radius:50%;background:#fef9c3;
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:11px;font-weight:700;color:#b45309;flex-shrink:0;">B</div>
+              <div style="font-size:13px;color:#475569;">1.00 – 1.33　尚可管制</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:28px;height:28px;border-radius:50%;background:#ffedd5;
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:11px;font-weight:700;color:#c2410c;flex-shrink:0;">C</div>
+              <div style="font-size:13px;color:#475569;">0.67 – 1.00　能力不足</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:28px;height:28px;border-radius:50%;background:#fee2e2;
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:11px;font-weight:700;color:#b91c1c;flex-shrink:0;">D</div>
+              <div style="font-size:13px;color:#475569;">&lt; 0.67　能力極差</div>
+            </div>
+          </div>
+        </div>""", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Row 4：診斷結論（全寬）───────────────────────
+    diags = []
+    _actions = {
+        "A+": "繼續維持，可考慮每季降低抽樣頻率以節省管制成本。",
+        "A":  "繼續維持，持續監控趨勢變化。",
+        "B":  "加強製程管制，目標達到 A 級。",
+        "C":  "立即啟動改善，排查機台老化與原材料穩定性。",
+        "D":  "全面停機檢討，需系統性改善後方可復產。",
+    }
+
+    if spc_n < 30:
+        diags.append(("warning", "⚠", f"樣本數僅 {spc_n} 筆（建議 ≥30），分析結果可信度有限。",
+                      "建議：增加取樣數量後重新分析。"))
+    else:
+        diags.append(("ok", "✓", f"樣本數 {spc_n} 筆，符合統計基本需求。", ""))
+
+    if ca2 is not None:
+        a = abs(ca2)
+        diags.append((
+            "ok" if a < 12.5 else "warning" if a < 25 else "error",
+            "✓" if a < 12.5 else "△" if a < 25 else "✕",
+            f"Ca = {a:.1f}%（{ca_g} 級）：{ca_d}。",
+            _actions.get(ca_g, "")
+        ))
+
+    diags.append((
+        "ok" if cp2 >= 1.33 else "warning" if cp2 >= 1.0 else "error",
+        "✓" if cp2 >= 1.33 else "△" if cp2 >= 1.0 else "✕",
+        f"Cp = {cp2:.3f}（{cp_g} 級）：{cp_d}。",
+        _actions.get(cp_g, "")
+    ))
+
+    diags.append((
+        "ok" if cpk2 >= 1.33 else "warning" if cpk2 >= 1.0 else "error",
+        "★" if cpk2 >= 1.33 else "△" if cpk2 >= 1.0 else "✕",
+        f"Cpk = {cpk2:.3f}（{cpk_g} 級）：{cpk_d}。",
+        _actions.get(cpk_g, "")
+    ))
+
+    if out_usl2 + out_lsl2 > 0:
+        diags.append(("error", "!",
+            f"規格外品：超過 USL {out_usl2} 顆、低於 LSL {out_lsl2} 顆，共 {out_usl2+out_lsl2} 顆不良。",
+            "建議：立即隔離不良品，追蹤生產批次根因。"))
+
+    has_error   = any(d[0] == "error"   for d in diags)
+    has_warning = any(d[0] == "warning" for d in diags)
+
+    if has_error:
+        sb, sbd, sib, si, stc, sac = "#fef2f2","#fecaca","#fee2e2","✕","#7f1d1d","#991b1b"
+        worst = next(d for d in diags if d[0]=="error")
+    elif has_warning:
+        sb, sbd, sib, si, stc, sac = "#fffbeb","#fde68a","#fef9c3","△","#78350f","#92400e"
+        worst = next(d for d in diags if d[0]=="warning")
+    else:
+        sb, sbd, sib, si, stc, sac = "#f0fdf4","#bbf7d0","#dcfce7","✓","#14532d","#166534"
+        worst = diags[-1]
+
+    st.markdown(f"""
+    <div style="background:{sb};border:1px solid {sbd};border-radius:12px;
+        padding:18px 22px;margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;gap:14px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:{sib};
+            display:flex;align-items:center;justify-content:center;
+            font-size:17px;flex-shrink:0;">{si}</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:600;color:{stc};margin-bottom:6px;">{worst[2]}</div>
+          <div style="font-size:14px;color:{sac};">建議行動：{worst[3]}</div>
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    _color_map = {"ok": "#16a34a", "warning": "#d97706", "error": "#ef4444"}
+    with st.expander("📋 查看完整診斷報告", expanded=False):
+        for lvl, icon, msg, action in diags:
+            clr = _color_map[lvl]
+            st.markdown(f"""
+            <div style="border-left:4px solid {clr};background:#f8fafc;
+                border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:8px;">
+              <span style="color:{clr};font-weight:700;margin-right:10px;font-size:15px;">{icon}</span>
+              <span style="font-size:14px;color:#1e293b;">{msg}</span>
+              {"<div style='font-size:13px;color:#64748b;margin-top:6px;padding-left:26px;'>→ " + action + "</div>" if action else ""}
             </div>
             """, unsafe_allow_html=True)
 
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with right_col:
-
-        if is_both and (usl2 - lsl2) != 0:
-            ca2 = (spc_mean - target2) / ((usl2 - lsl2) / 2) * 100
-        else:
-            ca2 = None
-
-        if spc_std > 0:
-            if is_both:    cp2 = (usl2 - lsl2) / (6 * spc_std)
-            elif is_upper: cp2 = (usl2 - spc_mean) / (3 * spc_std)
-            else:          cp2 = (spc_mean - lsl2) / (3 * spc_std)
-        else:
-            cp2 = 0.0
-
-        cpk2 = cp2 * (1 - abs(ca2) / 100) if (is_both and ca2 is not None) else cp2
-
-        out_usl2 = int((spc_data > usl2).sum()) if not is_lower else 0
-        out_lsl2 = int((spc_data < lsl2).sum()) if not is_upper else 0
-        in2      = spc_n - out_usl2 - out_lsl2
-        yield2   = in2 / spc_n * 100
-
-        def _grade_ca(v):
-            if v is None: return "—", "#64748b", "需雙邊規格"
-            a = abs(v)
-            if a < 6.25:  return "A+", "#059669", "準確度極佳"
-            if a < 12.5:  return "A",  "#10b981", "準確度良好"
-            if a < 25.0:  return "B",  "#f59e0b", "建議調整 Offset"
-            if a < 50.0:  return "C",  "#f97316", "能力不足"
-            return             "D",  "#ef4444", "能力極差"
-
-        def _grade_cp(v):
-            if v >= 1.67: return "A+", "#059669", "精密度極佳"
-            if v >= 1.33: return "A",  "#10b981", "精密度良好"
-            if v >= 1.00: return "B",  "#f59e0b", "尚可，加強管制"
-            if v >= 0.67: return "C",  "#f97316", "能力不足"
-            return             "D",  "#991b1b", "能力極差"
-
-        ca_g, ca_c, ca_d   = _grade_ca(ca2)
-        cp_g, cp_c, cp_d   = _grade_cp(cp2)
-        cpk_g, cpk_c, cpk_d = _grade_cp(cpk2)
-
-        k1, k2, k3, k4 = st.columns(4)
-
-        k1.markdown(f"""
-        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
-            padding:16px;border-top:4px solid #0ea5e9;
-            box-shadow:0 2px 8px rgba(14,165,233,0.08);">
-          <div style="font-size:11px;color:#64748b;letter-spacing:1px;
-              text-transform:uppercase;margin-bottom:8px;font-weight:700;">標準差 σ</div>
-          <div style="font-size:26px;font-weight:700;color:#0f172a;line-height:1.1;">{spc_std:.3f}</div>
-          <div style="font-size:13px;color:#64748b;margin-top:6px;">變異係數 {spc_cv:.1f}%</div>
-        </div>""", unsafe_allow_html=True)
-
-        k2.markdown(f"""
-        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
-            padding:16px;border-top:4px solid {ca_c};
-            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span style="font-size:11px;color:#64748b;letter-spacing:1px;
-                text-transform:uppercase;font-weight:700;">Ca 準確度</span>
-            <span style="font-size:11px;font-weight:700;color:{ca_c};
-                background:{ca_c}18;border:1px solid {ca_c};
-                border-radius:4px;padding:2px 8px;">{ca_g}</span>
-          </div>
-          <div style="font-size:26px;font-weight:700;color:{ca_c};line-height:1.1;">
-              {f"{abs(ca2):.1f}%" if ca2 is not None else "N/A"}</div>
-          <div style="font-size:13px;color:#64748b;margin-top:6px;">{ca_d}</div>
-        </div>""", unsafe_allow_html=True)
-
-        k3.markdown(f"""
-        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
-            padding:16px;border-top:4px solid {cp_c};
-            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span style="font-size:11px;color:#64748b;letter-spacing:1px;
-                text-transform:uppercase;font-weight:700;">Cp 精密度</span>
-            <span style="font-size:11px;font-weight:700;color:{cp_c};
-                background:{cp_c}18;border:1px solid {cp_c};
-                border-radius:4px;padding:2px 8px;">{cp_g}</span>
-          </div>
-          <div style="font-size:26px;font-weight:700;color:{cp_c};line-height:1.1;">{cp2:.3f}</div>
-          <div style="font-size:13px;color:#64748b;margin-top:6px;">{cp_d}</div>
-        </div>""", unsafe_allow_html=True)
-
-        k4.markdown(f"""
-        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
-            padding:16px;border-top:4px solid {cpk_c};
-            box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span style="font-size:11px;color:#64748b;letter-spacing:1px;
-                text-transform:uppercase;font-weight:700;">Cpk 製程能力</span>
-            <span style="font-size:11px;font-weight:700;color:{cpk_c};
-                background:{cpk_c}18;border:1px solid {cpk_c};
-                border-radius:4px;padding:2px 8px;">{cpk_g}</span>
-          </div>
-          <div style="font-size:26px;font-weight:700;color:{cpk_c};line-height:1.1;">{cpk2:.3f}</div>
-          <div style="font-size:13px;color:#64748b;margin-top:6px;">{cpk_d}</div>
-        </div>""", unsafe_allow_html=True)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # ── 統計摘要橫列 ────────────────────────────────
-        st.markdown(f"""
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);
-            background:#f8fafc;border:1px solid #e2e8f0;
-            border-radius:10px;overflow:hidden;margin-bottom:18px;">
-          <div style="padding:12px 16px;text-align:center;border-right:1px solid #e2e8f0;">
-            <div style="font-size:11px;color:#64748b;letter-spacing:.8px;
-                text-transform:uppercase;margin-bottom:6px;">平均值 X̄</div>
-            <div style="font-size:16px;font-weight:700;color:#0f172a;">{spc_mean:.{int(spc_prec)}f}</div>
-          </div>
-          <div style="padding:12px 16px;text-align:center;border-right:1px solid #e2e8f0;">
-            <div style="font-size:11px;color:#64748b;letter-spacing:.8px;
-                text-transform:uppercase;margin-bottom:6px;">中位數</div>
-            <div style="font-size:16px;font-weight:700;color:#0f172a;">{spc_median:.{int(spc_prec)}f}</div>
-          </div>
-          <div style="padding:12px 16px;text-align:center;border-right:1px solid #e2e8f0;">
-            <div style="font-size:11px;color:#64748b;letter-spacing:.8px;
-                text-transform:uppercase;margin-bottom:6px;">標準差 σ</div>
-            <div style="font-size:16px;font-weight:700;color:#0f172a;">{spc_std:.{int(spc_prec)}f}</div>
-          </div>
-          <div style="padding:12px 16px;text-align:center;border-right:1px solid #e2e8f0;">
-            <div style="font-size:11px;color:#64748b;letter-spacing:.8px;
-                text-transform:uppercase;margin-bottom:6px;">最小值</div>
-            <div style="font-size:16px;font-weight:700;color:#0f172a;">{spc_min:.{int(spc_prec)}f}</div>
-          </div>
-          <div style="padding:12px 16px;text-align:center;">
-            <div style="font-size:11px;color:#64748b;letter-spacing:.8px;
-                text-transform:uppercase;margin-bottom:6px;">最大值</div>
-            <div style="font-size:16px;font-weight:700;color:#0f172a;">{spc_max:.{int(spc_prec)}f}</div>
-          </div>
-        </div>""", unsafe_allow_html=True)
-
-        # ── 直方圖 + 圓餅圖 ─────────────────────────────
-        ch1, ch2 = st.columns([1.6, 1])
-
-        with ch1:
-            arr    = spc_data.values
-            bins   = int(spc_bins)
-            p      = int(spc_prec)
-            pad    = spc_std * 1.5
-            amin   = min(arr.min(), lsl2) - pad
-            amax   = max(arr.max(), usl2) + pad
-            step_h = (amax - amin) / bins
-            edges  = [amin + i * step_h for i in range(bins + 1)]
-            counts = [0] * bins
-            for v in arr:
-                idx = max(0, min(bins-1, int((v - amin) / step_h)))
-                counts[idx] += 1
-
-            bar_colors = []
-            for i in range(bins):
-                out = False
-                if is_both or is_lower: out = out or (edges[i+1] <= lsl2)
-                if is_both or is_upper: out = out or (edges[i]   >= usl2)
-                bar_colors.append(CHART_OUTLIER if out else CHART_NORMAL)
-
-            bar_x = [(edges[i]+edges[i+1])/2 for i in range(bins)]
-            fig_h = go.Figure()
-            fig_h.add_trace(go.Bar(
-                x=bar_x, y=counts, width=[step_h*0.98]*bins,
-                marker=dict(color=bar_colors, line=dict(width=0.5, color=CHART_GRID)),
-                name="分布",
-                hovertemplate=f"區間: %{{x:.{p}f}}<br>次數: %{{y}}<extra></extra>"
-            ))
-            if spc_std > 0 and show_curve2:
-                xc = np.linspace(amin, amax, 300)
-                yc = (1/(spc_std*np.sqrt(2*np.pi))) * np.exp(-0.5*((xc-spc_mean)/spc_std)**2)
-                fig_h.add_trace(go.Scatter(
-                    x=xc, y=yc*spc_n*step_h, mode='lines',
-                    line=dict(color=CHART_CURVE, width=2.5), name='常態曲線'
-                ))
-
-            spec_lines = []
-            if is_both or is_lower: spec_lines.append((lsl2, f"LSL:{lsl2:.{p}f}", "#ef4444", "solid"))
-            if is_both or is_upper: spec_lines.append((usl2, f"USL:{usl2:.{p}f}", "#ef4444", "solid"))
-            if is_both and show_target2: spec_lines.append((target2, f"Target:{target2:.{p}f}", "#7c3aed", "dash"))
-            if show_mean2:   spec_lines.append((spc_mean,   f"X̄:{spc_mean:.{p}f}",     CHART_AVG, "dot"))
-            if show_median2: spec_lines.append((spc_median, f"Med:{spc_median:.{p}f}", "#94a3b8", "dashdot"))
-
-            for xv, lb, cl, dk in spec_lines:
-                fig_h.add_vline(x=xv, line_dash=dk, line_color=cl, line_width=2,
-                    annotation=dict(text=lb, font=dict(color=cl, size=12),
-                        bgcolor=CHART_BG, bordercolor=cl, borderwidth=1, borderpad=4))
-
-            fig_h.update_layout(
-                template="simple_white",
-                plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
-                title=dict(text=f"【{selected_param}】 直方圖 · 常態分佈",
-                    font=dict(color=CHART_TEXT, size=16), x=0),
-                height=400, font=dict(color=CHART_TEXT, size=14),
-                xaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=13),
-                           title=dict(text=selected_param, font=dict(color="#64748b", size=14)),
-                           linecolor=CHART_AXIS, showgrid=False),
-                yaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=13),
-                           title=dict(text="次數 (Frequency)", font=dict(color="#64748b", size=14)),
-                           linecolor=CHART_AXIS),
-                legend=dict(bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1,
-                    font=dict(size=13, color=CHART_TEXT)),
-                bargap=0, margin=dict(t=60, b=55, l=60, r=20)
-            )
-            st.plotly_chart(fig_h, use_container_width=True)
-
-        with ch2:
-            fig_p = go.Figure(go.Pie(
-                values=[in2, out_usl2, out_lsl2],
-                labels=['符合規格', '超過 USL', '低於 LSL'],
-                marker=dict(
-                    colors=['#0ea5e9', '#ef4444', '#f59e0b'],
-                    line=dict(color='#ffffff', width=2)
-                ),
-                textinfo='label+percent',
-                textfont=dict(size=14, color="#ffffff"),
-                hole=0.50,
-                hovertemplate="%{label}<br>%{value} 顆 (%{percent})<extra></extra>"
-            ))
-            fig_p.add_annotation(
-                text=f"<b>{yield2:.1f}%</b><br><span style='font-size:12px'>良品率</span>",
-                x=0.5, y=0.5, showarrow=False,
-                font=dict(size=18, color=CHART_TEXT), align="center"
-            )
-            fig_p.update_layout(
-                template="simple_white", paper_bgcolor=CHART_BG,
-                title=dict(text="規格符合率", font=dict(color=CHART_TEXT, size=16), x=0),
-                height=400, font=dict(color=CHART_TEXT, size=14),
-                legend=dict(orientation="h", yanchor="bottom", y=-0.18,
-                    xanchor="center", x=0.5,
-                    font=dict(size=13, color=CHART_TEXT),
-                    bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1),
-                margin=dict(t=60, b=70, l=10, r=10)
-            )
-            st.plotly_chart(fig_p, use_container_width=True)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # ── 診斷 ──────────────────────────────────────
-        diags = []
-        _actions = {
-            "A+": "繼續維持，可考慮每季降低抽樣頻率以節省管制成本。",
-            "A":  "繼續維持，持續監控趨勢變化。",
-            "B":  "加強製程管制，目標達到 A 級。",
-            "C":  "立即啟動改善，排查機台老化與原材料穩定性。",
-            "D":  "全面停機檢討，需系統性改善後方可復產。",
-        }
-
-        if spc_n < 30:
-            diags.append(("warning", "⚠", f"樣本數僅 {spc_n} 筆（建議 ≥30），分析結果可信度有限。",
-                          "建議：增加取樣數量後重新分析。"))
-        else:
-            diags.append(("ok", "✓", f"樣本數 {spc_n} 筆，符合統計基本需求。", ""))
-
-        if ca2 is not None:
-            a = abs(ca2)
-            diags.append((
-                "ok" if a < 12.5 else "warning" if a < 25 else "error",
-                "✓" if a < 12.5 else "△" if a < 25 else "✕",
-                f"Ca = {a:.1f}%（{ca_g} 級）：{ca_d}。",
-                _actions.get(ca_g, "")
-            ))
-
-        diags.append((
-            "ok" if cp2 >= 1.33 else "warning" if cp2 >= 1.0 else "error",
-            "✓" if cp2 >= 1.33 else "△" if cp2 >= 1.0 else "✕",
-            f"Cp = {cp2:.3f}（{cp_g} 級）：{cp_d}。",
-            _actions.get(cp_g, "")
-        ))
-
-        diags.append((
-            "ok" if cpk2 >= 1.33 else "warning" if cpk2 >= 1.0 else "error",
-            "★" if cpk2 >= 1.33 else "△" if cpk2 >= 1.0 else "✕",
-            f"Cpk = {cpk2:.3f}（{cpk_g} 級）：{cpk_d}。",
-            _actions.get(cpk_g, "")
-        ))
-
-        if out_usl2 + out_lsl2 > 0:
-            diags.append(("error", "!",
-                f"規格外品：超過 USL {out_usl2} 顆、低於 LSL {out_lsl2} 顆，共 {out_usl2+out_lsl2} 顆不良。",
-                "建議：立即隔離不良品，追蹤生產批次根因。"))
-
-        has_error   = any(d[0] == "error"   for d in diags)
-        has_warning = any(d[0] == "warning" for d in diags)
-
-        if has_error:
-            sb, sbd, sib, si, stc, sac = \
-                "#fef2f2","#fecaca","#fee2e2","✕","#7f1d1d","#991b1b"
-            worst = next(d for d in diags if d[0]=="error")
-        elif has_warning:
-            sb, sbd, sib, si, stc, sac = \
-                "#fffbeb","#fde68a","#fef9c3","△","#78350f","#92400e"
-            worst = next(d for d in diags if d[0]=="warning")
-        else:
-            sb, sbd, sib, si, stc, sac = \
-                "#f0fdf4","#bbf7d0","#dcfce7","✓","#14532d","#166534"
-            worst = diags[-1]
-
-        st.markdown(f"""
-        <div style="background:{sb};border:1px solid {sbd};border-radius:12px;
-            padding:18px 22px;margin-bottom:10px;">
-          <div style="display:flex;align-items:flex-start;gap:14px;">
-            <div style="width:36px;height:36px;border-radius:50%;background:{sib};
-                display:flex;align-items:center;justify-content:center;
-                font-size:17px;flex-shrink:0;">{si}</div>
-            <div style="flex:1;">
-              <div style="font-size:15px;font-weight:600;color:{stc};margin-bottom:6px;">
-                  {worst[2]}</div>
-              <div style="font-size:14px;color:{sac};">建議行動：{worst[3]}</div>
-            </div>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        _color_map = {"ok": "#16a34a", "warning": "#d97706", "error": "#ef4444"}
-        with st.expander("📋 查看完整診斷報告", expanded=False):
-            for lvl, icon, msg, action in diags:
-                clr = _color_map[lvl]
-                st.markdown(f"""
-                <div style="border-left:4px solid {clr};background:#f8fafc;
-                    border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:8px;background:#f8fafc;">
-                  <span style="color:{clr};font-weight:700;margin-right:10px;
-                      font-size:15px;">{icon}</span>
-                  <span style="font-size:14px;color:#1e293b;">{msg}</span>
-                  {"<div style='font-size:13px;color:#64748b;margin-top:6px;padding-left:26px;'>→ " + action + "</div>" if action else ""}
-                </div>
-                """, unsafe_allow_html=True)
-
-        with st.expander("📊 評價基準對照表", expanded=False):
-            st.dataframe(pd.DataFrame({
-                "等級":   ["A+",    "A",         "B",         "C",        "D"],
-                "Cp/Cpk": ["≥1.67", "1.33–1.67", "1.00–1.33", "0.67–1.00","<0.67"],
-                "|Ca|":   ["<6.25%","6.25–12.5%","12.5–25%",  "25–50%",   ">50%"],
-                "判斷":   ["製程極佳","製程良好","製程尚可",   "能力不足", "能力極差"],
-                "建議":   ["可降低管制成本","繼續維持","加強管制","加強訓練","全面停機檢討"],
-            }), use_container_width=True, hide_index=True)
+    with st.expander("📊 評價基準對照表", expanded=False):
+        st.dataframe(pd.DataFrame({
+            "等級":   ["A+",    "A",         "B",         "C",        "D"],
+            "Cp/Cpk": ["≥1.67", "1.33–1.67", "1.00–1.33", "0.67–1.00","<0.67"],
+            "|Ca|":   ["<6.25%","6.25–12.5%","12.5–25%",  "25–50%",   ">50%"],
+            "判斷":   ["製程極佳","製程良好","製程尚可",   "能力不足", "能力極差"],
+            "建議":   ["可降低管制成本","繼續維持","加強管制","加強訓練","全面停機檢討"],
+        }), use_container_width=True, hide_index=True)
