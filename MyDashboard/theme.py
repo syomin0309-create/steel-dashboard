@@ -186,6 +186,36 @@ input[type="number"], input[type="text"], textarea {
 .sig-gray   { color: #94a3b8; }
 
 /* ── 隱藏頁腳 ────────────────────────────────────── */
+    /* ── File uploader 深色覆蓋 ─────────────────────────── */
+    [data-testid="stFileUploader"] > div,
+    [data-testid="stFileUploader"] > div > div,
+    [data-testid="stFileUploader"] > div > div > div {
+        background-color: #f0f9ff !important;
+        color: #0369a1 !important;
+    }
+    [data-testid="stFileDropzoneInstructions"],
+    [data-testid="stFileDropzoneInstructions"] div span {
+        color: #0369a1 !important;
+    }
+    [data-testid="stFileDropzoneInstructions"] div small {
+        color: #64748b !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] > div {
+        background-color: #f0f9ff !important;
+        border: 2px dashed #7dd3fc !important;
+        border-radius: 12px !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] button {
+        background-color: #0ea5e9 !important;
+        color: #ffffff !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+    [data-testid="uploadedFileData"],
+    [data-testid="uploadedFileName"] {
+        background: #ffffff !important;
+        color: #1e293b !important;
+    }
 footer { visibility: hidden !important; }
 </style>
 """
