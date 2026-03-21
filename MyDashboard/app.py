@@ -396,7 +396,7 @@ with tab1:
                    linecolor=CHART_AXIS, showgrid=True),
         legend=dict(bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1,
                     font=dict(color=CHART_TEXT, size=13),
-                    orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                    showlegend=False),
         margin=dict(t=60, b=50, l=60, r=80)
     )
     st.plotly_chart(fig_line, use_container_width=True)
@@ -807,11 +807,7 @@ with tab2:
                 linecolor="#94a3b8", linewidth=1.5, gridwidth=0.8,
                 range=[0, y_max * 1.40]
             ),
-            legend=dict(
-                bgcolor="#ffffff", bordercolor="#e2e8f0", borderwidth=1,
-                font=dict(size=13, color=CHART_TEXT),
-                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
-            ),
+            showlegend=False,
             bargap=0.04, margin=dict(t=60, b=55, l=65, r=20)
         )
         st.plotly_chart(fig_h, use_container_width=True)
