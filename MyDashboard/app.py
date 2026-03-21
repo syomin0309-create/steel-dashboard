@@ -752,23 +752,24 @@ with tab2:
         label_y = y_top * 1.06   # 標籤固定位置（柱頂上方）
 
         # 線條設定：(x值, 顏色, dash樣式, 線寬, 標籤文字, 背景色)
+        # 用 paper 座標讓線延伸到圖表頂部，標籤固定在最上方
         lines_to_draw = []
         if is_both or is_lower:
-            lines_to_draw.append((lsl2,      "#ef4444", "solid",   3.0, f"LSL {lsl2:.{p}f}",      "#fee2e2"))
+            lines_to_draw.append((lsl2,      "#ef4444", "solid",   2.5, f"LSL {lsl2:.{p}f}",      "#fee2e2"))
         if show_mean2:
-            lines_to_draw.append((spc_mean,  "#059669", "dot",     3.0, f"平均 {spc_mean:.{p}f}",  "#d1fae5"))
+            lines_to_draw.append((spc_mean,  "#059669", "dot",     2.5, f"平均 {spc_mean:.{p}f}",  "#d1fae5"))
         if is_both and show_target2:
-            lines_to_draw.append((target2,   "#7c3aed", "dash",    3.0, f"目標 {target2:.{p}f}",   "#ede9fe"))
+            lines_to_draw.append((target2,   "#7c3aed", "dash",    2.5, f"目標 {target2:.{p}f}",   "#ede9fe"))
         if show_median2:
-            lines_to_draw.append((spc_median,"#0284c7", "dashdot", 3.0, f"中位 {spc_median:.{p}f}","#e0f2fe"))
+            lines_to_draw.append((spc_median,"#0284c7", "dashdot", 2.5, f"中位 {spc_median:.{p}f}","#e0f2fe"))
         if is_both or is_upper:
-            lines_to_draw.append((usl2,      "#ef4444", "solid",   3.0, f"USL {usl2:.{p}f}",      "#fee2e2"))
+            lines_to_draw.append((usl2,      "#ef4444", "solid",   2.5, f"USL {usl2:.{p}f}",      "#fee2e2"))
 
         for x_val, color, dash, width, label, bg in lines_to_draw:
-            # 垂直線 trace — hover 時自動浮到最上層（Plotly 原生行為）
+            # 線延伸到圖表最頂（y2 超出 y_top，由 yaxis range 控制）
             fig_h.add_trace(go.Scatter(
                 x=[x_val, x_val],
-                y=[0, label_y * 0.97],
+                y=[0, y_top * 1.38],
                 mode="lines",
                 line=dict(color=color, width=width, dash=dash),
                 name=label,
@@ -780,16 +781,16 @@ with tab2:
                 ),
                 showlegend=False
             ))
-            # 頂部帶框標籤（永遠顯示，hover 時跟著線浮到最前）
+            # 標籤固定在圖表最頂端（paper 座標）
             fig_h.add_annotation(
-                x=x_val, y=label_y,
+                x=x_val, y=1.0,
+                xref="x", yref="paper",
                 text=f"<b>{label}</b>",
                 font=dict(color=color, size=11),
                 bgcolor=bg,
                 bordercolor=color, borderwidth=1.5, borderpad=4,
                 showarrow=False,
-                yanchor="bottom", xanchor="center",
-                yref="y", xref="x"
+                yanchor="top", xanchor="center"
             )
 
 
