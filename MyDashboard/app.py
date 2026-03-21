@@ -684,56 +684,103 @@ with tab2:
             idx = max(0, min(bins-1, int((v - amin) / step_h)))
             counts[idx] += 1
 
-        bar_colors = []
+        # 柱子顏色（加深 + 外框）
+        bar_colors, bar_borders = [], []
         for i in range(bins):
             out = False
             if is_both or is_lower: out = out or (edges[i+1] <= lsl2)
             if is_both or is_upper: out = out or (edges[i]   >= usl2)
-            bar_colors.append(CHART_OUTLIER if out else CHART_NORMAL)
+            if out:
+                bar_colors.append("rgba(239,68,68,0.80)")
+                bar_borders.append("#dc2626")
+            else:
+                bar_colors.append("rgba(59,130,246,0.75)")
+                bar_borders.append("#2563eb")
 
         bar_x = [(edges[i]+edges[i+1])/2 for i in range(bins)]
         fig_h = go.Figure()
         fig_h.add_trace(go.Bar(
-            x=bar_x, y=counts, width=[step_h*0.98]*bins,
-            marker=dict(color=bar_colors, line=dict(width=0.5, color=CHART_GRID)),
+            x=bar_x, y=counts, width=[step_h*0.92]*bins,
+            marker=dict(
+                color=bar_colors,
+                line=dict(width=1.2, color=bar_borders)
+            ),
             name="分布",
             hovertemplate=f"區間: %{{x:.{p}f}}<br>次數: %{{y}}<extra></extra>"
         ))
+
         if spc_std > 0 and show_curve2:
             xc = np.linspace(amin, amax, 300)
             yc = (1/(spc_std*np.sqrt(2*np.pi))) * np.exp(-0.5*((xc-spc_mean)/spc_std)**2)
             fig_h.add_trace(go.Scatter(
                 x=xc, y=yc*spc_n*step_h, mode='lines',
-                line=dict(color=CHART_CURVE, width=2.5), name='常態曲線'
+                line=dict(color="#0ea5e9", width=3), name='常態曲線'
             ))
 
-        spec_lines = []
-        if is_both or is_lower: spec_lines.append((lsl2, f"LSL:{lsl2:.{p}f}", "#ef4444", "solid"))
-        if is_both or is_upper: spec_lines.append((usl2, f"USL:{usl2:.{p}f}", "#ef4444", "solid"))
-        if is_both and show_target2: spec_lines.append((target2, f"Target:{target2:.{p}f}", "#7c3aed", "dash"))
-        if show_mean2:   spec_lines.append((spc_mean,   f"X̄:{spc_mean:.{p}f}",     CHART_AVG, "dot"))
-        if show_median2: spec_lines.append((spc_median, f"Med:{spc_median:.{p}f}", "#94a3b8", "dashdot"))
+        # ── 規格線（加粗，標籤改用旗幟位置避免重疊）──
+        y_max = max(counts) if counts else 1
 
-        for xv, lb, cl, dk in spec_lines:
-            fig_h.add_vline(x=xv, line_dash=dk, line_color=cl, line_width=2,
-                annotation=dict(text=lb, font=dict(color=cl, size=12),
-                    bgcolor=CHART_BG, bordercolor=cl, borderwidth=1, borderpad=4))
+        if is_both or is_lower:
+            fig_h.add_vline(x=lsl2, line_color="#ef4444", line_width=2.5, line_dash="solid")
+            fig_h.add_annotation(x=lsl2, y=y_max*1.02, text=f"LSL<br>{lsl2:.{p}f}",
+                font=dict(color="#ef4444", size=12, weight=700),
+                bgcolor="#fee2e2", bordercolor="#ef4444", borderwidth=1.5,
+                borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
+
+        if is_both or is_upper:
+            fig_h.add_vline(x=usl2, line_color="#ef4444", line_width=2.5, line_dash="solid")
+            fig_h.add_annotation(x=usl2, y=y_max*1.02, text=f"USL<br>{usl2:.{p}f}",
+                font=dict(color="#ef4444", size=12, weight=700),
+                bgcolor="#fee2e2", bordercolor="#ef4444", borderwidth=1.5,
+                borderpad=4, showarrow=False, yanchor="bottom", xanchor="center")
+
+        if is_both and show_target2:
+            fig_h.add_vline(x=target2, line_color="#7c3aed", line_width=2, line_dash="dash")
+            fig_h.add_annotation(x=target2, y=y_max*0.72, text=f"Target<br>{target2:.{p}f}",
+                font=dict(color="#7c3aed", size=11),
+                bgcolor="#ede9fe", bordercolor="#7c3aed", borderwidth=1,
+                borderpad=3, showarrow=True, arrowcolor="#7c3aed",
+                arrowsize=0.6, ax=28, ay=0, yanchor="middle", xanchor="left")
+
+        if show_mean2:
+            fig_h.add_vline(x=spc_mean, line_color="#10b981", line_width=2.2, line_dash="dot")
+            fig_h.add_annotation(x=spc_mean, y=y_max*0.88, text=f"X̄  {spc_mean:.{p}f}",
+                font=dict(color="#10b981", size=11, weight=700),
+                bgcolor="#d1fae5", bordercolor="#10b981", borderwidth=1,
+                borderpad=3, showarrow=True, arrowcolor="#10b981",
+                arrowsize=0.6, ax=-30, ay=0, yanchor="middle", xanchor="right")
+
+        if show_median2:
+            fig_h.add_vline(x=spc_median, line_color="#94a3b8", line_width=1.8, line_dash="dashdot")
+            fig_h.add_annotation(x=spc_median, y=y_max*0.55, text=f"Med {spc_median:.{p}f}",
+                font=dict(color="#64748b", size=11),
+                bgcolor="#f1f5f9", bordercolor="#94a3b8", borderwidth=1,
+                borderpad=3, showarrow=True, arrowcolor="#94a3b8",
+                arrowsize=0.6, ax=28, ay=0, yanchor="middle", xanchor="left")
 
         fig_h.update_layout(
             template="simple_white",
-            plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
+            plot_bgcolor="#fafafa", paper_bgcolor=CHART_BG,
             title=dict(text=f"【{selected_param}】 直方圖 · 常態分佈",
                 font=dict(color=CHART_TEXT, size=16), x=0),
-            height=420, font=dict(color=CHART_TEXT, size=14),
-            xaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=13),
-                       title=dict(text=selected_param, font=dict(color="#64748b", size=14)),
-                       linecolor=CHART_AXIS, showgrid=False),
-            yaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=13),
-                       title=dict(text="次數", font=dict(color="#64748b", size=14)),
-                       linecolor=CHART_AXIS),
-            legend=dict(bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1,
-                font=dict(size=13, color=CHART_TEXT)),
-            bargap=0, margin=dict(t=60, b=55, l=60, r=20)
+            height=440, font=dict(color=CHART_TEXT, size=14),
+            xaxis=dict(
+                gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=13),
+                title=dict(text=selected_param, font=dict(color="#64748b", size=14)),
+                linecolor="#94a3b8", linewidth=1.5, showgrid=True,
+                gridwidth=0.8, zeroline=False
+            ),
+            yaxis=dict(
+                gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=13),
+                title=dict(text="次數 (Frequency)", font=dict(color="#64748b", size=14)),
+                linecolor="#94a3b8", linewidth=1.5, gridwidth=0.8
+            ),
+            legend=dict(
+                bgcolor="#ffffff", bordercolor="#e2e8f0", borderwidth=1,
+                font=dict(size=13, color=CHART_TEXT),
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+            ),
+            bargap=0.04, margin=dict(t=80, b=55, l=65, r=20)
         )
         st.plotly_chart(fig_h, use_container_width=True)
 
