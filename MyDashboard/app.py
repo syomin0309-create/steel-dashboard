@@ -785,15 +785,14 @@ with tab2:
             ))
             # 標籤固定在圖表最頂端（paper 座標）
             fig_h.add_annotation(
-                x=x_val, y=1.0,
+                x=x_val, y=1.01,
                 xref="x", yref="paper",
                 text=f"<b>{label}</b>",
                 font=dict(color=color, size=11),
                 bgcolor=bg,
                 bordercolor=color, borderwidth=1.5, borderpad=4,
                 showarrow=False,
-                yanchor="bottom", xanchor="center",
-                y=1.01
+                yanchor="bottom", xanchor="center"
             )
 
 
