@@ -587,86 +587,77 @@ with tab2:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Row 1：4 KPI 卡（全寬）────────────────────────
-    k1, k2, k3, k4 = st.columns(4)
-    k1.markdown(f"""
-    <div style="background:#e0f2fe;border:1px solid #bae6fd;border-radius:12px;
-        padding:16px;border-top:4px solid #0ea5e9;">
-      <div style="font-size:11px;color:#0369a1;font-weight:700;letter-spacing:1px;
-          text-transform:uppercase;margin-bottom:8px;">標準差 σ</div>
-      <div style="font-size:28px;font-weight:700;color:#0f172a;line-height:1.1;">{spc_std:.3f}</div>
-      <div style="font-size:13px;color:#0284c7;margin-top:6px;">變異係數 {spc_cv:.1f}%</div>
-    </div>""", unsafe_allow_html=True)
-
-    _ca_bg = _light_bg(ca_c)
-    k2.markdown(f"""
-    <div style="background:{_ca_bg};border:1px solid {ca_c}40;border-radius:12px;
-        padding:16px;border-top:4px solid {ca_c};">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:13px;color:{ca_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Ca 準確度</span>
-        <span style="font-size:13px;font-weight:700;color:#fff;background:{ca_c};
-            border-radius:4px;padding:2px 8px;">{ca_g}</span>
+    # ── Row 1：統計摘要 6 欄（全寬）──────────────────
+    st.markdown(f"""
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);background:#fff;
+        border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:14px;">
+      <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
+        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">樣本數 (N)</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_n:,}</div>
       </div>
-      <div style="font-size:28px;font-weight:700;color:{ca_c};line-height:1.1;">
-          {f"{abs(ca2):.1f}%" if ca2 is not None else "N/A"}</div>
-      <div style="font-size:15px;color:{ca_c};opacity:0.9;margin-top:6px;">{ca_d}</div>
-    </div>""", unsafe_allow_html=True)
-
-    _cp_bg = _light_bg(cp_c)
-    k3.markdown(f"""
-    <div style="background:{_cp_bg};border:1px solid {cp_c}40;border-radius:12px;
-        padding:16px;border-top:4px solid {cp_c};">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:13px;color:{cp_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cp 精密度</span>
-        <span style="font-size:13px;font-weight:700;color:#fff;background:{cp_c};
-            border-radius:4px;padding:2px 8px;">{cp_g}</span>
+      <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
+        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">平均值 (MEAN)</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_mean:.{{int(spc_prec)}}f}</div>
       </div>
-      <div style="font-size:28px;font-weight:700;color:{cp_c};line-height:1.1;">{cp2:.3f}</div>
-      <div style="font-size:15px;color:{cp_c};opacity:0.9;margin-top:6px;">{cp_d}</div>
+      <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
+        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">中位數 (MED)</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_median:.{{int(spc_prec)}}f}</div>
+      </div>
+      <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
+        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">標準差 (STD)</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_std:.{{int(spc_prec)}}f}</div>
+      </div>
+      <div style="padding:14px 16px;text-align:center;border-right:1px solid #e2e8f0;">
+        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最小值 (MIN)</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_min:.{{int(spc_prec)}}f}</div>
+      </div>
+      <div style="padding:14px 16px;text-align:center;">
+        <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最大值 (MAX)</div>
+        <div style="font-size:22px;font-weight:700;color:#0f172a;">{spc_max:.{{int(spc_prec)}}f}</div>
+      </div>
     </div>""", unsafe_allow_html=True)
 
+    # ── Row 2：3 大卡片 Ca / Cp / Cpk（全寬）─────────
+    _ca_bg  = _light_bg(ca_c)
+    _cp_bg  = _light_bg(cp_c)
     _cpk_bg = _light_bg(cpk_c)
+
+    k2, k3, k4 = st.columns(3)
+
+    k2.markdown(f"""
+    <div style="background:{_ca_bg};border:1px solid {ca_c}40;border-radius:14px;
+        padding:22px 24px;border-top:5px solid {ca_c};text-align:center;">
+      <div style="font-size:15px;font-weight:700;color:{ca_c};letter-spacing:1px;
+          text-transform:uppercase;margin-bottom:10px;">Ca（準確度）</div>
+      <div style="font-size:42px;font-weight:800;color:{ca_c};line-height:1.1;margin-bottom:10px;">
+          {{f"{abs(ca2):.2f}%" if ca2 is not None else "N/A"}}</div>
+      <div style="display:inline-block;font-size:14px;font-weight:700;color:#fff;
+          background:{ca_c};border-radius:20px;padding:4px 18px;">{ca_g}　{ca_d}</div>
+    </div>""", unsafe_allow_html=True)
+
+    k3.markdown(f"""
+    <div style="background:{_cp_bg};border:1px solid {cp_c}40;border-radius:14px;
+        padding:22px 24px;border-top:5px solid {cp_c};text-align:center;">
+      <div style="font-size:15px;font-weight:700;color:{cp_c};letter-spacing:1px;
+          text-transform:uppercase;margin-bottom:10px;">Cp（精密度）</div>
+      <div style="font-size:42px;font-weight:800;color:{cp_c};line-height:1.1;margin-bottom:10px;">{cp2:.3f}</div>
+      <div style="display:inline-block;font-size:14px;font-weight:700;color:#fff;
+          background:{cp_c};border-radius:20px;padding:4px 18px;">{cp_g}　{cp_d}</div>
+    </div>""", unsafe_allow_html=True)
+
     k4.markdown(f"""
-    <div style="background:{_cpk_bg};border:1px solid {cpk_c}40;border-radius:12px;
-        padding:16px;border-top:4px solid {cpk_c};">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:13px;color:{cpk_c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">Cpk 製程能力</span>
-        <span style="font-size:13px;font-weight:700;color:#fff;background:{cpk_c};
-            border-radius:4px;padding:2px 8px;">{cpk_g}</span>
-      </div>
-      <div style="font-size:28px;font-weight:700;color:{cpk_c};line-height:1.1;">{cpk2:.3f}</div>
-      <div style="font-size:15px;color:{cpk_c};opacity:0.9;margin-top:6px;">{cpk_d}</div>
+    <div style="background:{_cpk_bg};border:1px solid {cpk_c}40;border-radius:14px;
+        padding:22px 24px;border-top:5px solid {cpk_c};text-align:center;">
+      <div style="font-size:15px;font-weight:700;color:{cpk_c};letter-spacing:1px;
+          text-transform:uppercase;margin-bottom:10px;">Cpk（製程能力）</div>
+      <div style="font-size:42px;font-weight:800;color:{cpk_c};line-height:1.1;margin-bottom:10px;">{cpk2:.3f}</div>
+      <div style="display:inline-block;font-size:14px;font-weight:700;color:#fff;
+          background:{cpk_c};border-radius:20px;padding:4px 18px;">{cpk_g}　{cpk_d}</div>
     </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Row 2：統計摘要（全寬）───────────────────────
-    st.markdown(f"""
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);background:#fff;
-        border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:16px;">
-      <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
-        <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">平均值 X̄</div>
-        <div style="font-size:20px;font-weight:700;color:#0f172a;">{spc_mean:.{int(spc_prec)}f}</div>
-      </div>
-      <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
-        <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">中位數</div>
-        <div style="font-size:20px;font-weight:700;color:#0f172a;">{spc_median:.{int(spc_prec)}f}</div>
-      </div>
-      <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
-        <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">標準差 σ</div>
-        <div style="font-size:20px;font-weight:700;color:#0f172a;">{spc_std:.{int(spc_prec)}f}</div>
-      </div>
-      <div style="padding:12px 16px;text-align:center;border-right:1px solid #f1f5f9;">
-        <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最小值</div>
-        <div style="font-size:20px;font-weight:700;color:#0f172a;">{spc_min:.{int(spc_prec)}f}</div>
-      </div>
-      <div style="padding:12px 16px;text-align:center;">
-        <div style="font-size:13px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">最大值</div>
-        <div style="font-size:20px;font-weight:700;color:#0f172a;">{spc_max:.{int(spc_prec)}f}</div>
-      </div>
-    </div>""", unsafe_allow_html=True)
-
-    # ── Row 3：60/40 主圖表區 ────────────────────────
+        # ── Row 3：60/40 主圖表區 ────────────────────────
     col_main, col_side = st.columns([1.5, 1])
 
     with col_main:
