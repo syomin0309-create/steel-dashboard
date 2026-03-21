@@ -91,6 +91,7 @@ if _logo_path:
     try:
         with open(_logo_path, "rb") as f:
             img_b64 = base64.b64encode(f.read()).decode()
+        mime = "image/svg+xml" if _logo_path.endswith(".svg") else "image/png"    
         st.markdown(f"""
 <style>
 .glowing-logo {{
@@ -100,7 +101,7 @@ if _logo_path:
 }}
 .glowing-logo:hover {{ opacity:1; transform:scale(1.1) translateY(-4px); }}
 </style>
-<img src="data:image/png;base64,{img_b64}" class="glowing-logo">
+<img src="data:{mime};base64,{img_b64}" class="glowing-logo">
 """, unsafe_allow_html=True)
     except Exception:
         pass
