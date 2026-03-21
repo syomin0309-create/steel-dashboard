@@ -827,13 +827,13 @@ with tab2:
           <div style="font-size:52px;font-weight:800;color:{yield_color};line-height:1;">{yield2:.1f}%</div>
           <div style="font-size:16px;color:#94a3b8;margin:8px 0 18px;">良品率</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;">
-              <div style="font-size:24px;font-weight:800;color:#10b981;">{in2:,}</div>
-              <div style="font-size:14px;font-weight:600;color:#64748b;margin-top:5px;">符合規格</div>
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:18px;">
+              <div style="font-size:30px;font-weight:800;color:#10b981;">{in2:,}</div>
+              <div style="font-size:15px;font-weight:600;color:#64748b;margin-top:6px;">符合規格</div>
             </div>
-            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;">
-              <div style="font-size:24px;font-weight:800;color:#ef4444;">{out_usl2+out_lsl2:,}</div>
-              <div style="font-size:14px;font-weight:600;color:#64748b;margin-top:5px;">規格外</div>
+            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:18px;">
+              <div style="font-size:30px;font-weight:800;color:#ef4444;">{out_usl2+out_lsl2:,}</div>
+              <div style="font-size:15px;font-weight:600;color:#64748b;margin-top:6px;">規格外</div>
             </div>
           </div>
         </div>""", unsafe_allow_html=True)
@@ -845,34 +845,34 @@ with tab2:
               letter-spacing:1px;margin-bottom:14px;">等級說明</div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:#d1fae5;
+              <div style="width:36px;height:36px;border-radius:50%;background:#d1fae5;
                   display:flex;align-items:center;justify-content:center;
-                  font-size:12px;font-weight:700;color:#059669;flex-shrink:0;">A+</div>
-              <div style="font-size:15px;font-weight:600;color:#1e293b;">Cpk ≥ 1.67　<span style="font-weight:400;color:#64748b;">精密度極佳</span></div>
+                  font-size:13px;font-weight:700;color:#059669;flex-shrink:0;">A+</div>
+              <div style="font-size:17px;font-weight:600;color:#1e293b;">Cpk ≥ 1.67　<span style="font-weight:400;font-size:16px;color:#64748b;">精密度極佳</span></div>
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:#d1fae5;
+              <div style="width:36px;height:36px;border-radius:50%;background:#d1fae5;
                   display:flex;align-items:center;justify-content:center;
-                  font-size:12px;font-weight:700;color:#10b981;flex-shrink:0;">A</div>
-              <div style="font-size:15px;font-weight:600;color:#1e293b;">1.33 – 1.67　<span style="font-weight:400;color:#64748b;">精密度良好</span></div>
+                  font-size:13px;font-weight:700;color:#10b981;flex-shrink:0;">A</div>
+              <div style="font-size:17px;font-weight:600;color:#1e293b;">1.33 – 1.67　<span style="font-weight:400;font-size:16px;color:#64748b;">精密度良好</span></div>
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:#fef9c3;
+              <div style="width:36px;height:36px;border-radius:50%;background:#fef9c3;
                   display:flex;align-items:center;justify-content:center;
-                  font-size:12px;font-weight:700;color:#b45309;flex-shrink:0;">B</div>
-              <div style="font-size:15px;font-weight:600;color:#1e293b;">1.00 – 1.33　<span style="font-weight:400;color:#64748b;">尚可管制</span></div>
+                  font-size:13px;font-weight:700;color:#b45309;flex-shrink:0;">B</div>
+              <div style="font-size:17px;font-weight:600;color:#1e293b;">1.00 – 1.33　<span style="font-weight:400;font-size:16px;color:#64748b;">尚可管制</span></div>
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:#ffedd5;
+              <div style="width:36px;height:36px;border-radius:50%;background:#ffedd5;
                   display:flex;align-items:center;justify-content:center;
-                  font-size:12px;font-weight:700;color:#c2410c;flex-shrink:0;">C</div>
-              <div style="font-size:15px;font-weight:600;color:#1e293b;">0.67 – 1.00　<span style="font-weight:400;color:#64748b;">能力不足</span></div>
+                  font-size:13px;font-weight:700;color:#c2410c;flex-shrink:0;">C</div>
+              <div style="font-size:17px;font-weight:600;color:#1e293b;">0.67 – 1.00　<span style="font-weight:400;font-size:16px;color:#64748b;">能力不足</span></div>
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:#fee2e2;
+              <div style="width:36px;height:36px;border-radius:50%;background:#fee2e2;
                   display:flex;align-items:center;justify-content:center;
-                  font-size:12px;font-weight:700;color:#b91c1c;flex-shrink:0;">D</div>
-              <div style="font-size:15px;font-weight:600;color:#1e293b;">&lt; 0.67　<span style="font-weight:400;color:#64748b;">能力極差</span></div>
+                  font-size:13px;font-weight:700;color:#b91c1c;flex-shrink:0;">D</div>
+              <div style="font-size:17px;font-weight:600;color:#1e293b;">&lt; 0.67　<span style="font-weight:400;font-size:16px;color:#64748b;">能力極差</span></div>
             </div>
           </div>
         </div>""", unsafe_allow_html=True)
