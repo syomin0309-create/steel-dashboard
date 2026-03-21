@@ -477,11 +477,13 @@ with tab2:
     left_col, right_col = st.columns([1, 2.5])
 
     with left_col:
+        # ── 基本設定區塊 ──────────────────────────────
         st.markdown("""
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-          <div style="width:4px;height:18px;background:#0ea5e9;border-radius:2px;"></div>
-          <span style="font-size:13px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;">基本設定</span>
-        </div>
+        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+            <div style="width:3px;height:16px;background:#0ea5e9;"></div>
+            <span style="font-size:12px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;">基本設定</span>
+          </div>
         """, unsafe_allow_html=True)
 
         spec_type = st.selectbox(
@@ -489,39 +491,97 @@ with tab2:
             ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)"],
             key=f"spc_spectype_{file_key}"
         )
-        col_bins, col_prec = st.columns(2)
-        with col_bins:
-            spc_bins = st.number_input("組距 Bins", value=12, min_value=5, max_value=50,
-                                        key=f"spc_bins_{selected_param}")
-        with col_prec:
-            spc_prec = st.number_input("小數位數", value=3, min_value=0, max_value=6,
-                                        key=f"spc_prec_{selected_param}")
 
+        # 組距：滑桿
+        st.markdown("""
+        <div style="font-size:13px;font-weight:600;color:#475569;margin-top:10px;margin-bottom:2px;">
+            組距 Bins
+        </div>""", unsafe_allow_html=True)
+        spc_bins = st.slider("", min_value=5, max_value=30, value=12,
+                             key=f"spc_bins_{selected_param}",
+                             label_visibility="collapsed")
+
+        # 小數位數：滑桿
+        st.markdown("""
+        <div style="font-size:13px;font-weight:600;color:#475569;margin-top:4px;margin-bottom:2px;">
+            小數位數
+        </div>""", unsafe_allow_html=True)
+        spc_prec = st.slider("", min_value=0, max_value=6, value=3,
+                             key=f"spc_prec_{selected_param}",
+                             label_visibility="collapsed")
+
+        st.markdown("<div style='margin-top:4px;'>", unsafe_allow_html=True)
         show_mean2   = st.toggle("顯示平均值線", value=True,  key=f"spc_mean_{selected_param}")
         show_curve2  = st.toggle("顯示常態曲線", value=True,  key=f"spc_curve_{selected_param}")
         show_median2 = st.toggle("顯示中位數線", value=False, key=f"spc_med_{selected_param}")
         show_target2 = st.toggle("顯示目標值線", value=True,  key=f"spc_tgt_{selected_param}")
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
-        st.markdown("---")
-
+        # ── 規格設定區塊 ──────────────────────────────
         st.markdown("""
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-          <div style="width:4px;height:18px;background:#0ea5e9;border-radius:2px;"></div>
-          <span style="font-size:13px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;">規格設定</span>
-        </div>
+        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+            <div style="width:3px;height:16px;background:#0ea5e9;"></div>
+            <span style="font-size:12px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;">規格設定</span>
+          </div>
         """, unsafe_allow_html=True)
 
         is_both  = "雙邊" in spec_type
         is_upper = "上限" in spec_type
         is_lower = "下限" in spec_type
 
-        lsl2 = st.number_input("LSL 規格下限", value=float(spc_mean - 4*spc_std),
-                                key=f"spc_lsl_{selected_param}", disabled=is_upper)
-        usl2 = st.number_input("USL 規格上限", value=float(spc_mean + 4*spc_std),
-                                key=f"spc_usl_{selected_param}", disabled=is_lower)
-        target2 = st.number_input("Target 中心值",
-                                   value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
-                                   key=f"spc_target_{selected_param}", disabled=(not is_both))
+        lsl2 = st.number_input(
+            "LSL　規格下限",
+            value=float(spc_mean - 4*spc_std),
+            key=f"spc_lsl_{selected_param}",
+            disabled=is_upper,
+            format="%.3f"
+        )
+        usl2 = st.number_input(
+            "USL　規格上限",
+            value=float(spc_mean + 4*spc_std),
+            key=f"spc_usl_{selected_param}",
+            disabled=is_lower,
+            format="%.3f"
+        )
+        target2 = st.number_input(
+            "Target　中心值",
+            value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
+            key=f"spc_target_{selected_param}",
+            disabled=(not is_both),
+            format="%.3f"
+        )
+
+        # 規格範圍視覺化色條
+        if not is_upper and not is_lower and usl2 > lsl2:
+            total = usl2 - lsl2
+            tgt_pct = int((target2 - lsl2) / total * 100) if total > 0 else 50
+            tgt_pct = max(5, min(95, tgt_pct))
+            st.markdown(f"""
+            <div style="margin-top:12px;background:#f8fafc;border:1px solid #e2e8f0;
+                border-radius:8px;padding:10px 12px;">
+              <div style="font-size:11px;color:#94a3b8;font-weight:600;
+                  text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">規格範圍</div>
+              <div style="position:relative;height:6px;background:#e2e8f0;border-radius:3px;margin:0 4px;">
+                <div style="position:absolute;left:0;right:0;height:100%;
+                    background:rgba(14,165,233,0.25);border-radius:3px;"></div>
+                <div style="position:absolute;left:0;width:2px;height:180%;top:-40%;
+                    background:#ef4444;border-radius:1px;"></div>
+                <div style="position:absolute;right:0;width:2px;height:180%;top:-40%;
+                    background:#ef4444;border-radius:1px;"></div>
+                <div style="position:absolute;left:{tgt_pct}%;width:2px;height:180%;top:-40%;
+                    transform:translateX(-50%);background:#7c3aed;border-radius:1px;"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;
+                  margin-top:6px;font-size:10px;">
+                <span style="color:#ef4444;font-weight:600;">LSL {lsl2:.2f}</span>
+                <span style="color:#7c3aed;font-weight:600;">T {target2:.2f}</span>
+                <span style="color:#ef4444;font-weight:600;">USL {usl2:.2f}</span>
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with right_col:
 
