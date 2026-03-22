@@ -159,8 +159,14 @@ else:
 
 # ── 側邊欄篩選器 ─────────────────────────────────────
 with st.sidebar:
-    st.subheader("🎯 智能連動篩選器")
-    st.caption("💡 條件即時連動，支援跨月多選")
+    st.markdown("""
+    <div style="margin-bottom:8px;">
+      <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:4px;">
+        🎯 智能連動篩選器
+      </div>
+      <div style="font-size:13px;color:#64748b;">💡 條件即時連動，支援跨月多選</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     file_key = uploaded_file.name
 
