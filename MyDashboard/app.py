@@ -117,10 +117,10 @@ if _logo_path:
 
 with st.sidebar:
     st.header("⚙️ 儀表板控制中心")
-    uploaded_file = st.file_uploader("📂 上傳產線 RAW DATA", type=["xlsx", "csv"])
+    uploaded_file = st.file_uploader("上傳產線 RAW DATA", type=["xlsx", "csv"])
     st.markdown("---")
     if uploaded_file:
-        st.success("✅ 文件已加載")
+        st.success("文件已加載")
         st.caption(f"文件名：{uploaded_file.name}")
 
 
@@ -162,9 +162,9 @@ with st.sidebar:
     st.markdown("""
     <div style="margin-bottom:8px;">
       <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:4px;">
-        🎯 智能連動篩選器
+        智能連動篩選器
       </div>
-      <div style="font-size:13px;color:#64748b;">💡 條件即時連動，支援跨月多選</div>
+      <div style="font-size:13px;color:#64748b;">條件即時連動，支援跨月多選</div>
     </div>
     """, unsafe_allow_html=True)
 
