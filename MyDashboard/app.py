@@ -117,10 +117,10 @@ if _logo_path:
 
 with st.sidebar:
     st.header("⚙️ 儀表板控制中心")
-    uploaded_file = st.file_uploader("上傳產線 RAW DATA", type=["xlsx", "csv"])
+    uploaded_file = st.file_uploader("📂 上傳產線 RAW DATA", type=["xlsx", "csv"])
     st.markdown("---")
     if uploaded_file:
-        st.success("文件已加載")
+        st.success("✅ 文件已加載")
         st.caption(f"文件名：{uploaded_file.name}")
 
 
@@ -162,9 +162,9 @@ with st.sidebar:
     st.markdown("""
     <div style="margin-bottom:8px;">
       <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:4px;">
-        智能連動篩選器
+        🎯 智能連動篩選器
       </div>
-      <div style="font-size:13px;color:#64748b;">條件即時連動，支援跨月多選</div>
+      <div style="font-size:13px;color:#64748b;">💡 條件即時連動，支援跨月多選</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -182,22 +182,22 @@ with st.sidebar:
             return cur_df.copy()
         return cur_df[cur_df[col].astype(str) == val]
 
-    f_month = cascading_filter('生產年月',     df,   "生產年月")
+    f_month = cascading_filter('生產年月',     df,   "🗓️ 生產年月")
     df_f1   = apply_filter('生產年月',     df,   f_month)
 
-    f_thick = cascading_filter('訂單厚度',     df_f1, "訂單厚度")
+    f_thick = cascading_filter('訂單厚度',     df_f1, "📏 訂單厚度")
     df_f2   = apply_filter('訂單厚度',     df_f1, f_thick)
 
-    f_width = cascading_filter('訂單寬度',     df_f2, "訂單寬度")
+    f_width = cascading_filter('訂單寬度',     df_f2, "↔️ 訂單寬度")
     df_f3   = apply_filter('訂單寬度',     df_f2, f_width)
 
-    f_mat   = cascading_filter('熱軋材質',     df_f3, "熱軋材質")
+    f_mat   = cascading_filter('熱軋材質',     df_f3, "🪨 熱軋材質")
     df_f4   = apply_filter('熱軋材質',     df_f3, f_mat)
 
-    f_spec  = cascading_filter('產品規格代碼', df_f4, "產品規格代碼")
+    f_spec  = cascading_filter('產品規格代碼', df_f4, "📋 產品規格代碼")
     df_f5   = apply_filter('產品規格代碼', df_f4, f_spec)
 
-    f_coat  = cascading_filter('上鍍層',       df_f5, "上鍍層")
+    f_coat  = cascading_filter('上鍍層',       df_f5, "🔩 上鍍層")
     filtered_df = apply_filter('上鍍層',       df_f5, f_coat)
 
 if filtered_df.empty:
