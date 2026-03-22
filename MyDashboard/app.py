@@ -375,6 +375,40 @@ with tab1:
     fig_line = go.Figure()
     month_palette = px.colors.qualitative.Bold
 
+    # ── 月份色帶背景 ────────────────────────────────
+    if months_list and x_col:
+        band_colors = ["rgba(248,250,252,0.8)", "rgba(255,255,255,0)"]
+        for i, month in enumerate(months_list):
+            m_df = plot_df[plot_df['生產年月'] == month]
+            if m_df.empty:
+                continue
+            x_vals = m_df[x_col].tolist()
+            x0, x1 = x_vals[0], x_vals[-1]
+            fig_line.add_vrect(
+                x0=x0, x1=x1,
+                fillcolor=band_colors[i % 2],
+                line_width=0, layer="below"
+            )
+            # 月份分隔虛線（除第一個月）
+            if i > 0:
+                fig_line.add_vline(
+                    x=x0, line_color="#cbd5e1",
+                    line_width=1, line_dash="dot"
+                )
+            # 月份標籤（頂部）
+            is_active = (selected_month == month or selected_month == "全部")
+            fig_line.add_annotation(
+                x=x_vals[len(x_vals)//2],
+                y=1.0, yref="paper",
+                text=f"<b>{month}</b>" if is_active and selected_month == month else month,
+                font=dict(
+                    color="#0ea5e9" if selected_month == month else "#94a3b8",
+                    size=12,
+                    weight=700 if selected_month == month else 400
+                ),
+                showarrow=False, yanchor="bottom", xanchor="center"
+            )
+
     for i, month in enumerate(months_list if months_list else ["全部"]):
         m_df = plot_df[plot_df['生產年月'] == month] if months_list else plot_df
         if m_df.empty:
@@ -384,25 +418,41 @@ with tab1:
         opacity = 1.0 if is_highlighted else 0.12
         color   = month_palette[i % len(month_palette)]
 
+        # hover 加入日期資訊
+        if '生產日期' in m_df.columns:
+            custom = m_df['生產日期'].astype(str).tolist()
+            hover = "<b>鋼捲號碼：%{x}</b><br>數值：%{y:.3f}<br>日期：%{customdata}<extra></extra>"
+        else:
+            custom = None
+            hover = "<b>鋼捲號碼：%{x}</b><br>數值：%{y:.3f}<extra></extra>"
+
         fig_line.add_trace(go.Scatter(
             x=x_data, y=m_df[selected_param],
             mode='lines+markers', name=month,
             line=dict(color=color, width=2.5 if is_highlighted else 1),
             marker=dict(size=7 if is_highlighted else 4, color=color, opacity=opacity),
             opacity=opacity, connectgaps=True,
-            hovertemplate="<b>%{x}</b><br>數值: %{y:.3f}<extra></extra>"
+            customdata=custom,
+            hovertemplate=hover
         ))
 
     if '試驗等級' in plot_df.columns:
         ab_df = plot_df[is_7b]
         if not ab_df.empty:
             x_ab = ab_df[x_col] if x_col else ab_df.index
+            if '生產日期' in ab_df.columns:
+                ab_custom = ab_df['生產日期'].astype(str).tolist()
+                ab_hover = "<b>鋼捲號碼：%{x}</b><br>7B 異常：%{y:.3f}<br>日期：%{customdata}<extra></extra>"
+            else:
+                ab_custom = None
+                ab_hover = "<b>鋼捲號碼：%{x}</b><br>7B 異常：%{y:.3f}<extra></extra>"
             fig_line.add_trace(go.Scatter(
                 x=x_ab, y=ab_df[selected_param],
                 mode='markers', name='異常 (7B)',
                 marker=dict(color='#FFD700', size=14, symbol='circle',
                             line=dict(color='#1e293b', width=1.5)),
-                hovertemplate="<b>%{x}</b><br>7B 異常: %{y:.3f}<extra></extra>"
+                customdata=ab_custom,
+                hovertemplate=ab_hover
             ))
 
     ucl = avg_val + 3 * std_val
