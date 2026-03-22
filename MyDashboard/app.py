@@ -303,9 +303,7 @@ c3.markdown(f"""
   <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
       letter-spacing:.8px;margin-bottom:8px;">良品率</div>
   <div style="font-size:26px;font-weight:800;color:#10b981;line-height:1.1;">{yield_rate:.1f}%</div>
-  <div style="margin-top:8px;height:5px;background:#bbf7d0;border-radius:3px;">
-    <div style="width:{yield_bar:.1f}%;height:100%;background:#10b981;border-radius:3px;"></div>
-  </div>
+  <div style="font-size:14px;color:#10b981;font-weight:600;margin-top:6px;">{"✓ 全數合格" if yield_rate == 100 else f"良品 {in2:,} 顆"}</div>
 </div>""", unsafe_allow_html=True)
 
 c4.markdown(f"""
