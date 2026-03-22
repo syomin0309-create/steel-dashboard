@@ -285,15 +285,6 @@ hr { border-color: #e2e8f0 !important; }
     color: #94a3b8 !important;
 }
 
-/* ══ Multiselect：隱藏手動輸入框 ═══════════════════════ */
-[data-testid="stMultiSelect"] input {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-}
-
 /* ══ Multiselect 標籤間距 ═══════════════════════════════ */
 [data-baseweb="tag"] {
     margin: 3px 4px 3px 0 !important;
