@@ -305,11 +305,11 @@ hr { border-color: #e2e8f0 !important; }
 [data-baseweb="tag"] [role="presentation"] {
     color: #0369a1 !important;
 }
-/* Multiselect 容器：flex wrap 讓 tag 換行排列 */
+/* Multiselect：tag 往右偏移避開輸入框 */
 [data-testid="stMultiSelect"] [data-baseweb="select"] > div:first-child {
     flex-wrap: wrap !important;
     gap: 4px !important;
-    padding: 6px 10px !important;
+    padding: 6px 10px 6px 36px !important;
     min-height: 42px !important;
 }
 /* 修正 label 被遮住問題 */
