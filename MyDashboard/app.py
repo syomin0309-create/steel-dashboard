@@ -179,18 +179,8 @@ with st.sidebar:
         k = f"filter_{file_key}_{col}"
         if k in st.session_state:
             st.session_state[k] = [x for x in st.session_state[k] if x in opts]
-        # 全選 / 清除 按鈕
-        ka = f"all_{file_key}_{col}"
-        kc = f"clr_{file_key}_{col}"
-        ba, bc = st.columns(2)
-        if ba.button("全選", key=ka, use_container_width=True):
-            st.session_state[k] = list(opts)
-            st.rerun()
-        if bc.button("清除", key=kc, use_container_width=True):
-            st.session_state[k] = []
-            st.rerun()
         return st.multiselect(label, options=opts, key=k,
-                              placeholder="選擇條件…")
+                              placeholder="點選篩選…")
 
     f_month  = cascading_filter('生產年月',      df,   "🗓️ 生產年月")
     df_f1 = df[df['生產年月'].astype(str).isin(f_month)] if f_month else df.copy()
