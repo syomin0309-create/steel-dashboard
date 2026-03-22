@@ -179,8 +179,15 @@ with st.sidebar:
         k = f"filter_{file_key}_{col}"
         if k in st.session_state:
             st.session_state[k] = [x for x in st.session_state[k] if x in opts]
-        return st.multiselect(label, options=opts, key=k,
-                              placeholder="點選篩選…")
+        # label 用 markdown 顯示，multiselect 本身隱藏 label
+        st.markdown(
+            f'<div style="font-size:14px;font-weight:600;color:#1e293b;'
+            f'margin-bottom:4px;margin-top:8px;">{label}</div>',
+            unsafe_allow_html=True
+        )
+        return st.multiselect("", options=opts, key=k,
+                              placeholder="點選篩選…",
+                              label_visibility="collapsed")
 
     f_month  = cascading_filter('生產年月',      df,   "🗓️ 生產年月")
     df_f1 = df[df['生產年月'].astype(str).isin(f_month)] if f_month else df.copy()
