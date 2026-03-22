@@ -393,7 +393,7 @@ def render_landing():
                 margin: 0 0 16px 0;
                 line-height: 1.2;
                 letter-spacing: -1px;
-            ">智能鋼捲<br>品質監控平台</h1>
+            ">鋼捲品質<br>異常分析平台</h1>
             <p style="
                 font-size: 17px;
                 color: #64748b;
