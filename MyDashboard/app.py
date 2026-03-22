@@ -377,7 +377,7 @@ with tab1:
 
     # ── 月份色帶背景 ────────────────────────────────
     if months_list and x_col:
-        band_colors = ["rgba(186,230,253,0.35)", "rgba(255,255,255,0)"]
+        band_colors = ["rgba(186,230,253,0.65)", "rgba(255,255,255,0)"]
         for i, month in enumerate(months_list):
             m_df = plot_df[plot_df['生產年月'] == month]
             if m_df.empty:
