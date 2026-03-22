@@ -309,7 +309,7 @@ hr { border-color: #e2e8f0 !important; }
 [data-testid="stMultiSelect"] [data-baseweb="select"] > div:first-child {
     flex-wrap: wrap !important;
     gap: 4px !important;
-    padding: 6px 10px 6px 36px !important;
+    padding: 6px 10px !important;
     min-height: 42px !important;
 }
 /* 修正 label 被遮住問題 */
