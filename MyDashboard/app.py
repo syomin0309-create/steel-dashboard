@@ -431,15 +431,20 @@ with tab1:
                    font=dict(color=CHART_TEXT, size=17), x=0),
         height=500, hovermode="closest",
         font=dict(color=CHART_TEXT, size=14),
-        xaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=14),
-                   title=dict(font=dict(color="#64748b", size=14)),
-                   linecolor=CHART_AXIS, showgrid=True),
+        xaxis=dict(
+            showticklabels=False,
+            showgrid=False,
+            showline=False,
+            zeroline=False,
+            title=dict(text="生產順序（依照時間 / 鋼捲號碼）",
+                       font=dict(color="#64748b", size=14))
+        ),
         yaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=14),
                    linecolor=CHART_AXIS, showgrid=True),
         legend=dict(bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1,
                     font=dict(color=CHART_TEXT, size=13),
-                    orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        margin=dict(t=60, b=50, l=60, r=80)
+                    orientation="h", yanchor="bottom", y=1.06, xanchor="right", x=1),
+        margin=dict(t=80, b=50, l=60, r=80)
     )
     st.plotly_chart(fig_line, use_container_width=True)
 
