@@ -276,16 +276,90 @@ abnormal_count = int(is_7b.sum())
 yield_rate = (len(plot_df) - abnormal_count) / len(plot_df) * 100 if len(plot_df) > 0 else 100.0
 months_count = plot_df['生產年月'].nunique() if '生產年月' in plot_df.columns else 0
 
-# ── 5 指標卡片 ──────────────────────────────────────
-c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("總鋼捲數",   f"{len(plot_df):,} 顆")
-c2.metric(f"平均值",    f"{avg_val:.3f}")
-c3.metric("異常品數量", f"{abnormal_count:,} 顆",
-          delta=f"{abnormal_count/len(plot_df)*100:.1f}%" if abnormal_count > 0 else "0%",
-          delta_color="inverse")
-c4.metric("涵蓋月份",   f"{months_count} 個月")
-c5.metric("良品率",     f"{yield_rate:.1f}%")
+# ── 頂部資訊列 ─────────────────────────────────────
+st.markdown(f"""
+<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;
+    padding:16px 24px;margin-bottom:14px;
+    display:flex;align-items:center;justify-content:space-between;">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div style="width:10px;height:10px;border-radius:50%;background:#10b981;
+        box-shadow:0 0 0 3px #d1fae5;flex-shrink:0;"></div>
+    <div>
+      <div style="font-size:17px;font-weight:700;color:#0f172a;">{uploaded_file.name}</div>
+      <div style="font-size:14px;color:#94a3b8;margin-top:2px;">共 {len(raw_df):,} 筆原始資料</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:28px;align-items:center;">
+    <div style="text-align:center;">
+      <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+          letter-spacing:.8px;margin-bottom:4px;">月份涵蓋</div>
+      <div style="font-size:20px;font-weight:800;color:#0ea5e9;">
+          {df['生產年月'].nunique() if '生產年月' in df.columns else '—'} 個月</div>
+    </div>
+    <div style="width:1px;height:36px;background:#e2e8f0;"></div>
+    <div style="text-align:center;">
+      <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+          letter-spacing:.8px;margin-bottom:4px;">可分析參數</div>
+      <div style="font-size:20px;font-weight:800;color:#0ea5e9;">{len(available_params)} 項</div>
+    </div>
+  </div>
+</div>""", unsafe_allow_html=True)
 
+# ── 5 指標卡片（統一字體）───────────────────────────
+abnormal_pct = abnormal_count / len(plot_df) * 100 if len(plot_df) > 0 else 0
+yield_bar    = min(yield_rate, 100)
+
+c1, c2, c3, c4, c5 = st.columns(5)
+
+c1.markdown(f"""
+<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+    padding:16px 18px;border-left:4px solid #0ea5e9;">
+  <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+      letter-spacing:.8px;margin-bottom:8px;">總鋼捲數</div>
+  <div style="font-size:26px;font-weight:800;color:#0f172a;line-height:1.1;">{len(plot_df):,}</div>
+  <div style="font-size:14px;color:#64748b;margin-top:6px;">顆</div>
+</div>""", unsafe_allow_html=True)
+
+c2.markdown(f"""
+<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+    padding:16px 18px;border-left:4px solid #0ea5e9;">
+  <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+      letter-spacing:.8px;margin-bottom:8px;">平均值</div>
+  <div style="font-size:26px;font-weight:800;color:#0f172a;line-height:1.1;">{avg_val:.3f}</div>
+  <div style="font-size:14px;color:#64748b;margin-top:6px;">{selected_param}</div>
+</div>""", unsafe_allow_html=True)
+
+c3.markdown(f"""
+<div style="background:#fffafa;border:1px solid #fecaca;border-radius:12px;
+    padding:16px 18px;border-left:4px solid #ef4444;">
+  <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+      letter-spacing:.8px;margin-bottom:8px;">異常品數量</div>
+  <div style="font-size:26px;font-weight:800;color:#ef4444;line-height:1.1;">{abnormal_count:,}</div>
+  <div style="font-size:14px;color:#ef4444;font-weight:600;margin-top:6px;">
+      {"↑ " + f"{abnormal_pct:.1f}%" if abnormal_count > 0 else "✓ 無異常"}</div>
+</div>""", unsafe_allow_html=True)
+
+c4.markdown(f"""
+<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+    padding:16px 18px;border-left:4px solid #0ea5e9;">
+  <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+      letter-spacing:.8px;margin-bottom:8px;">涵蓋月份</div>
+  <div style="font-size:26px;font-weight:800;color:#0f172a;line-height:1.1;">{months_count}</div>
+  <div style="font-size:14px;color:#64748b;margin-top:6px;">個月</div>
+</div>""", unsafe_allow_html=True)
+
+c5.markdown(f"""
+<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;
+    padding:16px 18px;border-left:4px solid #10b981;">
+  <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+      letter-spacing:.8px;margin-bottom:8px;">良品率</div>
+  <div style="font-size:26px;font-weight:800;color:#10b981;line-height:1.1;">{yield_rate:.1f}%</div>
+  <div style="margin-top:8px;height:5px;background:#bbf7d0;border-radius:3px;">
+    <div style="width:{yield_bar:.1f}%;height:100%;background:#10b981;border-radius:3px;"></div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
 st.markdown("---")
 
 # ══════════════════════════════════════════════════════
