@@ -277,7 +277,7 @@ st.markdown(f"""
 abnormal_pct = abnormal_count / len(plot_df) * 100 if len(plot_df) > 0 else 0
 yield_bar    = min(yield_rate, 100)
 
-c1, c2, c3, c4, c5 = st.columns(5)
+c1, c2, c3, c4 = st.columns(4)
 
 c1.markdown(f"""
 <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
@@ -298,25 +298,6 @@ c2.markdown(f"""
 </div>""", unsafe_allow_html=True)
 
 c3.markdown(f"""
-<div style="background:#fffafa;border:1px solid #fecaca;border-radius:12px;
-    padding:16px 18px;border-left:4px solid #ef4444;">
-  <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
-      letter-spacing:.8px;margin-bottom:8px;">異常品數量</div>
-  <div style="font-size:26px;font-weight:800;color:#ef4444;line-height:1.1;">{abnormal_count:,}</div>
-  <div style="font-size:14px;color:#ef4444;font-weight:600;margin-top:6px;">
-      {"↑ " + f"{abnormal_pct:.1f}%" if abnormal_count > 0 else "✓ 無異常"}</div>
-</div>""", unsafe_allow_html=True)
-
-c4.markdown(f"""
-<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;
-    padding:16px 18px;border-left:4px solid #0ea5e9;">
-  <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
-      letter-spacing:.8px;margin-bottom:8px;">涵蓋月份</div>
-  <div style="font-size:26px;font-weight:800;color:#0f172a;line-height:1.1;">{months_count}</div>
-  <div style="font-size:14px;color:#64748b;margin-top:6px;">個月</div>
-</div>""", unsafe_allow_html=True)
-
-c5.markdown(f"""
 <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;
     padding:16px 18px;border-left:4px solid #10b981;">
   <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
@@ -325,6 +306,16 @@ c5.markdown(f"""
   <div style="margin-top:8px;height:5px;background:#bbf7d0;border-radius:3px;">
     <div style="width:{yield_bar:.1f}%;height:100%;background:#10b981;border-radius:3px;"></div>
   </div>
+</div>""", unsafe_allow_html=True)
+
+c4.markdown(f"""
+<div style="background:#fffafa;border:1px solid #fecaca;border-radius:12px;
+    padding:16px 18px;border-left:4px solid #ef4444;">
+  <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+      letter-spacing:.8px;margin-bottom:8px;">異常品數量</div>
+  <div style="font-size:26px;font-weight:800;color:#ef4444;line-height:1.1;">{abnormal_count:,}</div>
+  <div style="font-size:14px;color:#ef4444;font-weight:600;margin-top:6px;">
+      {"↑ " + f"{abnormal_pct:.1f}%" if abnormal_count > 0 else "✓ 無異常"}</div>
 </div>""", unsafe_allow_html=True)
 
 st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
