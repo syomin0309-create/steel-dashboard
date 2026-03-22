@@ -292,24 +292,30 @@ hr { border-color: #e2e8f0 !important; }
     background-color: #e0f2fe !important;
     border: 1px solid #7dd3fc !important;
     padding: 3px 8px !important;
+    max-width: none !important;
+    overflow: visible !important;
 }
 [data-baseweb="tag"] span {
     color: #0369a1 !important;
     font-size: 13px !important;
     font-weight: 600 !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
 }
 [data-baseweb="tag"] [role="presentation"] {
     color: #0369a1 !important;
 }
-[data-baseweb="select"] [data-baseweb="tag"] + [data-baseweb="tag"] {
-    margin-left: 4px !important;
-}
-/* 修正 multiselect 容器讓標籤換行排列 */
+/* 修正 multiselect 容器：左側 padding 足夠讓第一個 tag 完整顯示 */
 [data-testid="stMultiSelect"] [data-baseweb="select"] > div:first-child {
     flex-wrap: wrap !important;
     gap: 4px !important;
-    padding: 6px 8px !important;
+    padding: 6px 10px 6px 10px !important;
     min-height: 42px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+}
+[data-testid="stMultiSelect"] [data-baseweb="select"] {
+    overflow: visible !important;
 }
 /* 修正 label 被遮住問題 */
 [data-testid="stMultiSelect"] label,
