@@ -218,38 +218,6 @@ if not available_params:
     st.warning("⚠️ 找不到可分析的數值欄位，請確認上傳的檔案內容。")
     st.stop()
 
-# ══════════════════════════════════════════════════════
-#  頂部資訊列
-# ══════════════════════════════════════════════════════
-st.markdown(f"""
-<div style="
-    display:flex; align-items:center; justify-content:space-between;
-    background:#ffffff; border:1px solid #e2e8f0; border-radius:12px;
-    padding:12px 24px; margin-bottom:20px;
-    box-shadow:0 1px 4px rgba(14,165,233,0.08);
-">
-    <div style="display:flex;align-items:center;gap:12px;">
-        <div style="width:8px;height:8px;border-radius:50%;background:#10b981;
-            box-shadow:0 0 6px #10b981;"></div>
-        <span style="font-size:17px;font-weight:700;color:#0f172a;">
-            {uploaded_file.name}
-        </span>
-        <span style="font-size:13px;color:#64748b;">
-            共 {len(raw_df):,} 筆原始資料
-        </span>
-    </div>
-    <div style="display:flex;gap:16px;">
-        <span style="font-size:13px;color:#64748b;">
-            📅 月份涵蓋：
-            <b style="color:#0ea5e9;font-size:16px;">{df['生產年月'].nunique() if '生產年月' in df.columns else '—'} 個月</b>
-        </span>
-        <span style="font-size:13px;color:#64748b;">
-            📊 可分析參數：
-            <b style="color:#0ea5e9;font-size:16px;">{len(available_params)} 項</b>
-        </span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════
 #  參數選擇
