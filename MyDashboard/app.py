@@ -739,12 +739,12 @@ with tab2:
             f"　｜　標準差　{spc_std:.{p}f}"
         )
         fig_h.add_annotation(
-            xref="paper", yref="paper", x=0.98, y=0.04,
+            xref="paper", yref="paper", x=0.98, y=0.97,
             text=stats_text,
             font=dict(color="#1e293b", size=13, weight=700),
             bgcolor="#f8fafc", bordercolor="#cbd5e1", borderwidth=1.5,
             borderpad=8, showarrow=False, align="left",
-            xanchor="right", yanchor="bottom"
+            xanchor="right", yanchor="top"
         )
 
         # 規格線：scatter 垂直線 + 頂部永久標籤框，hover 自動浮到最上層
@@ -767,7 +767,7 @@ with tab2:
 
         for x_val, color, dash, width, label, bg in lines_to_draw:
             # 密集多點讓整條線都可以 hover
-            n_pts = 60
+            n_pts = 300
             ys = [y_top * 1.38 * i / (n_pts - 1) for i in range(n_pts)]
             fig_h.add_trace(go.Scatter(
                 x=[x_val] * n_pts,
