@@ -172,33 +172,43 @@ with st.sidebar:
 
     def cascading_filter(col, cur_df, label):
         if col not in cur_df.columns:
-            return "全部"
-        opts = ["全部"] + sorted(cur_df[col].dropna().astype(str).unique())
+            return []
+        opts = sorted(cur_df[col].dropna().astype(str).unique())
+        if not opts:
+            return []
         k = f"filter_{file_key}_{col}"
-        return st.selectbox(label, options=opts, key=k)
+        if k in st.session_state:
+            st.session_state[k] = [x for x in st.session_state[k] if x in opts]
+        # 全選 / 清除 按鈕
+        ka = f"all_{file_key}_{col}"
+        kc = f"clr_{file_key}_{col}"
+        ba, bc = st.columns(2)
+        if ba.button("全選", key=ka, use_container_width=True):
+            st.session_state[k] = list(opts)
+            st.rerun()
+        if bc.button("清除", key=kc, use_container_width=True):
+            st.session_state[k] = []
+            st.rerun()
+        return st.multiselect(label, options=opts, key=k,
+                              placeholder="選擇條件…")
 
-    def apply_filter(col, cur_df, val):
-        if val == "全部" or col not in cur_df.columns:
-            return cur_df.copy()
-        return cur_df[cur_df[col].astype(str) == val]
+    f_month  = cascading_filter('生產年月',      df,   "🗓️ 生產年月")
+    df_f1 = df[df['生產年月'].astype(str).isin(f_month)] if f_month else df.copy()
 
-    f_month = cascading_filter('生產年月',     df,   "🗓️ 生產年月")
-    df_f1   = apply_filter('生產年月',     df,   f_month)
+    f_thick  = cascading_filter('訂單厚度',      df_f1, "📏 訂單厚度")
+    df_f2 = df_f1[df_f1['訂單厚度'].astype(str).isin(f_thick)] if f_thick else df_f1.copy()
 
-    f_thick = cascading_filter('訂單厚度',     df_f1, "📏 訂單厚度")
-    df_f2   = apply_filter('訂單厚度',     df_f1, f_thick)
+    f_width  = cascading_filter('訂單寬度',      df_f2, "↔️ 訂單寬度")
+    df_f3 = df_f2[df_f2['訂單寬度'].astype(str).isin(f_width)] if f_width else df_f2.copy()
 
-    f_width = cascading_filter('訂單寬度',     df_f2, "↔️ 訂單寬度")
-    df_f3   = apply_filter('訂單寬度',     df_f2, f_width)
+    f_mat    = cascading_filter('熱軋材質',      df_f3, "🪨 熱軋材質")
+    df_f4 = df_f3[df_f3['熱軋材質'].astype(str).isin(f_mat)] if f_mat else df_f3.copy()
 
-    f_mat   = cascading_filter('熱軋材質',     df_f3, "🪨 熱軋材質")
-    df_f4   = apply_filter('熱軋材質',     df_f3, f_mat)
+    f_spec   = cascading_filter('產品規格代碼',  df_f4, "📋 產品規格代碼")
+    df_f5 = df_f4[df_f4['產品規格代碼'].astype(str).isin(f_spec)] if f_spec else df_f4.copy()
 
-    f_spec  = cascading_filter('產品規格代碼', df_f4, "📋 產品規格代碼")
-    df_f5   = apply_filter('產品規格代碼', df_f4, f_spec)
-
-    f_coat  = cascading_filter('上鍍層',       df_f5, "🔩 上鍍層")
-    filtered_df = apply_filter('上鍍層',       df_f5, f_coat)
+    f_coat   = cascading_filter('上鍍層',        df_f5, "🔩 上鍍層")
+    filtered_df = df_f5[df_f5['上鍍層'].astype(str).isin(f_coat)] if f_coat else df_f5.copy()
 
 if filtered_df.empty:
     st.warning("⚠️ 目前篩選條件下沒有找到任何數據，請放寬左側的篩選條件！")
