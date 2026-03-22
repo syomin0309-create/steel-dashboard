@@ -306,14 +306,20 @@ c3.markdown(f"""
   <div style="font-size:14px;color:#10b981;font-weight:600;margin-top:6px;">{"✓ 全數合格" if yield_rate == 100 else f"良品 {len(plot_df) - abnormal_count:,} 顆"}</div>
 </div>""", unsafe_allow_html=True)
 
+_ab_bg     = "#fffafa" if abnormal_count > 0 else "#fff"
+_ab_border = "#fecaca" if abnormal_count > 0 else "#e2e8f0"
+_ab_left   = "#ef4444" if abnormal_count > 0 else "#0ea5e9"
+_ab_numclr = "#ef4444" if abnormal_count > 0 else "#0f172a"
+_ab_sub    = f'↑ {abnormal_pct:.1f}%' if abnormal_count > 0 else "✓ 無異常"
+_ab_subclr = "#ef4444" if abnormal_count > 0 else "#10b981"
+
 c4.markdown(f"""
-<div style="background:#fffafa;border:1px solid #fecaca;border-radius:12px;
-    padding:16px 18px;border-left:4px solid #ef4444;">
+<div style="background:{_ab_bg};border:1px solid {_ab_border};border-radius:12px;
+    padding:16px 18px;border-left:4px solid {_ab_left};">
   <div style="font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;
       letter-spacing:.8px;margin-bottom:8px;">異常品數量</div>
-  <div style="font-size:26px;font-weight:800;color:#ef4444;line-height:1.1;">{abnormal_count:,}</div>
-  <div style="font-size:14px;color:#ef4444;font-weight:600;margin-top:6px;">
-      {"↑ " + f"{abnormal_pct:.1f}%" if abnormal_count > 0 else "✓ 無異常"}</div>
+  <div style="font-size:26px;font-weight:800;color:{_ab_numclr};line-height:1.1;">{abnormal_count:,}</div>
+  <div style="font-size:14px;color:{_ab_subclr};font-weight:600;margin-top:6px;">{_ab_sub}</div>
 </div>""", unsafe_allow_html=True)
 
 st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
