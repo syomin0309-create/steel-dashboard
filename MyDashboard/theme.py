@@ -275,6 +275,43 @@ hr { border-color: #e2e8f0 !important; }
     color: #94a3b8 !important;
 }
 
+/* ══ Multiselect 標籤間距 ═══════════════════════════════ */
+[data-baseweb="tag"] {
+    margin: 3px 4px 3px 0 !important;
+    border-radius: 6px !important;
+    background-color: #e0f2fe !important;
+    border: 1px solid #7dd3fc !important;
+    padding: 3px 8px !important;
+}
+[data-baseweb="tag"] span {
+    color: #0369a1 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
+[data-baseweb="tag"] [role="presentation"] {
+    color: #0369a1 !important;
+}
+[data-baseweb="select"] [data-baseweb="tag"] + [data-baseweb="tag"] {
+    margin-left: 4px !important;
+}
+/* 修正 multiselect 容器讓標籤換行排列 */
+[data-testid="stMultiSelect"] [data-baseweb="select"] > div:first-child {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    padding: 6px 8px !important;
+    min-height: 42px !important;
+}
+/* 修正 label 被遮住問題 */
+[data-testid="stMultiSelect"] label {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    margin-bottom: 4px !important;
+    display: block !important;
+    overflow: visible !important;
+    white-space: nowrap !important;
+}
+
 /* ══ 隱藏頁腳 ════════════════════════════════════════════ */
 footer { visibility: hidden !important; }
 </style>
