@@ -175,22 +175,22 @@ with st.sidebar:
             st.session_state[k] = [x for x in st.session_state[k] if x in opts]
         return st.multiselect(label, options=opts, key=k)
 
-    f_month  = cascading_filter('生產年月',      df,   "🗓️ 生產年月")
+    f_month  = cascading_filter('生產年月',      df,   "生產年月")
     df_f1 = df[df['生產年月'].astype(str).isin(f_month)] if f_month else df.copy()
 
-    f_thick  = cascading_filter('訂單厚度',      df_f1, "📏 訂單厚度")
+    f_thick  = cascading_filter('訂單厚度',      df_f1, "訂單厚度")
     df_f2 = df_f1[df_f1['訂單厚度'].astype(str).isin(f_thick)] if f_thick else df_f1.copy()
 
-    f_width  = cascading_filter('訂單寬度',      df_f2, "↔️ 訂單寬度")
+    f_width  = cascading_filter('訂單寬度',      df_f2, "訂單寬度")
     df_f3 = df_f2[df_f2['訂單寬度'].astype(str).isin(f_width)] if f_width else df_f2.copy()
 
-    f_mat    = cascading_filter('熱軋材質',      df_f3, "🪨 熱軋材質")
+    f_mat    = cascading_filter('熱軋材質',      df_f3, "熱軋材質")
     df_f4 = df_f3[df_f3['熱軋材質'].astype(str).isin(f_mat)] if f_mat else df_f3.copy()
 
-    f_spec   = cascading_filter('產品規格代碼',  df_f4, "📋 產品規格代碼")
+    f_spec   = cascading_filter('產品規格代碼',  df_f4, "產品規格代碼")
     df_f5 = df_f4[df_f4['產品規格代碼'].astype(str).isin(f_spec)] if f_spec else df_f4.copy()
 
-    f_coat   = cascading_filter('上鍍層',        df_f5, "🔩 上鍍層")
+    f_coat   = cascading_filter('上鍍層',        df_f5, "上鍍層")
     filtered_df = df_f5[df_f5['上鍍層'].astype(str).isin(f_coat)] if f_coat else df_f5.copy()
 
 if filtered_df.empty:
