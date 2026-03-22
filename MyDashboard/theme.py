@@ -305,28 +305,12 @@ hr { border-color: #e2e8f0 !important; }
 [data-baseweb="tag"] [role="presentation"] {
     color: #0369a1 !important;
 }
-/* 輸入框推到最後，tag 永遠顯示在前面 */
+/* Multiselect 容器：flex wrap 讓 tag 換行排列 */
 [data-testid="stMultiSelect"] [data-baseweb="select"] > div:first-child {
     flex-wrap: wrap !important;
     gap: 4px !important;
     padding: 6px 10px !important;
     min-height: 42px !important;
-    overflow: visible !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    align-items: center !important;
-}
-[data-testid="stMultiSelect"] input {
-    order: 999 !important;
-    min-width: 80px !important;
-    flex: 1 1 80px !important;
-}
-[data-baseweb="tag"] {
-    order: 1 !important;
-    flex-shrink: 0 !important;
-}
-[data-testid="stMultiSelect"] [data-baseweb="select"] {
-    overflow: visible !important;
 }
 /* 修正 label 被遮住問題 */
 [data-testid="stMultiSelect"] label,
