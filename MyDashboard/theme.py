@@ -286,44 +286,8 @@ hr { border-color: #e2e8f0 !important; }
 }
 
 /* ══ Multiselect 標籤間距 ═══════════════════════════════ */
-[data-baseweb="tag"] {
-    margin: 3px 4px 3px 0 !important;
-    border-radius: 6px !important;
-    background-color: #e0f2fe !important;
-    border: 1px solid #7dd3fc !important;
-    padding: 3px 8px !important;
-    max-width: none !important;
-    overflow: visible !important;
-}
-[data-baseweb="tag"] span {
-    color: #0369a1 !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    overflow: visible !important;
-    text-overflow: unset !important;
-}
-[data-baseweb="tag"] [role="presentation"] {
-    color: #0369a1 !important;
-}
-/* Multiselect：縮小輸入框最小寬度，讓第一個 tag 不被遮住 */
-[data-testid="stMultiSelect"] [data-baseweb="select"] > div:first-child {
-    flex-wrap: wrap !important;
-    gap: 4px !important;
-    padding: 6px 10px !important;
-    min-height: 42px !important;
-}
-[data-testid="stMultiSelect"] input[type="text"] {
-    min-width: 2px !important;
-    width: 2px !important;
-    flex: 0 0 2px !important;
-    padding: 0 !important;
-    caret-color: #0ea5e9 !important;
-}
-[data-testid="stMultiSelect"] input[type="text"]:focus {
-    min-width: 80px !important;
-    width: auto !important;
-    flex: 1 1 80px !important;
-}
+
+
 /* 修正 label 被遮住問題 */
 [data-testid="stMultiSelect"] label,
 [data-testid="stMultiSelect"] label p,
