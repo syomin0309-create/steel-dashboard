@@ -443,7 +443,7 @@ with tab1:
                    linecolor=CHART_AXIS, showgrid=True),
         legend=dict(bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1,
                     font=dict(color=CHART_TEXT, size=13),
-                    orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5),
+                    orientation="h", yanchor="bottom", y=0.02, xanchor="right", x=0.99),
         margin=dict(t=50, b=80, l=60, r=80)
     )
     st.plotly_chart(fig_line, use_container_width=True)
