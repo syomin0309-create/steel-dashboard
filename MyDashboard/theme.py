@@ -32,6 +32,16 @@ p, li { font-size: 17px !important; }
     border-right: 1px solid #e2e8f0 !important;
 }
 [data-testid="stSidebar"] * { color: #1e293b !important; }
+[data-testid="stSidebar"] label {
+    overflow: visible !important;
+    clip: unset !important;
+    clip-path: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+}
 [data-testid="stSidebar"] h1,
 [data-testid="stSidebar"] h2,
 [data-testid="stSidebar"] h3 {
@@ -302,14 +312,25 @@ hr { border-color: #e2e8f0 !important; }
     min-height: 42px !important;
 }
 /* 修正 label 被遮住問題 */
-[data-testid="stMultiSelect"] label {
+[data-testid="stMultiSelect"] label,
+[data-testid="stMultiSelect"] label p,
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] label {
     font-size: 14px !important;
     font-weight: 600 !important;
     color: #1e293b !important;
     margin-bottom: 4px !important;
     display: block !important;
     overflow: visible !important;
-    white-space: nowrap !important;
+    clip: unset !important;
+    clip-path: none !important;
+    white-space: normal !important;
+    min-height: 20px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+/* 側邊欄整體不裁切文字 */
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] {
+    overflow: visible !important;
 }
 
 /* ══ 隱藏頁腳 ════════════════════════════════════════════ */
