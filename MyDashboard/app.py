@@ -814,7 +814,7 @@ with tab2:
                 range=[0, y_top * 1.42]
             ),
             showlegend=False,
-            bargap=0.04, margin=dict(t=44, b=55, l=65, r=30)
+            bargap=0.04, margin=dict(t=70, b=55, l=65, r=30)
         )
         st.plotly_chart(fig_h, use_container_width=True)
 
