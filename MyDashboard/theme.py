@@ -96,11 +96,47 @@ div[data-baseweb="select"] * {
     color: #1e293b !important;
     background-color: #ffffff !important;
 }
+
+/* ── 外層容器：允許高度自動撐開，不裁切 tag ── */
 div[data-baseweb="select"] > div {
     border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
     background-color: #ffffff !important;
+    height: auto !important;
+    min-height: 42px !important;
+    overflow: visible !important;        /* ← 關鍵：不再裁切 */
+    align-items: flex-start !important;
+    padding: 4px 0 !important;
 }
+
+/* ── 內層 ValueContainer（tag + input 實際所在） ── */
+div[data-baseweb="select"] > div > div:first-child {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    flex-wrap: wrap !important;
+    gap: 3px !important;
+    padding: 2px 6px !important;
+    align-items: center !important;
+    align-content: flex-start !important;
+}
+
+/* ── 個別 tag：確保垂直方向不被截斷 ── */
+span[data-baseweb="tag"] {
+    margin: 2px 1px !important;
+    max-width: calc(100% - 12px) !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+    white-space: normal !important;
+}
+
+/* ── 指示器區（清除 ✕ + 展開箭頭）固定在右側 ── */
+div[data-baseweb="select"] > div > div:last-child {
+    align-self: flex-start !important;
+    padding-top: 6px !important;
+    flex-shrink: 0 !important;
+}
+
 div[data-baseweb="popover"] {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
