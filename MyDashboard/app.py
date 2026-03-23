@@ -662,18 +662,19 @@ with tab2:
 
         st.markdown("<div style='margin-top:4px;'>", unsafe_allow_html=True)
         st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:15px;font-weight:700;color:#1e293b;">Target　中心值</span>
+          <span style="font-size:15px;font-weight:700;color:#1e293b;">目標值</span>
           <span style="font-size:12px;background:#ede9fe;color:#5b21b6;border-radius:4px;padding:2px 10px;font-weight:700;">目標</span>
         </div>""", unsafe_allow_html=True)
-        target2 = st.number_input("", value=float((spc_mean - 4*spc_std + spc_mean + 4*spc_std) / 2),
-            key=f"spc_target_{selected_param}", disabled=(not is_both),
+        target2 = st.number_input("", value=float(spc_mean),
+            key=f"spc_target_{selected_param}",
             format="%.3f", label_visibility="collapsed")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
         # ── 計算 ─────────────────────────────────────────
     if is_both and (usl2 - lsl2) != 0:
-        ca2 = (spc_mean - target2) / ((usl2 - lsl2) / 2) * 100
+        spec_mid = (usl2 + lsl2) / 2          # 規格中心，與目標值完全無關
+        ca2 = (spc_mean - spec_mid) / ((usl2 - lsl2) / 2) * 100
     else:
         ca2 = None
 
@@ -876,8 +877,8 @@ with tab2:
             lines_to_draw.append((lsl2,      "#ef4444", "solid",   2.5, f"LSL {lsl2:.{p}f}",      "#fee2e2"))
         if show_mean2:
             lines_to_draw.append((spc_mean,  "#059669", "dot",     2.5, f"平均 {spc_mean:.{p}f}",  "#d1fae5"))
-        if is_both and show_target2:
-            lines_to_draw.append((target2,   "#7c3aed", "dash",    2.5, f"目標 {target2:.{p}f}",   "#ede9fe"))
+        if show_target2:
+            lines_to_draw.append((target2,   "#7c3aed", "dash",    2.5, f"目標值 {target2:.{p}f}", "#ede9fe"))
         if show_median2:
             lines_to_draw.append((spc_median,"#0284c7", "dashdot", 2.5, f"中位 {spc_median:.{p}f}","#e0f2fe"))
         if is_both or is_upper:
