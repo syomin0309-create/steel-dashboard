@@ -370,7 +370,7 @@ with tab1:
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
         <div style="width:4px;height:22px;background:#0ea5e9;border-radius:2px;"></div>
         <span style="font-size:20px;font-weight:700;color:#0f172a;">生產順序異常監控圖</span>
-        <span style="font-size:13px;color:#64748b;margin-left:4px;">SPC ±3σ 管制界限</span>
+        <span style="font-size:13px;color:#64748b;margin-left:4px;">SPC 規格上下限 (USL / LSL)</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -481,8 +481,14 @@ with tab1:
                 hovertemplate=ab_hover
             ))
 
-    ucl = avg_val + 3 * std_val
-    lcl = avg_val - 3 * std_val
+    _usl_key = f"spc_usl_{selected_param}"
+    _lsl_key = f"spc_lsl_{selected_param}"
+    _spec_type_key = f"spc_spectype_{file_key}"
+    ucl = st.session_state.get(_usl_key, avg_val + 3 * std_val)
+    lcl = st.session_state.get(_lsl_key, avg_val - 3 * std_val)
+    _spec_type_tab1 = st.session_state.get(_spec_type_key, "雙邊 (LSL & USL)")
+    _show_ucl = "下限" not in _spec_type_tab1
+    _show_lcl = "上限" not in _spec_type_tab1
 
     # 管制帶背景
     fig_line.add_hrect(y0=lcl, y1=ucl, fillcolor="rgba(14,165,233,0.04)",
@@ -491,13 +497,15 @@ with tab1:
     fig_line.add_hline(y=avg_val, line_dash="dash", line_color=CHART_AVG, line_width=1.8,
                        annotation_text=f"均值 {avg_val:.3f}", annotation_position="bottom right",
                        annotation_font=dict(color=CHART_AVG, size=13))
-    fig_line.add_hline(y=ucl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
-                       annotation_text=f"+3σ  {ucl:.3f}", annotation_position="top right",
-                       annotation_font=dict(color=CHART_UCL, size=13))
-    fig_line.add_hline(y=lcl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
-                       annotation_text=f"−3σ  {lcl:.3f}", annotation_position="bottom right",
-                       annotation_font=dict(color=CHART_UCL, size=13))
-
+    if _show_ucl:
+        fig_line.add_hline(y=ucl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
+                           annotation_text=f"USL  {ucl:.3f}", annotation_position="top right",
+                           annotation_font=dict(color=CHART_UCL, size=13))
+    if _show_lcl:
+        fig_line.add_hline(y=lcl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
+                           annotation_text=f"LSL  {lcl:.3f}", annotation_position="bottom right",
+                           annotation_font=dict(color=CHART_UCL, size=13))
+        
     fig_line.update_xaxes(showticklabels=False, title_text="生產順序（依照時間 / 鋼捲號碼）",
                           title_font=dict(size=14))
     fig_line.update_layout(
