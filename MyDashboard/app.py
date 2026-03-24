@@ -668,7 +668,16 @@ with tab2:
             spc_prec = st.slider("", min_value=0, max_value=6, value=3,
                                  key=f"spc_prec_{selected_param}", label_visibility="collapsed")
 
-        st.markdown("<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;'>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+    with set_col2:
+        st.markdown("""
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:2px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+          <div style="width:3px;height:18px;background:#0ea5e9;"></div>
+          <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">顯示設定</span>
+        </div>
+        """, unsafe_allow_html=True)
         tg1, tg2 = st.columns(2)
         tg3, tg4 = st.columns(2)
         show_mean2   = tg1.toggle("平均值線", value=True,  key=f"spc_mean_{selected_param}")
@@ -676,9 +685,6 @@ with tab2:
         show_median2 = tg3.toggle("中位數線", value=False, key=f"spc_med_{selected_param}")
         show_target2 = tg4.toggle("目標值線", value=True,  key=f"spc_tgt_{selected_param}")
         st.markdown("</div>", unsafe_allow_html=True)
-
-
-    st.markdown("<br>", unsafe_allow_html=True)
 
         # ── 計算 ─────────────────────────────────────────
     if is_both and (usl2 - lsl2) != 0:
