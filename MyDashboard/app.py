@@ -561,45 +561,66 @@ with tab1:
                            annotation_position="bottom right",
                            annotation_font=dict(color=CHART_UCL, size=13))
 
-    # ── 數值標籤控制列 ───────────────────────────────
-    _lbl_col1, _lbl_col2, _lbl_col3 = st.columns([2, 2, 6])
     _show_all_key = "spc_show_all_" + file_key + "_" + selected_param
     _sel_pts_key  = "spc_sel_pts_"  + file_key + "_" + selected_param
     if _sel_pts_key not in st.session_state:
         st.session_state[_sel_pts_key] = set()
 
-    show_all_labels = _lbl_col1.toggle(
-        "🔢 全部顯示數值", value=False, key=_show_all_key
-    )
-    if _lbl_col2.button("🗑️ 清除已選標籤", key="clr_pts_" + file_key + "_" + selected_param):
-        st.session_state[_sel_pts_key] = set()
-        st.rerun()
+    # ── fragment：點擊只重繪此區塊，不觸發全頁 rerun ──
+    @st.fragment
+    def _spc_label_chart(fig_line, plot_df, selected_param, x_col,
+                         show_all_key, sel_pts_key):
+        sel_pts: set = st.session_state.get(sel_pts_key, set())
 
-    sel_pts: set = st.session_state[_sel_pts_key]
-
-    # ── 決定要標註哪些點 ─────────────────────────────
-    # 以 (x值字串, y值) 組合識別每個點
-    _label_rows = []
-    for _, row in plot_df.iterrows():
-        x_id = str(row[x_col]) if x_col and x_col in plot_df.columns else str(row.name)
-        y_v  = row[selected_param]
-        if pd.isna(y_v):
-            continue
-        if show_all_labels or x_id in sel_pts:
-            _label_rows.append((x_id, float(y_v)))
-
-    for x_id, y_v in _label_rows:
-        fig_line.add_annotation(
-            x=x_id, y=y_v,
-            text=f"<b>{y_v:.2f}</b>",
-            showarrow=False,
-            yshift=12,
-            font=dict(size=10, color="#0f172a"),
-            bgcolor="rgba(255,255,255,0.82)",
-            bordercolor="#cbd5e1",
-            borderwidth=1,
-            borderpad=2,
+        _lbl_col1, _lbl_col2, _ = st.columns([2, 2, 6])
+        show_all_labels = _lbl_col1.toggle(
+            "🔢 全部顯示數值", value=False, key=show_all_key
         )
+        if _lbl_col2.button("🗑️ 清除已選標籤",
+                            key="clr_pts_" + show_all_key):
+            st.session_state[sel_pts_key] = set()
+            sel_pts = set()
+
+        # ── 決定要標註哪些點 ─────────────────────────
+        for _, row in plot_df.iterrows():
+            x_id = str(row[x_col]) if x_col and x_col in plot_df.columns else str(row.name)
+            y_v  = row[selected_param]
+            if pd.isna(y_v):
+                continue
+            if show_all_labels or x_id in sel_pts:
+                fig_line.add_annotation(
+                    x=x_id, y=y_v,
+                    text=f"<b>{y_v:.2f}</b>",
+                    showarrow=False,
+                    yshift=12,
+                    font=dict(size=10, color="#0f172a"),
+                    bgcolor="rgba(255,255,255,0.82)",
+                    bordercolor="#cbd5e1",
+                    borderwidth=1,
+                    borderpad=2,
+                )
+
+        _chart_event = st.plotly_chart(
+            fig_line, use_container_width=True,
+            on_select="rerun",
+            selection_mode="points",
+            key="spc_chart_" + show_all_key
+        )
+
+        # ── 處理點擊：toggle 選中點位，僅重繪 fragment ─
+        _clicked = (_chart_event or {}).get("selection", {}).get("points", [])
+        if _clicked:
+            for pt in _clicked:
+                _cx = str(pt.get("x", ""))
+                if _cx in sel_pts:
+                    sel_pts.discard(_cx)
+                else:
+                    sel_pts.add(_cx)
+            st.session_state[sel_pts_key] = sel_pts
+            st.rerun()
+
+        if sel_pts and not show_all_labels:
+            st.caption(f"💡 已標註 {len(sel_pts)} 個點位　｜　再次點擊可取消　｜　按「清除已選標籤」全部移除")
 
     fig_line.update_xaxes(showticklabels=False,
                           title_text="生產順序（依照時間 / 鋼捲號碼）",
@@ -610,6 +631,7 @@ with tab1:
         title=dict(text="【" + selected_param + "】 SPC 趨勢管制圖",
                    font=dict(color=CHART_TEXT, size=17), x=0),
         height=500, hovermode="closest",
+        uirevision="spc_chart_" + file_key + "_" + selected_param,
         font=dict(color=CHART_TEXT, size=14),
         xaxis=dict(showticklabels=False, showgrid=False, showline=False, zeroline=False,
                    title=dict(text="生產順序（依照時間 / 鋼捲號碼）",
@@ -622,27 +644,8 @@ with tab1:
         margin=dict(t=50, b=80, l=60, r=80)
     )
 
-    _chart_event = st.plotly_chart(
-        fig_line, use_container_width=True,
-        on_select="rerun",
-        selection_mode="points",
-        key="spc_chart_" + file_key + "_" + selected_param
-    )
-
-    # ── 處理點擊事件：toggle 選中點位 ────────────────
-    _clicked = (_chart_event or {}).get("selection", {}).get("points", [])
-    if _clicked:
-        for pt in _clicked:
-            _cx = str(pt.get("x", ""))
-            if _cx in sel_pts:
-                sel_pts.discard(_cx)
-            else:
-                sel_pts.add(_cx)
-        st.session_state[_sel_pts_key] = sel_pts
-        st.rerun()
-
-    if sel_pts and not show_all_labels:
-        st.caption(f"💡 已標註 {len(sel_pts)} 個點位　｜　再次點擊可取消　｜　按「清除已選標籤」全部移除")
+    _spc_label_chart(fig_line, plot_df, selected_param, x_col,
+                     _show_all_key, _sel_pts_key)
     if abnormal_count > 0:
         st.warning(f"⚠️ 趨勢圖中共標示了 **{abnormal_count} 顆** 7B 異常鋼捲（黃色點），請重點追蹤。")
     else:
