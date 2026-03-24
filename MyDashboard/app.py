@@ -236,23 +236,6 @@ _EXCLUDE = {
     '投入重量','實測重量','實測厚度','實測寬度','實測長度',
     '開始時間','排程單號','結束時間','班次','產出內徑','上粗糙度','下粗糙度',
     '化成','切除米數','收捲方向','AIM符號','引帶號碼',
-    '下鍍層','鍍層量','藥劑代號[化驗用]','規範代碼','表面品質','鈍化藥劑批號',
-    '訂購量(KG)','訂單合約限重-下限','訂單合約限重-上限','建議套筒厚度',
-    '引帶捲入口銲接重量','引帶捲出口殘餘銲接重量',
-    '降伏強度[(MIN.)規格值]','降伏強度[(MAX.)規格值]',
-    '降伏強度[(MIN.)管制值]','降伏強度[(MAX.)管制值]',
-    '降伏強度[(MIN.)客戶要求]','降伏強度[(MAX.)客戶要求]',
-    '抗拉強度[(MIN.)規格值]','抗拉強度[(MAX.)規格值]',
-    '抗拉強度[(MIN.)管制值]','抗拉強度[(MAX.)管制值]',
-    '抗拉強度[(MIN.)客戶要求]','抗拉強度[(MAX.)客戶要求]',
-    '抗拉/降伏[(MIN.)標準值]','抗拉/降伏[(MAX.)標準值]',
-    '伸長率[(MIN.)規格值]','伸長率[(MAX.)規格值]',
-    '伸長率[(MIN.)管制值]','伸長率[(MAX.)管制值]',
-    '伸長率[(MIN.)客戶要求]','伸長率[(MAX.)客戶要求]',
-    '硬度[(MIN.)規格值]','硬度[(MAX.)規格值]',
-    '硬度[(MIN.)管制值]','硬度[(MAX.)管制值]',
-    '硬度[(MIN.)客戶要求]','硬度[(MAX.)客戶要求]',
-    '硬化指數[N值]',
 }
 numeric_cols = filtered_df.select_dtypes(include=['number']).columns.tolist()
 available_params = [c for c in numeric_cols if c not in _EXCLUDE]
@@ -266,13 +249,6 @@ if not available_params:
 # ══════════════════════════════════════════════════════
 #  參數選擇
 # ══════════════════════════════════════════════════════
-st.markdown("""
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-  <div style="width:3px;height:18px;background:#0ea5e9;border-radius:2px;"></div>
-  <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">📊 分析指標</span>
-  <span style="font-size:12px;color:#94a3b8;margin-left:2px;">— 所有圖表與計算皆以此欄位為基準</span>
-</div>
-""", unsafe_allow_html=True)
 selected_param = st.selectbox(
     "🔍 選擇分析參數",
     available_params,
@@ -561,67 +537,6 @@ with tab1:
                            annotation_position="bottom right",
                            annotation_font=dict(color=CHART_UCL, size=13))
 
-    _show_all_key = "spc_show_all_" + file_key + "_" + selected_param
-    _sel_pts_key  = "spc_sel_pts_"  + file_key + "_" + selected_param
-    if _sel_pts_key not in st.session_state:
-        st.session_state[_sel_pts_key] = set()
-
-    # ── fragment：點擊只重繪此區塊，不觸發全頁 rerun ──
-    @st.fragment
-    def _spc_label_chart(fig_line, plot_df, selected_param, x_col,
-                         show_all_key, sel_pts_key):
-        sel_pts: set = st.session_state.get(sel_pts_key, set())
-
-        _lbl_col1, _lbl_col2, _ = st.columns([2, 2, 6])
-        show_all_labels = _lbl_col1.toggle(
-            "🔢 全部顯示數值", value=False, key=show_all_key
-        )
-        if _lbl_col2.button("🗑️ 清除已選標籤",
-                            key="clr_pts_" + show_all_key):
-            st.session_state[sel_pts_key] = set()
-            sel_pts = set()
-
-        # ── 決定要標註哪些點 ─────────────────────────
-        for _, row in plot_df.iterrows():
-            x_id = str(row[x_col]) if x_col and x_col in plot_df.columns else str(row.name)
-            y_v  = row[selected_param]
-            if pd.isna(y_v):
-                continue
-            if show_all_labels or x_id in sel_pts:
-                fig_line.add_annotation(
-                    x=x_id, y=y_v,
-                    text=f"<b>{y_v:.2f}</b>",
-                    showarrow=False,
-                    yshift=12,
-                    font=dict(size=10, color="#0f172a"),
-                    bgcolor="rgba(255,255,255,0.82)",
-                    bordercolor="#cbd5e1",
-                    borderwidth=1,
-                    borderpad=2,
-                )
-
-        _chart_event = st.plotly_chart(
-            fig_line, use_container_width=True,
-            on_select="rerun",
-            selection_mode="points",
-            key="spc_chart_" + show_all_key
-        )
-
-        # ── 處理點擊：toggle 選中點位，僅重繪 fragment ─
-        _clicked = (_chart_event or {}).get("selection", {}).get("points", [])
-        if _clicked:
-            for pt in _clicked:
-                _cx = str(pt.get("x", ""))
-                if _cx in sel_pts:
-                    sel_pts.discard(_cx)
-                else:
-                    sel_pts.add(_cx)
-            st.session_state[sel_pts_key] = sel_pts
-            st.rerun()
-
-        if sel_pts and not show_all_labels:
-            st.caption(f"💡 已標註 {len(sel_pts)} 個點位　｜　再次點擊可取消　｜　按「清除已選標籤」全部移除")
-
     fig_line.update_xaxes(showticklabels=False,
                           title_text="生產順序（依照時間 / 鋼捲號碼）",
                           title_font=dict(size=14))
@@ -631,7 +546,8 @@ with tab1:
         title=dict(text="【" + selected_param + "】 SPC 趨勢管制圖",
                    font=dict(color=CHART_TEXT, size=17), x=0),
         height=500, hovermode="closest",
-        uirevision="spc_chart_" + file_key + "_" + selected_param,
+        # uirevision 固定不變 → Plotly JS 保留使用者 zoom/pan，不自動 autoscale
+        uirevision="lock_" + file_key + "_" + selected_param,
         font=dict(color=CHART_TEXT, size=14),
         xaxis=dict(showticklabels=False, showgrid=False, showline=False, zeroline=False,
                    title=dict(text="生產順序（依照時間 / 鋼捲號碼）",
@@ -644,8 +560,78 @@ with tab1:
         margin=dict(t=50, b=80, l=60, r=80)
     )
 
-    _spc_label_chart(fig_line, plot_df, selected_param, x_col,
-                     _show_all_key, _sel_pts_key)
+    # ── session state 初始化 ──────────────────────────
+    _show_all_key = "spc_show_all_" + file_key + "_" + selected_param
+    _sel_pts_key  = "spc_sel_pts_"  + file_key + "_" + selected_param
+    if _sel_pts_key not in st.session_state:
+        st.session_state[_sel_pts_key] = set()
+
+    # ── Fragment：點擊只重繪此區塊，不觸發全頁 rerun ──
+    # 關鍵：fragment 內「絕對不呼叫 st.rerun()」
+    # on_select="rerun" 已自動觸發 fragment 級別重繪，夠快且不重置 zoom
+    @st.fragment
+    def _spc_chart_fragment(base_fig, plot_df, selected_param, x_col,
+                            show_all_key, sel_pts_key):
+        import copy
+        fig = copy.deepcopy(base_fig)   # 每次用副本，不汙染原圖
+        sel_pts: set = st.session_state.get(sel_pts_key, set())
+
+        # 控制列
+        _c1, _c2, _ = st.columns([2, 2, 6])
+        show_all = _c1.toggle("🔢 全部顯示數值", value=False, key=show_all_key)
+        if _c2.button("🗑️ 清除已選標籤", key="clr_" + sel_pts_key):
+            # 清除：直接更新 state，不呼叫 rerun，toggle 變化自然會重繪
+            st.session_state[sel_pts_key] = set()
+            sel_pts = set()
+
+        # 加入 annotation（只加需要顯示的點）
+        for _, row in plot_df.iterrows():
+            x_id = str(row[x_col]) if x_col and x_col in plot_df.columns else str(row.name)
+            y_v  = row[selected_param]
+            if pd.isna(y_v):
+                continue
+            if show_all or x_id in sel_pts:
+                fig.add_annotation(
+                    x=x_id, y=float(y_v),
+                    text=f"<b>{y_v:.2f}</b>",
+                    showarrow=False, yshift=13,
+                    font=dict(size=10, color="#0f172a"),
+                    bgcolor="rgba(255,255,255,0.85)",
+                    bordercolor="#94a3b8", borderwidth=1, borderpad=2,
+                )
+
+        # 渲染圖表；on_select="rerun" → 點擊時只重跑此 fragment
+        event = st.plotly_chart(
+            fig, use_container_width=True,
+            on_select="rerun",
+            selection_mode="points",
+            key="spc_chart_" + sel_pts_key
+        )
+
+        # 處理點擊事件 ── 累加到 sel_pts，不呼叫 st.rerun()
+        # on_select 已經觸發 fragment 重跑，再呼叫 rerun 會變成全頁重跑
+        clicked_pts = (event or {}).get("selection", {}).get("points", [])
+        if clicked_pts:
+            new_sel = set(sel_pts)
+            for pt in clicked_pts:
+                cx = str(pt.get("x", ""))
+                if not cx:
+                    continue
+                if cx in new_sel:
+                    new_sel.discard(cx)   # 再次點擊 → 取消
+                else:
+                    new_sel.add(cx)
+            st.session_state[sel_pts_key] = new_sel
+
+        if sel_pts and not show_all:
+            st.caption(
+                f"💡 已標註 {len(sel_pts)} 個點位　｜　"
+                "再次點擊同一點可取消　｜　按「清除已選標籤」全部移除"
+            )
+
+    _spc_chart_fragment(fig_line, plot_df, selected_param, x_col,
+                        _show_all_key, _sel_pts_key)
+
     if abnormal_count > 0:
         st.warning(f"⚠️ 趨勢圖中共標示了 **{abnormal_count} 顆** 7B 異常鋼捲（黃色點），請重點追蹤。")
     else:
