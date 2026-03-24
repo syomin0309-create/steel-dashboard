@@ -429,137 +429,7 @@ with tab1:
     if hl_key not in st.session_state:
         st.session_state[hl_key] = months_list[-1] if months_list else "全部"
 
-    def _set_hl(month, key):
-        st.session_state[key] = month
-
-    if months_list:
-        btn_cols = st.columns(len(months_list) + 1)
-        for i, m in enumerate(months_list):
-            is_active = st.session_state[hl_key] == m
-            btn_cols[i].button(m, key="hl_btn_" + file_key + "_" + selected_param + "_" + m,
-                               type="primary" if is_active else "secondary",
-                               on_click=_set_hl, args=(m, hl_key))
-        is_all = st.session_state[hl_key] == "全部"
-        btn_cols[-1].button("全部", key="hl_btn_all_" + file_key + "_" + selected_param,
-                            type="primary" if is_all else "secondary",
-                            on_click=_set_hl, args=("全部", hl_key))
-
-    selected_month = st.session_state.get(hl_key, "全部")
-    x_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else None
-
-    fig_line = go.Figure()
     month_palette = px.colors.qualitative.Bold
-
-    # ── 月份色帶背景 ────────────────────────────────
-    if months_list and x_col:
-        band_colors = ["rgba(186,230,253,0.65)", "rgba(255,255,255,0)"]
-        for i, month in enumerate(months_list):
-            m_df = plot_df[plot_df['生產年月'] == month]
-            if m_df.empty:
-                continue
-            x_vals = m_df[x_col].tolist()
-            x0, x1 = x_vals[0], x_vals[-1]
-            fig_line.add_vrect(x0=x0, x1=x1, fillcolor=band_colors[i % 2],
-                               line_width=0, layer="below")
-            if i > 0:
-                fig_line.add_vline(x=x0, line_color="#cbd5e1",
-                                   line_width=1, line_dash="dot")
-            is_active = (selected_month == month or selected_month == "全部")
-            fig_line.add_annotation(
-                x=x_vals[len(x_vals)//2], y=1.0, yref="paper",
-                text="<b>" + month + "</b>" if is_active and selected_month == month else month,
-                font=dict(color="#0ea5e9" if selected_month == month else "#94a3b8",
-                          size=12, weight=700 if selected_month == month else 400),
-                showarrow=False, yanchor="bottom", xanchor="center"
-            )
-
-    for i, month in enumerate(months_list if months_list else ["全部"]):
-        m_df = plot_df[plot_df['生產年月'] == month] if months_list else plot_df
-        if m_df.empty:
-            continue
-        x_data = m_df[x_col] if x_col else m_df.index
-        is_highlighted = (selected_month == "全部") or (selected_month == month)
-        opacity = 1.0 if is_highlighted else 0.12
-        color   = month_palette[i % len(month_palette)]
-
-        if '生產日期' in m_df.columns:
-            custom = m_df['生產日期'].astype(str).tolist()
-            hover = "<b>鋼捲號碼：%{x}</b><br>數值：%{y:.3f}<br>日期：%{customdata}<extra></extra>"
-        else:
-            custom = None
-            hover = "<b>鋼捲號碼：%{x}</b><br>數值：%{y:.3f}<extra></extra>"
-
-        fig_line.add_trace(go.Scatter(
-            x=x_data, y=m_df[selected_param],
-            mode='lines+markers', name=month,
-            line=dict(color=color, width=2.5 if is_highlighted else 1),
-            marker=dict(size=7 if is_highlighted else 4, color=color, opacity=opacity),
-            opacity=opacity, connectgaps=True,
-            customdata=custom, hovertemplate=hover
-        ))
-
-    if '試驗等級' in plot_df.columns:
-        ab_df = plot_df[is_7b]
-        if not ab_df.empty:
-            x_ab = ab_df[x_col] if x_col else ab_df.index
-            if '生產日期' in ab_df.columns:
-                ab_custom = ab_df['生產日期'].astype(str).tolist()
-                ab_hover = "<b>鋼捲號碼：%{x}</b><br>7B 異常：%{y:.3f}<br>日期：%{customdata}<extra></extra>"
-            else:
-                ab_custom = None
-                ab_hover = "<b>鋼捲號碼：%{x}</b><br>7B 異常：%{y:.3f}<extra></extra>"
-            fig_line.add_trace(go.Scatter(
-                x=x_ab, y=ab_df[selected_param],
-                mode='markers', name='異常 (7B)',
-                marker=dict(color='#FFD700', size=14, symbol='circle',
-                            line=dict(color='#1e293b', width=1.5)),
-                customdata=ab_custom, hovertemplate=ab_hover
-            ))
-
-    # ── 管制帶背景 & 規格線 ──────────────────────────
-    fig_line.add_hrect(y0=lsl2, y1=usl2, fillcolor="rgba(14,165,233,0.04)", line_width=0)
-
-    fig_line.add_hline(y=avg_val, line_dash="dash", line_color=CHART_AVG, line_width=1.8,
-                       annotation_text="均值 " + f"{avg_val:.3f}",
-                       annotation_position="bottom right",
-                       annotation_font=dict(color=CHART_AVG, size=13))
-    fig_line.add_hline(y=target2, line_dash="dashdot", line_color="#8b5cf6", line_width=1.5,
-                       annotation_text="目標  " + f"{target2:.3f}",
-                       annotation_position="top left",
-                       annotation_font=dict(color="#8b5cf6", size=13))
-    if not is_lower and not is_target_only:
-        fig_line.add_hline(y=usl2, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
-                           annotation_text="USL  " + f"{usl2:.3f}",
-                           annotation_position="top right",
-                           annotation_font=dict(color=CHART_UCL, size=13))
-    if not is_upper and not is_target_only:
-        fig_line.add_hline(y=lsl2, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
-                           annotation_text="LSL  " + f"{lsl2:.3f}",
-                           annotation_position="bottom right",
-                           annotation_font=dict(color=CHART_UCL, size=13))
-
-    fig_line.update_xaxes(showticklabels=False,
-                          title_text="生產順序（依照時間 / 鋼捲號碼）",
-                          title_font=dict(size=14))
-    fig_line.update_layout(
-        template="simple_white",
-        plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
-        title=dict(text="【" + selected_param + "】 SPC 趨勢管制圖",
-                   font=dict(color=CHART_TEXT, size=17), x=0),
-        height=500, hovermode="closest",
-        # uirevision 固定不變 → Plotly JS 保留使用者 zoom/pan，不自動 autoscale
-        uirevision="lock_" + file_key + "_" + selected_param,
-        font=dict(color=CHART_TEXT, size=14),
-        xaxis=dict(showticklabels=False, showgrid=False, showline=False, zeroline=False,
-                   title=dict(text="生產順序（依照時間 / 鋼捲號碼）",
-                              font=dict(color="#64748b", size=14))),
-        yaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=14),
-                   linecolor=CHART_AXIS, showgrid=True),
-        legend=dict(bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1,
-                    font=dict(color=CHART_TEXT, size=13),
-                    orientation="h", yanchor="top", y=-0.12, xanchor="right", x=1.0),
-        margin=dict(t=50, b=80, l=60, r=80)
-    )
 
     # ── session state 初始化 ──────────────────────────
     _show_all_key = "spc_show_all_" + file_key + "_" + selected_param
@@ -567,25 +437,157 @@ with tab1:
     if _sel_pts_key not in st.session_state:
         st.session_state[_sel_pts_key] = set()
 
-    # ── Fragment：點擊只重繪此區塊，不觸發全頁 rerun ──
-    # 關鍵：fragment 內「絕對不呼叫 st.rerun()」
-    # on_select="rerun" 已自動觸發 fragment 級別重繪，夠快且不重置 zoom
+    # ── 單一 Fragment：月份按鈕 + 建圖 + 圖表渲染全部在同一個 fragment ──
+    # 按月份按鈕 → on_click 更新 session_state → 觸發 fragment 級別 rerun
+    # fragment 內重新讀取 session_state 並重建圖表，uirevision 確保 zoom 不重置
     @st.fragment
-    def _spc_chart_fragment(base_fig, plot_df, selected_param, x_col,
-                            show_all_key, sel_pts_key):
+    def _spc_section():
         import copy
-        fig = copy.deepcopy(base_fig)   # 每次用副本，不汙染原圖
-        sel_pts: set = st.session_state.get(sel_pts_key, set())
 
-        # 控制列
+        # ── 月份切換按鈕 ──────────────────────────────
+        def _set_hl(month, key):
+            st.session_state[key] = month
+
+        if months_list:
+            btn_cols = st.columns(len(months_list) + 1)
+            for i, m in enumerate(months_list):
+                is_active = st.session_state[hl_key] == m
+                btn_cols[i].button(m, key="hl_btn_" + file_key + "_" + selected_param + "_" + m,
+                                   type="primary" if is_active else "secondary",
+                                   on_click=_set_hl, args=(m, hl_key))
+            is_all = st.session_state[hl_key] == "全部"
+            btn_cols[-1].button("全部", key="hl_btn_all_" + file_key + "_" + selected_param,
+                                type="primary" if is_all else "secondary",
+                                on_click=_set_hl, args=("全部", hl_key))
+
+        # ── 讀取當前月份（fragment rerun 時已含最新 on_click 結果）──
+        selected_month = st.session_state.get(hl_key, "全部")
+        x_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else None
+
+        # ── 在 fragment 內建圖，確保每次都反映最新 selected_month ──
+        fig_line = go.Figure()
+        month_palette = px.colors.qualitative.Bold
+
+        # ── 月份色帶背景 ──────────────────────────────
+        if months_list and x_col:
+            band_colors = ["rgba(186,230,253,0.65)", "rgba(255,255,255,0)"]
+            for i, month in enumerate(months_list):
+                m_df = plot_df[plot_df['生產年月'] == month]
+                if m_df.empty:
+                    continue
+                x_vals = m_df[x_col].tolist()
+                x0, x1 = x_vals[0], x_vals[-1]
+                fig_line.add_vrect(x0=x0, x1=x1, fillcolor=band_colors[i % 2],
+                                   line_width=0, layer="below")
+                if i > 0:
+                    fig_line.add_vline(x=x0, line_color="#cbd5e1",
+                                       line_width=1, line_dash="dot")
+                is_active = (selected_month == month or selected_month == "全部")
+                fig_line.add_annotation(
+                    x=x_vals[len(x_vals)//2], y=1.0, yref="paper",
+                    text="<b>" + month + "</b>" if is_active and selected_month == month else month,
+                    font=dict(color="#0ea5e9" if selected_month == month else "#94a3b8",
+                              size=12, weight=700 if selected_month == month else 400),
+                    showarrow=False, yanchor="bottom", xanchor="center"
+                )
+
+        for i, month in enumerate(months_list if months_list else ["全部"]):
+            m_df = plot_df[plot_df['生產年月'] == month] if months_list else plot_df
+            if m_df.empty:
+                continue
+            x_data = m_df[x_col] if x_col else m_df.index
+            is_highlighted = (selected_month == "全部") or (selected_month == month)
+            opacity = 1.0 if is_highlighted else 0.12
+            color   = month_palette[i % len(month_palette)]
+
+            if '生產日期' in m_df.columns:
+                custom = m_df['生產日期'].astype(str).tolist()
+                hover = "<b>鋼捲號碼：%{x}</b><br>數值：%{y:.3f}<br>日期：%{customdata}<extra></extra>"
+            else:
+                custom = None
+                hover = "<b>鋼捲號碼：%{x}</b><br>數值：%{y:.3f}<extra></extra>"
+
+            fig_line.add_trace(go.Scatter(
+                x=x_data, y=m_df[selected_param],
+                mode='lines+markers', name=month,
+                line=dict(color=color, width=2.5 if is_highlighted else 1),
+                marker=dict(size=7 if is_highlighted else 4, color=color, opacity=opacity),
+                opacity=opacity, connectgaps=True,
+                customdata=custom, hovertemplate=hover
+            ))
+
+        if '試驗等級' in plot_df.columns:
+            ab_df = plot_df[is_7b]
+            if not ab_df.empty:
+                x_ab = ab_df[x_col] if x_col else ab_df.index
+                if '生產日期' in ab_df.columns:
+                    ab_custom = ab_df['生產日期'].astype(str).tolist()
+                    ab_hover = "<b>鋼捲號碼：%{x}</b><br>7B 異常：%{y:.3f}<br>日期：%{customdata}<extra></extra>"
+                else:
+                    ab_custom = None
+                    ab_hover = "<b>鋼捲號碼：%{x}</b><br>7B 異常：%{y:.3f}<extra></extra>"
+                fig_line.add_trace(go.Scatter(
+                    x=x_ab, y=ab_df[selected_param],
+                    mode='markers', name='異常 (7B)',
+                    marker=dict(color='#FFD700', size=14, symbol='circle',
+                                line=dict(color='#1e293b', width=1.5)),
+                    customdata=ab_custom, hovertemplate=ab_hover
+                ))
+
+        # ── 管制帶背景 & 規格線 ──────────────────────
+        fig_line.add_hrect(y0=lsl2, y1=usl2, fillcolor="rgba(14,165,233,0.04)", line_width=0)
+
+        fig_line.add_hline(y=avg_val, line_dash="dash", line_color=CHART_AVG, line_width=1.8,
+                           annotation_text="均值 " + f"{avg_val:.3f}",
+                           annotation_position="bottom right",
+                           annotation_font=dict(color=CHART_AVG, size=13))
+        fig_line.add_hline(y=target2, line_dash="dashdot", line_color="#8b5cf6", line_width=1.5,
+                           annotation_text="目標  " + f"{target2:.3f}",
+                           annotation_position="top left",
+                           annotation_font=dict(color="#8b5cf6", size=13))
+        if not is_lower and not is_target_only:
+            fig_line.add_hline(y=usl2, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
+                               annotation_text="USL  " + f"{usl2:.3f}",
+                               annotation_position="top right",
+                               annotation_font=dict(color=CHART_UCL, size=13))
+        if not is_upper and not is_target_only:
+            fig_line.add_hline(y=lsl2, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
+                               annotation_text="LSL  " + f"{lsl2:.3f}",
+                               annotation_position="bottom right",
+                               annotation_font=dict(color=CHART_UCL, size=13))
+
+        fig_line.update_xaxes(showticklabels=False,
+                              title_text="生產順序（依照時間 / 鋼捲號碼）",
+                              title_font=dict(size=14))
+        fig_line.update_layout(
+            template="simple_white",
+            plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
+            title=dict(text="【" + selected_param + "】 SPC 趨勢管制圖",
+                       font=dict(color=CHART_TEXT, size=17), x=0),
+            height=500, hovermode="closest",
+            uirevision="lock_" + file_key + "_" + selected_param,
+            font=dict(color=CHART_TEXT, size=14),
+            xaxis=dict(showticklabels=False, showgrid=False, showline=False, zeroline=False,
+                       title=dict(text="生產順序（依照時間 / 鋼捲號碼）",
+                                  font=dict(color="#64748b", size=14))),
+            yaxis=dict(gridcolor=CHART_GRID, tickfont=dict(color=CHART_TEXT, size=14),
+                       linecolor=CHART_AXIS, showgrid=True),
+            legend=dict(bgcolor=CHART_BG, bordercolor=CHART_GRID, borderwidth=1,
+                        font=dict(color=CHART_TEXT, size=13),
+                        orientation="h", yanchor="top", y=-0.12, xanchor="right", x=1.0),
+            margin=dict(t=50, b=80, l=60, r=80)
+        )
+
+        # ── 控制列 ────────────────────────────────────
+        sel_pts: set = st.session_state.get(_sel_pts_key, set())
         _c1, _c2, _ = st.columns([2, 2, 6])
-        show_all = _c1.toggle("🔢 全部顯示數值", value=False, key=show_all_key)
-        if _c2.button("🗑️ 清除已選標籤", key="clr_" + sel_pts_key):
-            # 清除：直接更新 state，不呼叫 rerun，toggle 變化自然會重繪
-            st.session_state[sel_pts_key] = set()
+        show_all = _c1.toggle("🔢 全部顯示數值", value=False, key=_show_all_key)
+        if _c2.button("🗑️ 清除已選標籤", key="clr_" + _sel_pts_key):
+            st.session_state[_sel_pts_key] = set()
             sel_pts = set()
 
-        # 加入 annotation（只加需要顯示的點）
+        # ── 加入 annotation（只加需要顯示的點）──────
+        fig = copy.deepcopy(fig_line)
         for _, row in plot_df.iterrows():
             x_id = str(row[x_col]) if x_col and x_col in plot_df.columns else str(row.name)
             y_v  = row[selected_param]
@@ -601,16 +603,15 @@ with tab1:
                     bordercolor="#94a3b8", borderwidth=1, borderpad=2,
                 )
 
-        # 渲染圖表；on_select="rerun" → 點擊時只重跑此 fragment
+        # ── 渲染圖表；on_select="rerun" → 點擊時只重跑此 fragment ──
         event = st.plotly_chart(
             fig, use_container_width=True,
             on_select="rerun",
             selection_mode="points",
-            key="spc_chart_" + sel_pts_key
+            key="spc_chart_" + _sel_pts_key
         )
 
-        # 處理點擊事件 ── 累加到 sel_pts，不呼叫 st.rerun()
-        # on_select 已經觸發 fragment 重跑，再呼叫 rerun 會變成全頁重跑
+        # ── 處理點擊事件 ──────────────────────────────
         clicked_pts = (event or {}).get("selection", {}).get("points", [])
         if clicked_pts:
             new_sel = set(sel_pts)
@@ -619,10 +620,10 @@ with tab1:
                 if not cx:
                     continue
                 if cx in new_sel:
-                    new_sel.discard(cx)   # 再次點擊 → 取消
+                    new_sel.discard(cx)
                 else:
                     new_sel.add(cx)
-            st.session_state[sel_pts_key] = new_sel
+            st.session_state[_sel_pts_key] = new_sel
 
         if sel_pts and not show_all:
             st.caption(
@@ -630,8 +631,7 @@ with tab1:
                 "再次點擊同一點可取消　｜　按「清除已選標籤」全部移除"
             )
 
-    _spc_chart_fragment(fig_line, plot_df, selected_param, x_col,
-                        _show_all_key, _sel_pts_key)
+    _spc_section()
 
     if abnormal_count > 0:
         st.warning(f"⚠️ 趨勢圖中共標示了 **{abnormal_count} 顆** 7B 異常鋼捲（黃色點），請重點追蹤。")
