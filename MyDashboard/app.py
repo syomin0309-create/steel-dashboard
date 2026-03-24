@@ -357,6 +357,43 @@ st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
 st.markdown("---")
 
 # ══════════════════════════════════════════════════════
+#  全域規格設定（趨勢圖與製程能力分析共用）
+# ══════════════════════════════════════════════════════
+st.markdown("""
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+  <div style="width:3px;height:18px;background:#ef4444;border-radius:2px;"></div>
+  <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">規格設定</span>
+  <span style="font-size:12px;color:#94a3b8;margin-left:2px;">— 趨勢圖與製程能力分析共用</span>
+</div>
+""", unsafe_allow_html=True)
+
+_gs1, _gs2, _gs3, _gs4 = st.columns([2, 2, 2, 2])
+with _gs1:
+    st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>📐 規格類型</div>", unsafe_allow_html=True)
+    spec_type = st.selectbox("", ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)"],
+                             key=f"spc_spectype_{file_key}", label_visibility="collapsed")
+is_both  = "雙邊" in spec_type
+is_upper = "上限" in spec_type
+is_lower = "下限" in spec_type
+with _gs2:
+    st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>📉 LSL　規格下限</div>", unsafe_allow_html=True)
+    lsl2 = st.number_input("", value=float(avg_val - 4*std_val),
+                           key=f"spc_lsl_{selected_param}", disabled=is_upper,
+                           format="%.3f", label_visibility="collapsed")
+with _gs3:
+    st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>📈 USL　規格上限</div>", unsafe_allow_html=True)
+    usl2 = st.number_input("", value=float(avg_val + 4*std_val),
+                           key=f"spc_usl_{selected_param}", disabled=is_lower,
+                           format="%.3f", label_visibility="collapsed")
+with _gs4:
+    st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>🎯 目標值</div>", unsafe_allow_html=True)
+    target2 = st.number_input("", value=float(avg_val),
+                              key=f"spc_target_{selected_param}",
+                              format="%.3f", label_visibility="collapsed")
+
+st.markdown("<div style='margin-bottom:12px;'></div>", unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════
 #  主分頁
 # ══════════════════════════════════════════════════════
 tab1, tab2 = st.tabs(["📊 數據總覽 & 趨勢分析", "📐 製程能力分析 (Ca · Cp · Cpk)"])
@@ -491,19 +528,22 @@ with tab1:
     _show_lcl = "上限" not in _spec_type_tab1
 
     # 管制帶背景
-    fig_line.add_hrect(y0=lcl, y1=ucl, fillcolor="rgba(14,165,233,0.04)",
+    fig_line.add_hrect(y0=lsl2, y1=usl2, fillcolor="rgba(14,165,233,0.04)",
                        line_width=0)
 
     fig_line.add_hline(y=avg_val, line_dash="dash", line_color=CHART_AVG, line_width=1.8,
                        annotation_text=f"均值 {avg_val:.3f}", annotation_position="bottom right",
                        annotation_font=dict(color=CHART_AVG, size=13))
-    if _show_ucl:
-        fig_line.add_hline(y=ucl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
-                           annotation_text=f"USL  {ucl:.3f}", annotation_position="top right",
+    fig_line.add_hline(y=target2, line_dash="dashdot", line_color="#8b5cf6", line_width=1.5,
+                       annotation_text=f"目標  {target2:.3f}", annotation_position="top left",
+                       annotation_font=dict(color="#8b5cf6", size=13))
+    if not is_lower:
+        fig_line.add_hline(y=usl2, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
+                           annotation_text=f"USL  {usl2:.3f}", annotation_position="top right",
                            annotation_font=dict(color=CHART_UCL, size=13))
-    if _show_lcl:
-        fig_line.add_hline(y=lcl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
-                           annotation_text=f"LSL  {lcl:.3f}", annotation_position="bottom right",
+    if not is_upper:
+        fig_line.add_hline(y=lsl2, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
+                           annotation_text=f"LSL  {lsl2:.3f}", annotation_position="bottom right",
                            annotation_font=dict(color=CHART_UCL, size=13))
         
     fig_line.update_xaxes(showticklabels=False, title_text="生產順序（依照時間 / 鋼捲號碼）",
@@ -617,11 +657,6 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
-        spec_type = st.selectbox(
-            "📐 規格類型",
-            ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)"],
-            key=f"spc_spectype_{file_key}"
-        )
 
         b1, b2 = st.columns(2)
         with b1:
@@ -642,45 +677,6 @@ with tab2:
         show_target2 = tg4.toggle("目標值線", value=True,  key=f"spc_tgt_{selected_param}")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    with set_col2:
-        st.markdown("""
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:2px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-          <div style="width:3px;height:18px;background:#ef4444;"></div>
-          <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">規格設定</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        is_both  = "雙邊" in spec_type
-        is_upper = "上限" in spec_type
-        is_lower = "下限" in spec_type
-
-        # LSL
-        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:15px;font-weight:700;color:#1e293b;">LSL　規格下限</span>
-          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 10px;font-weight:700;">下限</span>
-        </div>""", unsafe_allow_html=True)
-        lsl2 = st.number_input("", value=float(spc_mean - 4*spc_std),
-            key=f"spc_lsl_{selected_param}", disabled=is_upper,
-            format="%.3f", label_visibility="collapsed")
-
-        st.markdown("<div style='margin-top:4px;'>", unsafe_allow_html=True)
-        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:15px;font-weight:700;color:#1e293b;">USL　規格上限</span>
-          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 10px;font-weight:700;">上限</span>
-        </div>""", unsafe_allow_html=True)
-        usl2 = st.number_input("", value=float(spc_mean + 4*spc_std),
-            key=f"spc_usl_{selected_param}", disabled=is_lower,
-            format="%.3f", label_visibility="collapsed")
-
-        st.markdown("<div style='margin-top:4px;'>", unsafe_allow_html=True)
-        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:15px;font-weight:700;color:#1e293b;">目標值</span>
-          <span style="font-size:12px;background:#ede9fe;color:#5b21b6;border-radius:4px;padding:2px 10px;font-weight:700;">目標</span>
-        </div>""", unsafe_allow_html=True)
-        target2 = st.number_input("", value=float(spc_mean),
-            key=f"spc_target_{selected_param}",
-            format="%.3f", label_visibility="collapsed")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
