@@ -236,6 +236,23 @@ _EXCLUDE = {
     '投入重量','實測重量','實測厚度','實測寬度','實測長度',
     '開始時間','排程單號','結束時間','班次','產出內徑','上粗糙度','下粗糙度',
     '化成','切除米數','收捲方向','AIM符號','引帶號碼',
+    '下鍍層','鍍層量','藥劑代號[化驗用]','規範代碼','表面品質','鈍化藥劑批號',
+    '訂購量(KG)','訂單合約限重-下限','訂單合約限重-上限','建議套筒厚度',
+    '引帶捲入口銲接重量','引帶捲出口殘餘銲接重量',
+    '降伏強度[(MIN.)規格值]','降伏強度[(MAX.)規格值]',
+    '降伏強度[(MIN.)管制值]','降伏強度[(MAX.)管制值]',
+    '降伏強度[(MIN.)客戶要求]','降伏強度[(MAX.)客戶要求]',
+    '抗拉強度[(MIN.)規格值]','抗拉強度[(MAX.)規格值]',
+    '抗拉強度[(MIN.)管制值]','抗拉強度[(MAX.)管制值]',
+    '抗拉強度[(MIN.)客戶要求]','抗拉強度[(MAX.)客戶要求]',
+    '抗拉/降伏[(MIN.)標準值]','抗拉/降伏[(MAX.)標準值]',
+    '伸長率[(MIN.)規格值]','伸長率[(MAX.)規格值]',
+    '伸長率[(MIN.)管制值]','伸長率[(MAX.)管制值]',
+    '伸長率[(MIN.)客戶要求]','伸長率[(MAX.)客戶要求]',
+    '硬度[(MIN.)規格值]','硬度[(MAX.)規格值]',
+    '硬度[(MIN.)管制值]','硬度[(MAX.)管制值]',
+    '硬度[(MIN.)客戶要求]','硬度[(MAX.)客戶要求]',
+    '硬化指數[N值]',
 }
 numeric_cols = filtered_df.select_dtypes(include=['number']).columns.tolist()
 available_params = [c for c in numeric_cols if c not in _EXCLUDE]
@@ -249,6 +266,13 @@ if not available_params:
 # ══════════════════════════════════════════════════════
 #  參數選擇
 # ══════════════════════════════════════════════════════
+st.markdown("""
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+  <div style="width:3px;height:18px;background:#0ea5e9;border-radius:2px;"></div>
+  <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">📊 分析指標</span>
+  <span style="font-size:12px;color:#94a3b8;margin-left:2px;">— 所有圖表與計算皆以此欄位為基準</span>
+</div>
+""", unsafe_allow_html=True)
 selected_param = st.selectbox(
     "🔍 選擇分析參數",
     available_params,
