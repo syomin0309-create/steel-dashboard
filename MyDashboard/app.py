@@ -636,6 +636,12 @@ with tab2:
     set_col1, set_col2 = st.columns(2)
 
     with set_col1:
+        st.markdown("""
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <div style="width:3px;height:18px;background:#0ea5e9;border-radius:2px;"></div>
+          <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">顯示設定</span>
+        </div>
+        """, unsafe_allow_html=True)
         b1, b2 = st.columns(2)
         with b1:
             st.markdown("<div style='font-size:15px;font-weight:600;color:#475569;margin-bottom:3px;'>組距 Bins</div>", unsafe_allow_html=True)
@@ -647,6 +653,12 @@ with tab2:
                                  key="spc_prec_" + selected_param, label_visibility="collapsed")
 
     with set_col2:
+        st.markdown("""
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <div style="width:3px;height:18px;background:#0ea5e9;border-radius:2px;"></div>
+          <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">線條顯示</span>
+        </div>
+        """, unsafe_allow_html=True)
         tg1, tg2 = st.columns(2)
         tg3, tg4 = st.columns(2)
         show_mean2   = tg1.toggle("平均值線", value=True,  key="spc_mean_" + selected_param)
