@@ -372,9 +372,20 @@ with _gs1:
     st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>📐 規格類型</div>", unsafe_allow_html=True)
     spec_type = st.selectbox("", ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)"],
                              key=f"spc_spectype_{file_key}", label_visibility="collapsed")
-is_both  = "雙邊" in spec_type
-is_upper = "上限" in spec_type
-is_lower = "下限" in spec_type
+    
+        is_both        = "雙邊" in spec_type
+        is_upper       = "上限" in spec_type
+        is_lower       = "下限" in spec_type
+        is_target_only = "僅目標值" in spec_type
+# LSL
+        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:15px;font-weight:700;color:#1e293b;">LSL　規格下限</span>
+          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 10px;font-weight:700;">下限</span>
+        </div>""", unsafe_allow_html=True)
+        lsl2 = st.number_input("", value=float(spc_mean - 4*spc_std),
+            key=f"spc_lsl_{selected_param}", disabled=is_upper or is_target_only,
+            format="%.3f", label_visibility="collapsed")
+
 with _gs2:
     st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>📉 LSL　規格下限</div>", unsafe_allow_html=True)
     lsl2 = st.number_input("", value=float(avg_val - 4*std_val),
@@ -382,9 +393,9 @@ with _gs2:
                            format="%.3f", label_visibility="collapsed")
 with _gs3:
     st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>📈 USL　規格上限</div>", unsafe_allow_html=True)
-    usl2 = st.number_input("", value=float(avg_val + 4*std_val),
-                           key=f"spc_usl_{selected_param}", disabled=is_lower,
-                           format="%.3f", label_visibility="collapsed")
+    usl2 = st.number_input("", value=float(spc_mean + 4*spc_std),
+            key=f"spc_usl_{selected_param}", disabled=is_lower or is_target_only,
+            format="%.3f", label_visibility="collapsed")
 with _gs4:
     st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>🎯 目標值</div>", unsafe_allow_html=True)
     target2 = st.number_input("", value=float(avg_val),
@@ -648,15 +659,12 @@ with tab2:
     # ── 設定區：兩張卡片並排 ────────────────────────
     set_col1, set_col2 = st.columns(2)
 
-    with set_col1:
-        st.markdown("""
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:2px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-          <div style="width:3px;height:18px;background:#0ea5e9;"></div>
-          <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">顯示設定</span>
-        </div>
-        """, unsafe_allow_html=True)
-
+     with set_col1:
+        spec_type = st.selectbox(
+            "📐 規格類型",
+            ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)", "僅目標值 (Target only)"],
+            key=f"spc_spectype_{file_key}"
+        )
 
         b1, b2 = st.columns(2)
         with b1:
@@ -668,42 +676,37 @@ with tab2:
             spc_prec = st.slider("", min_value=0, max_value=6, value=3,
                                  key=f"spc_prec_{selected_param}", label_visibility="collapsed")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-
-    with set_col2:
-        st.markdown("""
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:2px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-          <div style="width:3px;height:18px;background:#0ea5e9;"></div>
-          <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">顯示設定</span>
-        </div>
-        """, unsafe_allow_html=True)
         tg1, tg2 = st.columns(2)
         tg3, tg4 = st.columns(2)
         show_mean2   = tg1.toggle("平均值線", value=True,  key=f"spc_mean_{selected_param}")
         show_curve2  = tg2.toggle("常態曲線", value=True,  key=f"spc_curve_{selected_param}")
         show_median2 = tg3.toggle("中位數線", value=False, key=f"spc_med_{selected_param}")
         show_target2 = tg4.toggle("目標值線", value=True,  key=f"spc_tgt_{selected_param}")
-        st.markdown("</div>", unsafe_allow_html=True)
-
         # ── 計算 ─────────────────────────────────────────
-    if is_both and (usl2 - lsl2) != 0:
-        spec_mid = (usl2 + lsl2) / 2          # 規格中心，與目標值完全無關
-        ca2 = (spc_mean - spec_mid) / ((usl2 - lsl2) / 2) * 100
-    else:
+   if is_target_only:
         ca2 = None
-
-    if spc_std > 0:
-        if is_both:    cp2 = (usl2 - lsl2) / (6 * spc_std)
-        elif is_upper: cp2 = (usl2 - spc_mean) / (3 * spc_std)
-        else:          cp2 = (spc_mean - lsl2) / (3 * spc_std)
-    else:
         cp2 = 0.0
+        cpk2 = 0.0
+        out_usl2 = 0
+        out_lsl2 = 0
+    else:
+        if is_both and (usl2 - lsl2) != 0:
+            spec_mid = (usl2 + lsl2) / 2
+            ca2 = (spc_mean - spec_mid) / ((usl2 - lsl2) / 2) * 100
+        else:
+            ca2 = None
 
-    cpk2 = cp2 * (1 - abs(ca2) / 100) if (is_both and ca2 is not None) else cp2
+        if spc_std > 0:
+            if is_both:    cp2 = (usl2 - lsl2) / (6 * spc_std)
+            elif is_upper: cp2 = (usl2 - spc_mean) / (3 * spc_std)
+            else:          cp2 = (spc_mean - lsl2) / (3 * spc_std)
+        else:
+            cp2 = 0.0
 
-    out_usl2 = int((spc_data > usl2).sum()) if not is_lower else 0
-    out_lsl2 = int((spc_data < lsl2).sum()) if not is_upper else 0
+        cpk2 = cp2 * (1 - abs(ca2) / 100) if (is_both and ca2 is not None) else cp2
+
+        out_usl2 = int((spc_data > usl2).sum()) if not is_lower else 0
+        out_lsl2 = int((spc_data < lsl2).sum()) if not is_upper else 0
     in2      = spc_n - out_usl2 - out_lsl2
     yield2   = in2 / spc_n * 100
 
