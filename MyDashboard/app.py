@@ -437,16 +437,16 @@ with tab1:
     if _sel_pts_key not in st.session_state:
         st.session_state[_sel_pts_key] = set()
 
+    # ── _set_hl 定義在 fragment 外，確保 on_click 回呼參照穩定 ──
+    def _set_hl(month, key):
+        st.session_state[key] = month
+
     # ── 單一 Fragment：月份按鈕 + 建圖 + 圖表渲染全部在同一個 fragment ──
     # 按月份按鈕 → on_click 更新 session_state → 觸發 fragment 級別 rerun
     # fragment 內重新讀取 session_state 並重建圖表，uirevision 確保 zoom 不重置
     @st.fragment
     def _spc_section():
         import copy
-
-        # ── 月份切換按鈕 ──────────────────────────────
-        def _set_hl(month, key):
-            st.session_state[key] = month
 
         if months_list:
             btn_cols = st.columns(len(months_list) + 1)
@@ -611,19 +611,20 @@ with tab1:
             key="spc_chart_" + _sel_pts_key
         )
 
-        # ── 處理點擊事件 ──────────────────────────────
+        # ── 處理點擊事件：只在選取真正改變時才更新，避免觸發額外 rerun ──
+        _raw_key = _sel_pts_key + "_raw"
         clicked_pts = (event or {}).get("selection", {}).get("points", [])
-        if clicked_pts:
+        raw_new = frozenset(str(pt.get("x", "")) for pt in clicked_pts if pt.get("x", ""))
+        raw_old = st.session_state.get(_raw_key, frozenset())
+        if raw_new != raw_old:
             new_sel = set(sel_pts)
-            for pt in clicked_pts:
-                cx = str(pt.get("x", ""))
-                if not cx:
-                    continue
-                if cx in new_sel:
-                    new_sel.discard(cx)
-                else:
-                    new_sel.add(cx)
+            for cx in (raw_new - raw_old):
+                new_sel.add(cx)
+            for cx in (raw_old - raw_new):
+                new_sel.discard(cx)
+            st.session_state[_raw_key] = raw_new
             st.session_state[_sel_pts_key] = new_sel
+            st.rerun()
 
         if sel_pts and not show_all:
             st.caption(
