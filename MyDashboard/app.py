@@ -179,7 +179,6 @@ with st.sidebar:
         k = f"filter_{file_key}_{col}"
         if k in st.session_state:
             st.session_state[k] = [x for x in st.session_state[k] if x in opts]
-        # label 用 markdown 顯示，multiselect 本身隱藏 label
         st.markdown(
             f'<div style="font-size:14px;font-weight:600;color:#1e293b;'
             f'margin-bottom:4px;margin-top:8px;">{label}</div>',
@@ -221,8 +220,6 @@ with st.sidebar:
 
     f_usage  = cascading_filter('用途中文說明',  df_f10, "📌 用途中文說明")
     filtered_df = df_f10[df_f10['用途中文說明'].astype(str).isin(f_usage)] if f_usage else df_f10.copy()
-
-
 
 if filtered_df.empty:
     st.warning("⚠️ 目前篩選條件下沒有找到任何數據，請放寬左側的篩選條件！")
@@ -304,7 +301,7 @@ st.markdown(f"""
   </div>
 </div>""", unsafe_allow_html=True)
 
-# ── 5 指標卡片（統一字體）───────────────────────────
+# ── 指標卡片 ───────────────────────────────────────
 abnormal_pct = abnormal_count / len(plot_df) * 100 if len(plot_df) > 0 else 0
 yield_bar    = min(yield_rate, 100)
 
@@ -370,37 +367,47 @@ st.markdown("""
 _gs1, _gs2, _gs3, _gs4 = st.columns([2, 2, 2, 2])
 with _gs1:
     st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>📐 規格類型</div>", unsafe_allow_html=True)
-    spec_type = st.selectbox("", ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)"],
-                             key=f"spc_spectype_{file_key}", label_visibility="collapsed")
-    
-        is_both        = "雙邊" in spec_type
-        is_upper       = "上限" in spec_type
-        is_lower       = "下限" in spec_type
-        is_target_only = "僅目標值" in spec_type
-# LSL
-        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:15px;font-weight:700;color:#1e293b;">LSL　規格下限</span>
-          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 10px;font-weight:700;">下限</span>
-        </div>""", unsafe_allow_html=True)
-        lsl2 = st.number_input("", value=float(spc_mean - 4*spc_std),
-            key=f"spc_lsl_{selected_param}", disabled=is_upper or is_target_only,
-            format="%.3f", label_visibility="collapsed")
+    spec_type = st.selectbox(
+        "",
+        ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)", "僅目標值 (Target only)"],
+        key=f"spc_spectype_{file_key}",
+        label_visibility="collapsed"
+    )
+
+is_both        = "雙邊" in spec_type
+is_upper       = "上限" in spec_type
+is_lower       = "下限" in spec_type
+is_target_only = "僅目標值" in spec_type
 
 with _gs2:
     st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>📉 LSL　規格下限</div>", unsafe_allow_html=True)
-    lsl2 = st.number_input("", value=float(avg_val - 4*std_val),
-                           key=f"spc_lsl_{selected_param}", disabled=is_upper,
-                           format="%.3f", label_visibility="collapsed")
+    lsl2 = st.number_input(
+        "",
+        value=float(avg_val - 4 * std_val),
+        key=f"spc_lsl_{selected_param}",
+        disabled=is_upper or is_target_only,
+        format="%.3f",
+        label_visibility="collapsed"
+    )
 with _gs3:
     st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>📈 USL　規格上限</div>", unsafe_allow_html=True)
-    usl2 = st.number_input("", value=float(spc_mean + 4*spc_std),
-            key=f"spc_usl_{selected_param}", disabled=is_lower or is_target_only,
-            format="%.3f", label_visibility="collapsed")
+    usl2 = st.number_input(
+        "",
+        value=float(avg_val + 4 * std_val),
+        key=f"spc_usl_{selected_param}",
+        disabled=is_lower or is_target_only,
+        format="%.3f",
+        label_visibility="collapsed"
+    )
 with _gs4:
     st.markdown("<div style='font-size:13px;font-weight:600;color:#475569;margin-bottom:3px;'>🎯 目標值</div>", unsafe_allow_html=True)
-    target2 = st.number_input("", value=float(avg_val),
-                              key=f"spc_target_{selected_param}",
-                              format="%.3f", label_visibility="collapsed")
+    target2 = st.number_input(
+        "",
+        value=float(avg_val),
+        key=f"spc_target_{selected_param}",
+        format="%.3f",
+        label_visibility="collapsed"
+    )
 
 st.markdown("<div style='margin-bottom:12px;'></div>", unsafe_allow_html=True)
 
@@ -463,13 +470,11 @@ with tab1:
                 fillcolor=band_colors[i % 2],
                 line_width=0, layer="below"
             )
-            # 月份分隔虛線（除第一個月）
             if i > 0:
                 fig_line.add_vline(
                     x=x0, line_color="#cbd5e1",
                     line_width=1, line_dash="dot"
                 )
-            # 月份標籤（頂部）
             is_active = (selected_month == month or selected_month == "全部")
             fig_line.add_annotation(
                 x=x_vals[len(x_vals)//2],
@@ -492,7 +497,6 @@ with tab1:
         opacity = 1.0 if is_highlighted else 0.12
         color   = month_palette[i % len(month_palette)]
 
-        # hover 加入日期資訊
         if '生產日期' in m_df.columns:
             custom = m_df['生產日期'].astype(str).tolist()
             hover = "<b>鋼捲號碼：%{x}</b><br>數值：%{y:.3f}<br>日期：%{customdata}<extra></extra>"
@@ -529,16 +533,7 @@ with tab1:
                 hovertemplate=ab_hover
             ))
 
-    _usl_key = f"spc_usl_{selected_param}"
-    _lsl_key = f"spc_lsl_{selected_param}"
-    _spec_type_key = f"spc_spectype_{file_key}"
-    ucl = st.session_state.get(_usl_key, avg_val + 3 * std_val)
-    lcl = st.session_state.get(_lsl_key, avg_val - 3 * std_val)
-    _spec_type_tab1 = st.session_state.get(_spec_type_key, "雙邊 (LSL & USL)")
-    _show_ucl = "下限" not in _spec_type_tab1
-    _show_lcl = "上限" not in _spec_type_tab1
-
-    # 管制帶背景
+    # ── 管制帶背景 & 規格線 ──────────────────────────
     fig_line.add_hrect(y0=lsl2, y1=usl2, fillcolor="rgba(14,165,233,0.04)",
                        line_width=0)
 
@@ -548,15 +543,15 @@ with tab1:
     fig_line.add_hline(y=target2, line_dash="dashdot", line_color="#8b5cf6", line_width=1.5,
                        annotation_text=f"目標  {target2:.3f}", annotation_position="top left",
                        annotation_font=dict(color="#8b5cf6", size=13))
-    if not is_lower:
+    if not is_lower and not is_target_only:
         fig_line.add_hline(y=usl2, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
                            annotation_text=f"USL  {usl2:.3f}", annotation_position="top right",
                            annotation_font=dict(color=CHART_UCL, size=13))
-    if not is_upper:
+    if not is_upper and not is_target_only:
         fig_line.add_hline(y=lsl2, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
                            annotation_text=f"LSL  {lsl2:.3f}", annotation_position="bottom right",
                            annotation_font=dict(color=CHART_UCL, size=13))
-        
+
     fig_line.update_xaxes(showticklabels=False, title_text="生產順序（依照時間 / 鋼捲號碼）",
                           title_font=dict(size=14))
     fig_line.update_layout(
@@ -656,16 +651,10 @@ with tab2:
     spc_max    = float(spc_data.max())
     spc_cv     = spc_std / spc_mean * 100 if spc_mean != 0 else 0
 
-    # ── 設定區：兩張卡片並排 ────────────────────────
+    # ── 設定區：左欄顯示設定 / 右欄 toggle ────────────
     set_col1, set_col2 = st.columns(2)
 
-     with set_col1:
-        spec_type = st.selectbox(
-            "📐 規格類型",
-            ["雙邊 (LSL & USL)", "單邊上限 (USL only)", "單邊下限 (LSL only)", "僅目標值 (Target only)"],
-            key=f"spc_spectype_{file_key}"
-        )
-
+    with set_col1:
         b1, b2 = st.columns(2)
         with b1:
             st.markdown("<div style='font-size:15px;font-weight:600;color:#475569;margin-bottom:3px;'>組距 Bins</div>", unsafe_allow_html=True)
@@ -676,17 +665,21 @@ with tab2:
             spc_prec = st.slider("", min_value=0, max_value=6, value=3,
                                  key=f"spc_prec_{selected_param}", label_visibility="collapsed")
 
+    with set_col2:
         tg1, tg2 = st.columns(2)
         tg3, tg4 = st.columns(2)
         show_mean2   = tg1.toggle("平均值線", value=True,  key=f"spc_mean_{selected_param}")
         show_curve2  = tg2.toggle("常態曲線", value=True,  key=f"spc_curve_{selected_param}")
         show_median2 = tg3.toggle("中位數線", value=False, key=f"spc_med_{selected_param}")
         show_target2 = tg4.toggle("目標值線", value=True,  key=f"spc_tgt_{selected_param}")
-        # ── 計算 ─────────────────────────────────────────
-   if is_target_only:
-        ca2 = None
-        cp2 = 0.0
-        cpk2 = 0.0
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── 計算 ─────────────────────────────────────────
+    if is_target_only:
+        ca2      = None
+        cp2      = 0.0
+        cpk2     = 0.0
         out_usl2 = 0
         out_lsl2 = 0
     else:
@@ -707,8 +700,9 @@ with tab2:
 
         out_usl2 = int((spc_data > usl2).sum()) if not is_lower else 0
         out_lsl2 = int((spc_data < lsl2).sum()) if not is_upper else 0
-    in2      = spc_n - out_usl2 - out_lsl2
-    yield2   = in2 / spc_n * 100
+
+    in2    = spc_n - out_usl2 - out_lsl2
+    yield2 = in2 / spc_n * 100
 
     def _grade_ca(v):
         if v is None: return "—", "#64748b", "需雙邊規格"
@@ -731,14 +725,13 @@ with tab2:
     cpk_g, cpk_c, cpk_d = _grade_cp(cpk2)
 
     def _light_bg(color):
-        """根據等級顏色回傳淡色背景"""
         m = {
-            "#059669": "#d1fae5",  # A+ 淡綠
-            "#10b981": "#d1fae5",  # A  淡綠
-            "#f59e0b": "#fef9c3",  # B  淡黃
-            "#f97316": "#ffedd5",  # C  淡橙
-            "#ef4444": "#fee2e2",  # D  淡紅
-            "#64748b": "#f1f5f9",  # N/A 淡灰
+            "#059669": "#d1fae5",
+            "#10b981": "#d1fae5",
+            "#f59e0b": "#fef9c3",
+            "#f97316": "#ffedd5",
+            "#ef4444": "#fee2e2",
+            "#64748b": "#f1f5f9",
         }
         return m.get(color, "#f8fafc")
 
@@ -815,11 +808,10 @@ with tab2:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── Row 3：60/40 主圖表區 ────────────────────────
+    # ── Row 3：60/40 主圖表區 ────────────────────────
     col_main, col_side = st.columns([1.5, 1])
 
     with col_main:
-        # 直方圖（主視覺 60%）
         arr    = spc_data.values
         bins   = int(spc_bins)
         p      = int(spc_prec)
@@ -833,7 +825,6 @@ with tab2:
             idx = max(0, min(bins-1, int((v - amin) / step_h)))
             counts[idx] += 1
 
-        # 柱子顏色（加深 + 外框）
         bar_colors, bar_borders = [], []
         for i in range(bins):
             out = False
@@ -866,10 +857,8 @@ with tab2:
                 line=dict(color="#1e293b", width=2.5), name='常態曲線'
             ))
 
-        # ── 規格線：線條畫在圖內，標籤顯示在圖表下方說明區 ──
         y_max = max(counts) if counts else 1
 
-        # 右上角統計資訊框（報告用）- 統一字體，避免截圖時被裁切
         stats_text = (
             f"<b>樣本數　{spc_n:,}</b>"
             f"　｜　平均值　{spc_mean:.{p}f}"
@@ -884,14 +873,11 @@ with tab2:
             xanchor="right", yanchor="top"
         )
 
-        # 規格線：scatter 垂直線 + 頂部永久標籤框，hover 自動浮到最上層
         y_top = max(counts) if counts else 1
-        label_y = y_top * 1.06   # 標籤固定位置（柱頂上方）
+        label_y = y_top * 1.06
 
-        # 線條設定：(x值, 顏色, dash樣式, 線寬, 標籤文字, 背景色)
-        # 用 paper 座標讓線延伸到圖表頂部，標籤固定在最上方
         lines_to_draw = []
-        if is_both or is_lower:
+        if (is_both or is_lower) and not is_target_only:
             lines_to_draw.append((lsl2,      "#ef4444", "solid",   2.5, f"LSL {lsl2:.{p}f}",      "#fee2e2"))
         if show_mean2:
             lines_to_draw.append((spc_mean,  "#059669", "dot",     2.5, f"平均 {spc_mean:.{p}f}",  "#d1fae5"))
@@ -899,11 +885,10 @@ with tab2:
             lines_to_draw.append((target2,   "#7c3aed", "dash",    2.5, f"目標值 {target2:.{p}f}", "#ede9fe"))
         if show_median2:
             lines_to_draw.append((spc_median,"#0284c7", "dashdot", 2.5, f"中位 {spc_median:.{p}f}","#e0f2fe"))
-        if is_both or is_upper:
+        if (is_both or is_upper) and not is_target_only:
             lines_to_draw.append((usl2,      "#ef4444", "solid",   2.5, f"USL {usl2:.{p}f}",      "#fee2e2"))
 
         for x_val, color, dash, width, label, bg in lines_to_draw:
-            # 密集多點讓整條線都可以 hover
             n_pts = 300
             ys = [y_top * 1.38 * i / (n_pts - 1) for i in range(n_pts)]
             fig_h.add_trace(go.Scatter(
@@ -920,7 +905,6 @@ with tab2:
                 ),
                 showlegend=False
             ))
-            # 標籤固定在圖表最頂端（paper 座標）
             fig_h.add_annotation(
                 x=x_val, y=1.01,
                 xref="x", yref="paper",
@@ -931,8 +915,6 @@ with tab2:
                 showarrow=False,
                 yanchor="bottom", xanchor="center"
             )
-
-
 
         fig_h.update_layout(
             template="simple_white",
