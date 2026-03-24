@@ -213,11 +213,16 @@ with st.sidebar:
     f_plate  = cascading_filter('取板位置',      df_f7, "📍 取板位置")
     df_f8 = df_f7[df_f7['取板位置'].astype(str).isin(f_plate)] if f_plate else df_f7.copy()
 
+    f_plating = cascading_filter('鍍製別',       df_f8, "⚗️ 鍍製別")
+    df_f8b = df_f8[df_f8['鍍製別'].astype(str).isin(f_plating)] if f_plating else df_f8.copy()
+
     f_coat   = cascading_filter('上鍍層',        df_f8, "🔩 上鍍層")
     df_f9 = df_f8[df_f8['上鍍層'].astype(str).isin(f_coat)] if f_coat else df_f8.copy()
 
     f_usage  = cascading_filter('用途中文說明',  df_f9, "📌 用途中文說明")
     filtered_df = df_f9[df_f9['用途中文說明'].astype(str).isin(f_usage)] if f_usage else df_f9.copy()
+
+
 
 if filtered_df.empty:
     st.warning("⚠️ 目前篩選條件下沒有找到任何數據，請放寬左側的篩選條件！")
