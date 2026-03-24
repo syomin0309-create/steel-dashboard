@@ -429,19 +429,20 @@ with tab1:
     if hl_key not in st.session_state:
         st.session_state[hl_key] = months_list[-1] if months_list else "全部"
 
+    def _set_hl(month, key):
+        st.session_state[key] = month
+
     if months_list:
         btn_cols = st.columns(len(months_list) + 1)
         for i, m in enumerate(months_list):
             is_active = st.session_state[hl_key] == m
-            if btn_cols[i].button(m, key="hl_btn_" + file_key + "_" + selected_param + "_" + m,
-                                   type="primary" if is_active else "secondary"):
-                st.session_state[hl_key] = m
-                st.rerun()
+            btn_cols[i].button(m, key="hl_btn_" + file_key + "_" + selected_param + "_" + m,
+                               type="primary" if is_active else "secondary",
+                               on_click=_set_hl, args=(m, hl_key))
         is_all = st.session_state[hl_key] == "全部"
-        if btn_cols[-1].button("全部", key="hl_btn_all_" + file_key + "_" + selected_param,
-                                type="primary" if is_all else "secondary"):
-            st.session_state[hl_key] = "全部"
-            st.rerun()
+        btn_cols[-1].button("全部", key="hl_btn_all_" + file_key + "_" + selected_param,
+                            type="primary" if is_all else "secondary",
+                            on_click=_set_hl, args=("全部", hl_key))
 
     selected_month = st.session_state.get(hl_key, "全部")
     x_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else None
@@ -661,6 +662,7 @@ with tab1:
         template="simple_white",
         plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
         height=500, showlegend=False,
+        uirevision=selected_param,
         font=dict(color=CHART_TEXT, size=14),
         title=dict(font=dict(color=CHART_TEXT, size=17)),
         xaxis=dict(title=dict(text="群組分類", font=dict(color="#64748b", size=14)),
@@ -990,6 +992,7 @@ with tab2:
                 range=[0, y_top * 1.42]
             ),
             showlegend=False,
+            uirevision=f"{selected_param}_{lsl2}_{usl2}_{spc_bins}",
             bargap=0.04, margin=dict(t=70, b=55, l=65, r=30)
         )
         st.plotly_chart(fig_h, use_container_width=True)
