@@ -512,7 +512,7 @@ with tab1:
                     x=x_vals[len(x_vals)//2], y=1.0, yref="paper",
                     text="<b>" + month + "</b>" if is_active and selected_month == month else month,
                     font=dict(color="#0ea5e9" if selected_month == month else "#94a3b8",
-                              size=12, weight=700 if selected_month == month else 400),
+                              size=12),
                     showarrow=False, yanchor="bottom", xanchor="center"
                 )
 
@@ -649,6 +649,7 @@ with tab1:
                 else:
                     new_sel.add(cx)
             st.session_state[_sel_pts_key] = new_sel
+            st.rerun()
 
         if sel_pts and not show_all:
             st.caption(
@@ -909,8 +910,12 @@ with tab2:
         bins   = int(spc_bins)
         p      = int(spc_prec)
         pad    = spc_std * 1.5
-        amin   = min(arr.min(), lsl2) - pad
-        amax   = max(arr.max(), usl2) + pad
+        if is_target_only:
+            amin = arr.min() - pad
+            amax = arr.max() + pad
+        else:
+            amin = min(arr.min(), lsl2) - pad
+            amax = max(arr.max(), usl2) + pad
         step_h = (amax - amin) / bins
         edges  = [amin + i * step_h for i in range(bins + 1)]
         counts = [0] * bins
@@ -957,7 +962,7 @@ with tab2:
         fig_h.add_annotation(
             xref="paper", yref="paper", x=0.98, y=0.97,
             text=stats_text,
-            font=dict(color="#1e293b", size=13, weight=700),
+            font=dict(color="#1e293b", size=13),
             bgcolor="#f8fafc", bordercolor="#cbd5e1", borderwidth=1.5,
             borderpad=8, showarrow=False, align="left",
             xanchor="right", yanchor="top"
