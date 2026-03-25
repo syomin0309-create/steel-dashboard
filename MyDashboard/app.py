@@ -129,6 +129,17 @@ with st.sidebar:
 #  未上傳：封面頁
 # ══════════════════════════════════════════════════════
 if uploaded_file is None:
+    # 清除所有分析相關 session state，避免取消上傳後版面殘留位移
+    _keys_to_clear = [k for k in st.session_state
+                      if k not in ("loaded_file_id",)  # 保留 file_id 供下次比對
+                      and any(k.startswith(p) for p in (
+                          "raw_df", "filter_", "param_", "spc_", "hl_", "clr_",
+                      ))]
+    for _k in _keys_to_clear:
+        del st.session_state[_k]
+    # loaded_file_id 也一併清除，確保重新上傳同名檔時會重新解析
+    st.session_state.pop("loaded_file_id", None)
+    st.session_state.pop("raw_df", None)
     render_landing()
     st.stop()
 
