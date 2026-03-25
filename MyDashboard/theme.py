@@ -386,8 +386,8 @@ def show_loading():
 def render_landing():
     import streamlit.components.v1 as components
 
-    # 隱藏 Streamlit 多餘的 padding，讓 iframe 撐滿
-     st.markdown("""
+   # 鎖住封面頁，禁止 Streamlit 主容器滾動
+    st.markdown("""
     <style>
         [data-testid="stHeader"] { height:0 !important; }
         [data-testid="block-container"] {
@@ -405,6 +405,7 @@ def render_landing():
         [data-testid="stMain"] section { padding-top:0 !important; }
     </style>
     """, unsafe_allow_html=True)
+    
 
     html = f"""
 <!DOCTYPE html>
