@@ -408,13 +408,13 @@ def render_landing():
   body{{
     font-family:'Microsoft JhengHei','Noto Sans TC','Inter',sans-serif;
     background:#f5f7fa; color:#1e293b;
-    min-height:100vh; overflow-y:auto;
+    height:100vh; overflow:hidden;
   }}
   .wrapper{{
     display:flex; flex-direction:column;
-    min-height:100vh; padding:32px 40px 40px;
+    height:100vh; padding:16px 40px 20px;
   }}
-  .top{{display:flex;gap:24px;align-items:flex-start;margin-bottom:32px;}}
+  .top{{display:flex;gap:24px;align-items:flex-start;margin-bottom:16px;flex:0 0 auto;}}
   .left{{flex:1.1;}}
   .right{{flex:1;display:flex;justify-content:center;align-items:center;}}
   .brand{{
@@ -424,25 +424,26 @@ def render_landing():
     box-shadow:0 8px 24px rgba(14,165,233,0.28);
   }}
   .brand span{{font-size:26px;letter-spacing:3px;color:#fff;font-weight:800;}}
-  h1{{font-size:38px;font-weight:800;color:#0f172a;
-      line-height:1.2;letter-spacing:-1px;margin-bottom:16px;}}
-  .sub{{font-size:16px;color:#64748b;line-height:1.9;margin-bottom:36px;max-width:420px;}}
+  h1{{font-size:32px;font-weight:800;color:#0f172a;
+      line-height:1.2;letter-spacing:-1px;margin-bottom:12px;}}
+  .sub{{font-size:15px;color:#64748b;line-height:1.8;margin-bottom:24px;max-width:420px;}}
   .cta{{
     display:inline-block;background:#0ea5e9;color:#fff;
-    border-radius:10px;padding:13px 28px;font-size:15px;font-weight:700;
+    border-radius:10px;padding:11px 26px;font-size:14px;font-weight:700;
     box-shadow:0 4px 14px rgba(14,165,233,0.35);letter-spacing:.5px;
   }}
-  hr{{border:none;border-top:1px solid #e2e8f0;margin:0 0 28px;}}
-  .cards{{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;flex:1;}}
+  hr{{border:none;border-top:1px solid #e2e8f0;margin:0 0 14px;flex-shrink:0;}}
+  .cards{{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;flex:1;min-height:0;}}
   .card{{
     background:#fff;border:1px solid #e2e8f0;border-top:4px solid #0ea5e9;
-    border-radius:14px;padding:24px 20px;text-align:center;
+    border-radius:14px;padding:16px 18px;text-align:center;
     box-shadow:0 4px 16px rgba(14,165,233,0.08);
-    display:flex;flex-direction:column;align-items:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    overflow:hidden;
   }}
-  .card-icon{{width:100px;height:100px;margin-bottom:12px;}}
-  .card-title{{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;}}
-  .card-desc{{font-size:13px;color:#64748b;line-height:1.7;}}
+  .card-icon{{width:80px;height:80px;margin-bottom:10px;flex-shrink:0;}}
+  .card-title{{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:6px;}}
+  .card-desc{{font-size:12px;color:#64748b;line-height:1.6;}}
 </style>
 </head>
 <body>
@@ -461,7 +462,7 @@ def render_landing():
       <div class="cta">👈 從左側上傳 RAW DATA 開始分析</div>
     </div>
     <div class="right">
-      <canvas id="iconCloud" width="320" height="320" style="cursor:grab;"></canvas>
+      <canvas id="iconCloud" width="260" height="260" style="cursor:grab;"></canvas>
     </div>
   </div>
 
@@ -497,7 +498,7 @@ def render_landing():
   const labels=["Python","GitHub","Docker","PostgreSQL","AWS","Excel",
     "Jupyter","Anaconda","Git","VSCode","GCP","Azure","Linux","Tableau",
     "Pandas","Plotly","Streamlit","NumPy","SciPy","scikit"];
-  const N=slugs.length, R=120;
+  const N=slugs.length, R=100;
   const canvas=document.getElementById("iconCloud");
   const ctx=canvas.getContext("2d");
   const cx=canvas.width/2, cy=canvas.height/2;
@@ -557,10 +558,27 @@ lottie.loadAnimation({{container:document.getElementById("card-trend"),  rendere
 lottie.loadAnimation({{container:document.getElementById("card-compare"),renderer:"svg",loop:true,autoplay:true,animationData:COMPARE}});
 lottie.loadAnimation({{container:document.getElementById("card-cpk"),    renderer:"svg",loop:true,autoplay:true,animationData:CPK}});
 </script>
+<script>
+(function(){{
+  // 讀取父視窗真實高度，縮減 Streamlit 頂部留白後設為 iframe 顯示高度
+  function fitHeight(){{
+    try{{
+      var ph = window.parent.innerHeight;
+      var avail = ph - 60; // 60px = Streamlit header + block-container top padding
+      document.body.style.height = avail + 'px';
+      document.querySelector('.wrapper').style.height = avail + 'px';
+      // 通知父視窗縮短 iframe（Streamlit 支援 window.frameElement）
+      if(window.frameElement) window.frameElement.style.height = avail + 'px';
+    }} catch(e){{}}
+  }}
+  fitHeight();
+  window.addEventListener('resize', fitHeight);
+}})();
+</script>
 </body>
 </html>
 """
-    components.html(html, height=820, scrolling=False)
+    components.html(html, height=2400, scrolling=False)
 
 
 # ── Plotly 圖表主題（CHART_THEME）────────────────────────
