@@ -386,21 +386,12 @@ def show_loading():
 def render_landing():
     import streamlit.components.v1 as components
 
-   # 鎖住封面頁，禁止 Streamlit 主容器滾動
-    st.markdown("""
+   st.markdown("""
     <style>
         [data-testid="stHeader"] { height:0 !important; }
         [data-testid="block-container"] {
             padding-top:0 !important;
             padding-bottom:0 !important;
-            overflow:hidden !important;
-        }
-        [data-testid="stMain"],
-        [data-testid="stAppViewContainer"],
-        [data-testid="stMain"] > div {
-            overflow:hidden !important;
-            height:100vh !important;
-            max-height:100vh !important;
         }
         [data-testid="stMain"] section { padding-top:0 !important; }
     </style>
