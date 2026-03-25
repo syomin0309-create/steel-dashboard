@@ -234,7 +234,7 @@ _EXCLUDE = {
     'NORTH_TOP_COAT_WEIGHT','CENTER_TOP_COAT_WEIGHT','SOUTH_TOP_COAT_WEIGHT',
     'NORTH_BACK_COAT_WEIGHT','CENTER_BACK_COAT_WEIGHT','SOUTH_BACK_COAT_WEIGHT',
     '訂單厚度','訂單寬度','原料厚度','原料寬度','投入厚度','投入寬度',
-    '投入重量','實測重量','實測厚度','實測寬度','實測長度',
+    '投入重量','實測重量',
     '開始時間','排程單號','結束時間','班次','產出內徑','上粗糙度','下粗糙度',
     '化成','切除米數','收捲方向','AIM符號','引帶號碼',
     '下鍍層','鍍層量','藥劑代號[化驗用]','規範代碼','表面品質','鈍化藥劑批號',
