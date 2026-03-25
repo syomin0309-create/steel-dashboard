@@ -386,7 +386,7 @@ def show_loading():
 def render_landing():
     import streamlit.components.v1 as components
 
-   st.markdown("""
+    st.markdown("""
     <style>
         [data-testid="stHeader"] { height:0 !important; }
         [data-testid="block-container"] {
