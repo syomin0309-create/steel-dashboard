@@ -198,8 +198,11 @@ with st.sidebar:
     f_thick  = cascading_filter('訂單厚度',      df_f2, "📏 訂單厚度")
     df_f3 = df_f2[df_f2['訂單厚度'].astype(str).isin(f_thick)] if f_thick else df_f2.copy()
 
-    f_width  = cascading_filter('訂單寬度',      df_f3, "↔️ 訂單寬度")
-    df_f4 = df_f3[df_f3['訂單寬度'].astype(str).isin(f_width)] if f_width else df_f3.copy()
+    f_thick_id = cascading_filter('厚度識別',    df_f3, "🔎 厚度識別")
+    df_f3b = df_f3[df_f3['厚度識別'].astype(str).isin(f_thick_id)] if f_thick_id else df_f3.copy()
+
+    f_width  = cascading_filter('訂單寬度',      df_f3b, "↔️ 訂單寬度")
+    df_f4 = df_f3b[df_f3b['訂單寬度'].astype(str).isin(f_width)] if f_width else df_f3b.copy()
 
     f_mat    = cascading_filter('熱軋材質',      df_f4, "🪨 熱軋材質")
     df_f5 = df_f4[df_f4['熱軋材質'].astype(str).isin(f_mat)] if f_mat else df_f4.copy()
