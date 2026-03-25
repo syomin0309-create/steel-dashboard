@@ -9,15 +9,35 @@ from theme import THEME_CSS, render_landing, show_loading, CHART_THEME
 st.set_page_config(page_title="AegisCore", layout="wide", page_icon="🪙", initial_sidebar_state="expanded")
 st.markdown(THEME_CSS, unsafe_allow_html=True)
 
-# ── 注入自訂 favicon ──────────────────────────────────────
+# ── 注入自訂 favicon（JS 動態寫入 <head>）────────────────
 try:
     import base64 as _b64
     with open("coil_icon.png", "rb") as _f:
         _fav_b64 = _b64.b64encode(_f.read()).decode()
-    st.markdown(
-        f'<link rel="shortcut icon" href="data:image/png;base64,{_fav_b64}">',
-        unsafe_allow_html=True
-    )
+    st.markdown(f"""
+<script>
+(function(){{
+    var data = "data:image/png;base64,{_fav_b64}";
+    function setFav(){{
+        var links = document.querySelectorAll("link[rel*='icon']");
+        links.forEach(function(l){{ l.parentNode.removeChild(l); }});
+        var link = document.createElement("link");
+        link.rel = "shortcut icon";
+        link.type = "image/png";
+        link.href = data;
+        document.head.appendChild(link);
+    }}
+    if(document.readyState === "loading"){{
+        document.addEventListener("DOMContentLoaded", setFav);
+    }} else {{
+        setFav();
+    }}
+    // Streamlit 每次 rerun 後重設
+    var obs = new MutationObserver(setFav);
+    obs.observe(document.head, {{childList: true, subtree: false}});
+}})();
+</script>
+""", unsafe_allow_html=True)
 except Exception:
     pass
 
