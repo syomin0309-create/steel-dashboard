@@ -6,7 +6,12 @@ import numpy as np
 import base64, os
 from theme import THEME_CSS, render_landing, show_loading, CHART_THEME
 
-st.set_page_config(page_title="AegisCore", layout="wide", page_icon="👁️", initial_sidebar_state="expanded")
+try:
+    from PIL import Image as _PILImage
+    _pil_icon = _PILImage.open("coil_icon.png")
+except Exception:
+    _pil_icon = "🪙"
+st.set_page_config(page_title="AegisCore", layout="wide", page_icon=_pil_icon, initial_sidebar_state="expanded")
 st.markdown(THEME_CSS, unsafe_allow_html=True)
 
 # ── 全域圖表色盤 ──────────────────────────────────────────
