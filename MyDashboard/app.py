@@ -267,6 +267,13 @@ if not available_params:
 # ══════════════════════════════════════════════════════
 #  參數選擇
 # ══════════════════════════════════════════════════════
+st.markdown("""
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+  <div style="width:3px;height:18px;background:#0ea5e9;border-radius:2px;"></div>
+  <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">📊 分析指標</span>
+  <span style="font-size:12px;color:#94a3b8;margin-left:2px;">— 所有圖表與計算皆以此欄位為基準</span>
+</div>
+""", unsafe_allow_html=True)
 selected_param = st.selectbox(
     "🔍 選擇分析參數",
     available_params,
