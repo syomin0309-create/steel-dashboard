@@ -386,188 +386,181 @@ def show_loading():
 def render_landing():
     import streamlit.components.v1 as components
 
-    # 鎖住頁面，禁止滾動，讓封面剛好一屏
+    # 隱藏 Streamlit 多餘的 padding，讓 iframe 撐滿
     st.markdown("""
     <style>
-        html, body, [data-testid="stAppViewContainer"],
-        [data-testid="stMain"], [data-testid="block-container"] {
-            overflow: hidden !important;
-            height: 100vh !important;
-            max-height: 100vh !important;
-        }
+        [data-testid="stHeader"] { height:0 !important; }
         [data-testid="block-container"] {
-            padding-top: 1rem !important;
-            padding-bottom: 0 !important;
+            padding-top:0 !important;
+            padding-bottom:0 !important;
         }
-        /* 隱藏 Streamlit 頂部工具列空白 */
-        [data-testid="stHeader"] { height: 0 !important; }
-        section[data-testid="stSidebar"] ~ div { overflow: hidden !important; }
+        [data-testid="stMain"] section { padding-top:0 !important; }
     </style>
     """, unsafe_allow_html=True)
 
-    left_col, right_col = st.columns([1.1, 1])
+    html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  *{{box-sizing:border-box;margin:0;padding:0;}}
+  body{{
+    font-family:'Microsoft JhengHei','Noto Sans TC','Inter',sans-serif;
+    background:#f5f7fa; color:#1e293b;
+    min-height:100vh; overflow-y:auto;
+  }}
+  .wrapper{{
+    display:flex; flex-direction:column;
+    min-height:100vh; padding:32px 40px 40px;
+  }}
+  .top{{display:flex;gap:24px;align-items:flex-start;margin-bottom:32px;}}
+  .left{{flex:1.1;}}
+  .right{{flex:1;display:flex;justify-content:center;align-items:center;}}
+  .brand{{
+    display:inline-flex;align-items:center;gap:12px;
+    background:linear-gradient(135deg,#0ea5e9,#0284c7);
+    border-radius:14px; padding:12px 22px; margin-bottom:28px;
+    box-shadow:0 8px 24px rgba(14,165,233,0.28);
+  }}
+  .brand span{{font-size:26px;letter-spacing:3px;color:#fff;font-weight:800;}}
+  h1{{font-size:38px;font-weight:800;color:#0f172a;
+      line-height:1.2;letter-spacing:-1px;margin-bottom:16px;}}
+  .sub{{font-size:16px;color:#64748b;line-height:1.9;margin-bottom:36px;max-width:420px;}}
+  .cta{{
+    display:inline-block;background:#0ea5e9;color:#fff;
+    border-radius:10px;padding:13px 28px;font-size:15px;font-weight:700;
+    box-shadow:0 4px 14px rgba(14,165,233,0.35);letter-spacing:.5px;
+  }}
+  hr{{border:none;border-top:1px solid #e2e8f0;margin:0 0 28px;}}
+  .cards{{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;flex:1;}}
+  .card{{
+    background:#fff;border:1px solid #e2e8f0;border-top:4px solid #0ea5e9;
+    border-radius:14px;padding:24px 20px;text-align:center;
+    box-shadow:0 4px 16px rgba(14,165,233,0.08);
+    display:flex;flex-direction:column;align-items:center;
+  }}
+  .card-icon{{width:100px;height:100px;margin-bottom:12px;}}
+  .card-title{{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;}}
+  .card-desc{{font-size:13px;color:#64748b;line-height:1.7;}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <!-- 上半：文字 + Icon Cloud -->
+  <div class="top">
+    <div class="left">
+      <div class="brand">
+        <span>🌀 AegisCore</span>
+      </div>
+      <h1>鋼捲品質<br>異常分析平台</h1>
+      <p class="sub">
+        上傳產線 RAW DATA，即時呈現品質趨勢、<br>
+        跨月比對與製程能力（Cpk）分析報告
+      </p>
+      <div class="cta">👈 從左側上傳 RAW DATA 開始分析</div>
+    </div>
+    <div class="right">
+      <canvas id="iconCloud" width="320" height="320" style="cursor:grab;"></canvas>
+    </div>
+  </div>
 
-    with left_col:
-        st.markdown("""
-        <div style="padding: 24px 0 12px 0;">
-            <div style="
-                display: inline-block;
-                background: linear-gradient(135deg, #0ea5e9, #0284c7);
-                border-radius: 14px;
-                padding: 14px 22px;
-                margin-bottom: 28px;
-                box-shadow: 0 8px 24px rgba(14,165,233,0.28);
-            ">
-                <span style="font-size: 30px; letter-spacing: 3px; color: #fff; font-weight: 800;">
-                    ⬡ AegisCore
-                </span>
-            </div>
-            <h1 style="
-                font-size: 42px;
-                font-weight: 800;
-                color: #0f172a;
-                margin: 0 0 16px 0;
-                line-height: 1.2;
-                letter-spacing: -1px;
-            ">鋼捲品質<br>異常分析平台</h1>
-            <p style="
-                font-size: 17px;
-                color: #64748b;
-                line-height: 1.9;
-                margin: 0 0 40px 0;
-                max-width: 440px;
-            ">
-                上傳產線 RAW DATA，即時呈現品質趨勢、<br>
-                跨月比對與製程能力（Cpk）分析報告
-            </p>
-            <div style="
-                display: inline-block;
-                background: #0ea5e9;
-                color: #ffffff;
-                border-radius: 10px;
-                padding: 14px 30px;
-                font-size: 16px;
-                font-weight: 700;
-                box-shadow: 0 4px 14px rgba(14,165,233,0.35);
-                letter-spacing: 0.5px;
-            ">👈 從左側上傳 RAW DATA 開始分析</div>
-        </div>
-        """, unsafe_allow_html=True)
+  <hr>
 
-    with right_col:
-        icon_cloud_html = """
-        <div style="display:flex;justify-content:center;align-items:center;height:360px;background:transparent;">
-            <canvas id="iconCloud" width="340" height="340" style="cursor:grab;"></canvas>
-        </div>
-        <script>
-        (function(){
-            const slugs = [
-                "python","github","docker","postgresql","amazonaws","microsoftexcel",
-                "jupyter","anaconda","git","visualstudiocode","googlecloud",
-                "microsoftazure","linux","tableau","pandas","plotly","streamlit",
-                "numpy","scipy","scikitlearn"
-            ];
-            const labels = [
-                "Python","GitHub","Docker","PostgreSQL","AWS","Excel",
-                "Jupyter","Anaconda","Git","VSCode","GCP",
-                "Azure","Linux","Tableau","Pandas","Plotly","Streamlit",
-                "NumPy","SciPy","scikit"
-            ];
-            const N = slugs.length;
-            const R = 130;
-            const canvas = document.getElementById("iconCloud");
-            const ctx = canvas.getContext("2d");
-            const cx = canvas.width/2, cy = canvas.height/2;
+  <!-- 下半：3 張功能卡片 -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon" id="card-trend"></div>
+      <div class="card-title">趨勢監控</div>
+      <div class="card-desc">即時追蹤各參數生產走勢，±3σ 管制線一眼辨識異常點</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" id="card-compare"></div>
+      <div class="card-title">跨月比對</div>
+      <div class="card-desc">鎖定規格條件，對比不同月份品質表現與異常燈號</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" id="card-cpk"></div>
+      <div class="card-title">製程能力</div>
+      <div class="card-desc">自動計算 Cp、Ca、Cpk，評估製程穩定性與改善方向</div>
+    </div>
+  </div>
+</div>
 
-            const pts = [];
-            const phi = Math.PI*(3-Math.sqrt(5));
-            for(let i=0;i<N;i++){
-                const y=1-(i/(N-1))*2, r=Math.sqrt(1-y*y), theta=phi*i;
-                pts.push({ox:Math.cos(theta)*r,oy:y,oz:Math.sin(theta)*r,x:0,y:0,z:0,label:labels[i],slug:slugs[i],img:null,loaded:false});
-            }
-            pts.forEach(p=>{
-                const im=new Image(); im.crossOrigin="anonymous";
-                im.onload=()=>{p.img=im;p.loaded=true;};
-                im.onerror=()=>{p.loaded=false;};
-                im.src=`https://cdn.simpleicons.org/${p.slug}/0ea5e9`;
-            });
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+<script>
+// ── Icon Cloud ──────────────────────────────────────────
+(function(){{
+  const slugs=["python","github","docker","postgresql","amazonaws","microsoftexcel",
+    "jupyter","anaconda","git","visualstudiocode","googlecloud","microsoftazure",
+    "linux","tableau","pandas","plotly","streamlit","numpy","scipy","scikitlearn"];
+  const labels=["Python","GitHub","Docker","PostgreSQL","AWS","Excel",
+    "Jupyter","Anaconda","Git","VSCode","GCP","Azure","Linux","Tableau",
+    "Pandas","Plotly","Streamlit","NumPy","SciPy","scikit"];
+  const N=slugs.length, R=120;
+  const canvas=document.getElementById("iconCloud");
+  const ctx=canvas.getContext("2d");
+  const cx=canvas.width/2, cy=canvas.height/2;
+  const pts=[];
+  const phi=Math.PI*(3-Math.sqrt(5));
+  for(let i=0;i<N;i++){{
+    const y=1-(i/(N-1))*2,r=Math.sqrt(1-y*y),theta=phi*i;
+    pts.push({{ox:Math.cos(theta)*r,oy:y,oz:Math.sin(theta)*r,
+               x:0,y:0,z:0,label:labels[i],slug:slugs[i],img:null,loaded:false}});
+  }}
+  pts.forEach(p=>{{
+    const im=new Image(); im.crossOrigin="anonymous";
+    im.onload=()=>{{p.img=im;p.loaded=true;}};
+    im.src=`https://cdn.simpleicons.org/${{p.slug}}/0ea5e9`;
+  }});
+  let rotX=0.3,rotY=0,vx=0.002,vy=0.004,dragging=false,lmx=0,lmy=0;
+  canvas.addEventListener("mousedown",e=>{{dragging=true;lmx=e.clientX;lmy=e.clientY;canvas.style.cursor="grabbing";}});
+  canvas.addEventListener("mouseup",()=>{{dragging=false;canvas.style.cursor="grab";}});
+  canvas.addEventListener("mousemove",e=>{{
+    if(!dragging)return;
+    vy+=(e.clientX-lmx)*0.005;vx+=(e.clientY-lmy)*0.005;lmx=e.clientX;lmy=e.clientY;
+  }});
+  function rot(p){{
+    const cy2=Math.cos(rotY),sy=Math.sin(rotY);
+    const x1=p.ox*cy2+p.oz*sy,z1=-p.ox*sy+p.oz*cy2;
+    const cx2=Math.cos(rotX),sx=Math.sin(rotX);
+    p.x=x1;p.y=p.oy*cx2-z1*sx;p.z=p.oy*sx+z1*cx2;
+  }}
+  function draw(){{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pts.forEach(p=>rot(p));
+    [...pts].sort((a,b)=>a.z-b.z).forEach(p=>{{
+      const sc=(p.z+1.6)/2.6,al=0.3+sc*0.7,sz=18+sc*20;
+      ctx.save();ctx.globalAlpha=al;
+      if(p.loaded&&p.img) ctx.drawImage(p.img,cx+p.x*R-sz/2,cy+p.y*R-sz/2,sz,sz);
+      else{{
+        ctx.fillStyle=`rgba(14,165,233,${{al}})`;
+        ctx.font=`bold ${{Math.floor(9+sc*5)}}px Arial`;
+        ctx.textAlign="center";ctx.textBaseline="middle";
+        ctx.fillText(p.label,cx+p.x*R,cy+p.y*R);
+      }}
+      ctx.restore();
+    }});
+    rotY+=vy;rotX+=vx;vx*=0.98;vy*=0.98;
+    if(Math.abs(vx)<0.001)vx=0.002;
+    if(Math.abs(vy)<0.001)vy=0.004;
+    requestAnimationFrame(draw);
+  }}
+  draw();
+}})();
 
-            let rotX=0.3,rotY=0,vx=0.002,vy=0.004;
-            let dragging=false,lastMX=0,lastMY=0;
-            canvas.addEventListener("mousedown",e=>{dragging=true;lastMX=e.clientX;lastMY=e.clientY;canvas.style.cursor="grabbing";});
-            canvas.addEventListener("mouseup",()=>{dragging=false;canvas.style.cursor="grab";});
-            canvas.addEventListener("mousemove",e=>{
-                if(!dragging)return;
-                const dx=e.clientX-lastMX,dy=e.clientY-lastMY;
-                vy+=dx*0.005;vx+=dy*0.005;lastMX=e.clientX;lastMY=e.clientY;
-            });
-
-            function rotate(p){
-                const cosY=Math.cos(rotY),sinY=Math.sin(rotY);
-                const x1=p.ox*cosY+p.oz*sinY,z1=-p.ox*sinY+p.oz*cosY;
-                const cosX=Math.cos(rotX),sinX=Math.sin(rotX);
-                p.x=x1;p.y=p.oy*cosX-z1*sinX;p.z=p.oy*sinX+z1*cosX;
-            }
-
-            function draw(){
-                ctx.clearRect(0,0,canvas.width,canvas.height);
-                pts.forEach(p=>rotate(p));
-                [...pts].sort((a,b)=>a.z-b.z).forEach(p=>{
-                    const scale=(p.z+1.6)/2.6,alpha=0.3+scale*0.7,size=20+scale*22;
-                    const px=cx+p.x*R,py=cy+p.y*R;
-                    ctx.save();ctx.globalAlpha=alpha;
-                    if(p.loaded&&p.img){
-                        ctx.drawImage(p.img,px-size/2,py-size/2,size,size);
-                    } else {
-                        ctx.fillStyle=`rgba(14,165,233,${alpha})`;
-                        ctx.font=`bold ${Math.floor(10+scale*6)}px Arial,sans-serif`;
-                        ctx.textAlign="center";ctx.textBaseline="middle";
-                        ctx.fillText(p.label,px,py);
-                    }
-                    ctx.restore();
-                });
-                rotY+=vy;rotX+=vx;
-                vx*=0.98;vy*=0.98;
-                if(Math.abs(vx)<0.001)vx=0.002;
-                if(Math.abs(vy)<0.001)vy=0.004;
-                requestAnimationFrame(draw);
-            }
-            draw();
-        })();
-        </script>
-        """
-        components.html(icon_cloud_html, height=380)
-
-    st.markdown("<hr style='border-color:#e2e8f0;margin:8px 0 32px 0;'>", unsafe_allow_html=True)
-
-    cards = [
-        ("趨勢監控", "即時追蹤各參數生產走勢，±3σ 管制線一眼辨識異常點", _LOTTIE_TREND,   "card-trend"),
-        ("跨月比對", "鎖定規格條件，對比不同月份品質表現與異常燈號",        _LOTTIE_COMPARE, "card-compare"),
-        ("製程能力", "自動計算 Cp、Ca、Cpk，評估製程穩定性與改善方向",      _LOTTIE_CPK,     "card-cpk"),
-    ]
-
-    cols = st.columns(3)
-    for col, (title, desc, lottie_json, cid) in zip(cols, cards):
-        with col:
-            card_html = (
-                "<div style='"
-                "background:#ffffff;"
-                "border:1px solid #e2e8f0;"
-                "border-top:4px solid #0ea5e9;"
-                "border-radius:14px;"
-                "padding:28px 22px 24px;"
-                "text-align:center;"
-                "box-shadow:0 4px 16px rgba(14,165,233,0.08);"
-                "display:flex;flex-direction:column;align-items:center;'>"
-                f"<div id='{cid}' style='width:110px;height:110px;margin-bottom:14px;'></div>"
-                f"<div style='font-size:17px;font-weight:700;color:#0f172a;margin-bottom:10px;'>{title}</div>"
-                f"<div style='font-size:14px;color:#64748b;line-height:1.8;'>{desc}</div>"
-                "</div>"
-                "<script src='https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js'></script>"
-                f"<script>lottie.loadAnimation({{container:document.getElementById('{cid}'),"
-                f"renderer:'svg',loop:true,autoplay:true,animationData:{lottie_json}}});</script>"
-            )
-            components.html(card_html, height=300)
+// ── Lottie Cards ─────────────────────────────────────────
+const TREND   = {_LOTTIE_TREND};
+const COMPARE = {_LOTTIE_COMPARE};
+const CPK     = {_LOTTIE_CPK};
+lottie.loadAnimation({{container:document.getElementById("card-trend"),  renderer:"svg",loop:true,autoplay:true,animationData:TREND}});
+lottie.loadAnimation({{container:document.getElementById("card-compare"),renderer:"svg",loop:true,autoplay:true,animationData:COMPARE}});
+lottie.loadAnimation({{container:document.getElementById("card-cpk"),    renderer:"svg",loop:true,autoplay:true,animationData:CPK}});
+</script>
+</body>
+</html>
+"""
+    components.html(html, height=820, scrolling=False)
 
 
 # ── Plotly 圖表主題（CHART_THEME）────────────────────────
