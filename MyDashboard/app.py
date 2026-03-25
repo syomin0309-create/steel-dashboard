@@ -6,13 +6,20 @@ import numpy as np
 import base64, os
 from theme import THEME_CSS, render_landing, show_loading, CHART_THEME
 
-try:
-    from PIL import Image as _PILImage
-    _pil_icon = _PILImage.open("coil_icon.png")
-except Exception:
-    _pil_icon = "🪙"
-st.set_page_config(page_title="AegisCore", layout="wide", page_icon=_pil_icon, initial_sidebar_state="expanded")
+st.set_page_config(page_title="AegisCore", layout="wide", page_icon="🪙", initial_sidebar_state="expanded")
 st.markdown(THEME_CSS, unsafe_allow_html=True)
+
+# ── 注入自訂 favicon ──────────────────────────────────────
+try:
+    import base64 as _b64
+    with open("coil_icon.png", "rb") as _f:
+        _fav_b64 = _b64.b64encode(_f.read()).decode()
+    st.markdown(
+        f'<link rel="shortcut icon" href="data:image/png;base64,{_fav_b64}">',
+        unsafe_allow_html=True
+    )
+except Exception:
+    pass
 
 # ── 全域圖表色盤 ──────────────────────────────────────────
 CHART_BG      = "#ffffff"
