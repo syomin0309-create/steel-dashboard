@@ -578,7 +578,7 @@ lottie.loadAnimation({{container:document.getElementById("card-cpk"),    rendere
 </body>
 </html>
 """
-    components.html(html, height=150, scrolling=False)
+    components.html(html, height=150, scrolling=true)
 
 
 # ── Plotly 圖表主題（CHART_THEME）────────────────────────
