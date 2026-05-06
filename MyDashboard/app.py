@@ -264,50 +264,31 @@ def remove_single_filter_value(col, value):
         st.session_state[k] = [x for x in st.session_state[k] if str(x) != str(value)]
 
 
-    if not active_filters:
-        st.markdown("""
-        <div class="aegis-empty-filter">
-            目前未套用任何篩選條件，顯示完整資料集。
-        </div>
-        """, unsafe_allow_html=True)
-        return
+def render_analysis_status(selections, total_rows, filtered_rows):
+    """
+    精簡狀態列：只呈現目前分析範圍，不再佔用主畫面大面積。
+    篩選操作全部留在左側 sidebar。
+    """
+    active_fields = sum(1 for values in selections.values() if values)
+    active_values = sum(len(values) for values in selections.values() if values)
+    pct = (filtered_rows / total_rows * 100) if total_rows else 0
 
-    pill_items = []
-    for col, values in active_filters.items():
-        icon = FILTER_ICON.get(col, "🔹")
-        for value in values:
-            pill_items.append((col, value, icon))
-
-    # 一列最多 4 個膠囊 tag，避免太擠
-    for start in range(0, len(pill_items), 4):
-        row_items = pill_items[start:start + 4]
-        cols = st.columns(len(row_items))
-
-        for i, (col, value, icon) in enumerate(row_items):
-            safe_value = str(value).replace(" ", "_").replace("/", "_")
-            safe_key = f"rm_{file_key}_{col}_{start}_{i}_{safe_value}"
-            label = f"{icon} {col}: {value}  ✕"
-
-            cols[i].button(
-                label,
-                key=safe_key,
-                use_container_width=True,
-                on_click=remove_single_filter_value,
-                args=(col, value),
-            )
-
-    clear_col, info_col = st.columns([1.35, 6])
-
-    with clear_col:
-        st.button(
-            "🧹 清除全部",
-            use_container_width=True,
-            key=f"clear_all_filters_{file_key}",
-            on_click=clear_all_filters,
-        )
-
-    with info_col:
-        st.caption(f"已套用 {len(active_filters)} 個欄位條件，共 {len(pill_items)} 個篩選值。")
+    st.markdown(f"""
+    <div class="aegis-status-strip">
+      <div class="aegis-status-left">
+        <span class="aegis-status-dot"></span>
+        <span class="aegis-status-title">目前分析範圍</span>
+        <span class="aegis-status-muted">已篩選</span>
+        <span class="aegis-status-strong">{filtered_rows:,}</span>
+        <span class="aegis-status-muted">/ {total_rows:,} 筆</span>
+      </div>
+      <div class="aegis-status-right">
+        <span>{pct:.1f}% 資料</span>
+        <span>已套用 {active_fields} 個欄位</span>
+        <span>共 {active_values} 個篩選值</span>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ── 篩選欄位標準化：只針對篩選欄位轉字串，避免數值分析欄位被轉壞 ─────────────
@@ -328,6 +309,13 @@ with st.sidebar:
       </div>
     </div>
     """, unsafe_allow_html=True)
+
+    st.button(
+        "🧹 清除全部篩選",
+        use_container_width=True,
+        key=f"sidebar_clear_all_filters_{file_key}",
+        on_click=clear_all_filters,
+    )
 
     selections = get_current_selections(df)
 
@@ -418,8 +406,8 @@ with st.sidebar:
 # 最終篩選結果
 filtered_df = apply_all_filters(df, selections)
 
-# 主畫面上方顯示 Tableau Style Filter Bar
-render_filter_bar(selections, total_rows=len(df), filtered_rows=len(filtered_df))
+# 主畫面只保留精簡分析狀態列，避免與左側篩選器重複
+render_analysis_status(selections, total_rows=len(df), filtered_rows=len(filtered_df))
 
 if filtered_df.empty:
     st.warning("⚠️ 目前篩選條件下沒有找到任何數據，請放寬左側的篩選條件！")
