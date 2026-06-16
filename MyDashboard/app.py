@@ -713,7 +713,78 @@ with tab2:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── 計算 ─────────────────────────────────────────
+    # ── 圖表客製化設定（字體 / 顏色 / 刻度間距）──────────
+    with st.expander("🎨 圖表客製化設定（字體大小・顏色・刻度間距）", expanded=False):
+
+        st.markdown("<div style='font-size:14px;font-weight:700;color:#475569;margin-bottom:8px;'>字體大小</div>", unsafe_allow_html=True)
+        fz1, fz2, fz3 = st.columns(3)
+        with fz1:
+            st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:2px;'>X 軸標題</div>", unsafe_allow_html=True)
+            fs_xtitle = st.slider("", 8, 28, 15, key=f"fs_xtitle_{selected_param}", label_visibility="collapsed")
+            st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:2px;margin-top:8px;'>X 軸刻度</div>", unsafe_allow_html=True)
+            fs_xtick = st.slider("", 8, 28, 14, key=f"fs_xtick_{selected_param}", label_visibility="collapsed")
+        with fz2:
+            st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:2px;'>Y 軸標題</div>", unsafe_allow_html=True)
+            fs_ytitle = st.slider("", 8, 28, 15, key=f"fs_ytitle_{selected_param}", label_visibility="collapsed")
+            st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:2px;margin-top:8px;'>Y 軸刻度</div>", unsafe_allow_html=True)
+            fs_ytick = st.slider("", 8, 28, 14, key=f"fs_ytick_{selected_param}", label_visibility="collapsed")
+        with fz3:
+            st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:2px;'>規格線標籤</div>", unsafe_allow_html=True)
+            fs_label = st.slider("", 8, 28, 11, key=f"fs_label_{selected_param}", label_visibility="collapsed")
+            st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:2px;margin-top:8px;'>統計資訊框</div>", unsafe_allow_html=True)
+            fs_stats = st.slider("", 8, 28, 13, key=f"fs_stats_{selected_param}", label_visibility="collapsed")
+
+        st.markdown("<hr style='margin:16px 0;border-color:#e2e8f0;'>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:14px;font-weight:700;color:#475569;margin-bottom:8px;'>規格線顏色</div>", unsafe_allow_html=True)
+        cl1, cl2, cl3, cl4, cl5 = st.columns(5)
+        with cl1:
+            st.markdown("<div style='font-size:13px;color:#64748b;'>LSL</div>", unsafe_allow_html=True)
+            color_lsl = st.color_picker("", "#ef4444", key=f"color_lsl_{selected_param}", label_visibility="collapsed")
+        with cl2:
+            st.markdown("<div style='font-size:13px;color:#64748b;'>USL</div>", unsafe_allow_html=True)
+            color_usl = st.color_picker("", "#ef4444", key=f"color_usl_{selected_param}", label_visibility="collapsed")
+        with cl3:
+            st.markdown("<div style='font-size:13px;color:#64748b;'>平均</div>", unsafe_allow_html=True)
+            color_mean = st.color_picker("", "#059669", key=f"color_mean_{selected_param}", label_visibility="collapsed")
+        with cl4:
+            st.markdown("<div style='font-size:13px;color:#64748b;'>中位</div>", unsafe_allow_html=True)
+            color_median = st.color_picker("", "#0284c7", key=f"color_median_{selected_param}", label_visibility="collapsed")
+        with cl5:
+            st.markdown("<div style='font-size:13px;color:#64748b;'>目標</div>", unsafe_allow_html=True)
+            color_target = st.color_picker("", "#7c3aed", key=f"color_target_{selected_param}", label_visibility="collapsed")
+
+        st.markdown("<div style='font-size:14px;font-weight:700;color:#475569;margin:16px 0 8px;'>直方圖長條顏色</div>", unsafe_allow_html=True)
+        cb1, cb2 = st.columns(2)
+        with cb1:
+            st.markdown("<div style='font-size:13px;color:#64748b;'>正常範圍</div>", unsafe_allow_html=True)
+            color_bar_normal = st.color_picker("", "#3b82f6", key=f"color_bar_normal_{selected_param}", label_visibility="collapsed")
+        with cb2:
+            st.markdown("<div style='font-size:13px;color:#64748b;'>規格外</div>", unsafe_allow_html=True)
+            color_bar_outlier = st.color_picker("", "#ef4444", key=f"color_bar_outlier_{selected_param}", label_visibility="collapsed")
+
+        st.markdown("<hr style='margin:16px 0;border-color:#e2e8f0;'>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:14px;font-weight:700;color:#475569;margin-bottom:8px;'>座標軸刻度間距（0 = 自動）</div>", unsafe_allow_html=True)
+        dt1, dt2 = st.columns(2)
+        with dt1:
+            st.markdown("<div style='font-size:13px;color:#64748b;'>X 軸間距</div>", unsafe_allow_html=True)
+            x_dtick_in = st.number_input("", min_value=0.0, value=0.0, step=0.1,
+                key=f"x_dtick_{selected_param}", format="%.3f", label_visibility="collapsed")
+        with dt2:
+            st.markdown("<div style='font-size:13px;color:#64748b;'>Y 軸間距</div>", unsafe_allow_html=True)
+            y_dtick_in = st.number_input("", min_value=0.0, value=0.0, step=1.0,
+                key=f"y_dtick_{selected_param}", format="%.0f", label_visibility="collapsed")
+
+        x_dtick = x_dtick_in if x_dtick_in > 0 else None
+        y_dtick = y_dtick_in if y_dtick_in > 0 else None
+
+        # ── 不透明度轉換（將 hex 主色轉成柱子用的半透明 rgba）──
+        def _hex_to_rgba(hexcolor, alpha):
+            hexcolor = hexcolor.lstrip("#")
+            r, g, b = int(hexcolor[0:2], 16), int(hexcolor[2:4], 16), int(hexcolor[4:6], 16)
+            return f"rgba({r},{g},{b},{alpha})"
+
+        bar_fill_normal  = _hex_to_rgba(color_bar_normal, 0.75)
+        bar_fill_outlier = _hex_to_rgba(color_bar_outlier, 0.80)
     if is_both and (usl2 - lsl2) != 0:
         spec_mid = (usl2 + lsl2) / 2          # 規格中心，與目標值完全無關
         ca2 = (spc_mean - spec_mid) / ((usl2 - lsl2) / 2) * 100
@@ -864,11 +935,11 @@ with tab2:
             if is_both or is_lower: out = out or (edges[i+1] <= lsl2)
             if is_both or is_upper: out = out or (edges[i]   >= usl2)
             if out:
-                bar_colors.append("rgba(239,68,68,0.80)")
-                bar_borders.append("#dc2626")
+                bar_colors.append(bar_fill_outlier)
+                bar_borders.append(color_bar_outlier)
             else:
-                bar_colors.append("rgba(59,130,246,0.75)")
-                bar_borders.append("#2563eb")
+                bar_colors.append(bar_fill_normal)
+                bar_borders.append(color_bar_normal)
 
         bar_x = [(edges[i]+edges[i+1])/2 for i in range(bins)]
         fig_h = go.Figure()
@@ -902,7 +973,7 @@ with tab2:
         fig_h.add_annotation(
             xref="paper", yref="paper", x=0.98, y=0.97,
             text=stats_text,
-            font=dict(color="#1e293b", size=13, weight=700),
+            font=dict(color="#1e293b", size=fs_stats, weight=700),
             bgcolor="#f8fafc", bordercolor="#cbd5e1", borderwidth=1.5,
             borderpad=8, showarrow=False, align="left",
             xanchor="right", yanchor="top"
@@ -916,15 +987,15 @@ with tab2:
         # 用 paper 座標讓線延伸到圖表頂部，標籤固定在最上方
         lines_to_draw = []
         if is_both or is_lower:
-            lines_to_draw.append((lsl2,      "#ef4444", "solid",   2.5, f"LSL {lsl2:.{p}f}",      "#fee2e2"))
+            lines_to_draw.append((lsl2,      color_lsl,    "solid",   2.5, f"LSL {lsl2:.{p}f}",      "#fee2e2"))
         if show_mean2:
-            lines_to_draw.append((spc_mean,  "#059669", "dot",     2.5, f"平均 {spc_mean:.{p}f}",  "#d1fae5"))
+            lines_to_draw.append((spc_mean,  color_mean,   "dot",     2.5, f"平均 {spc_mean:.{p}f}",  "#d1fae5"))
         if show_target2:
-            lines_to_draw.append((target2,   "#7c3aed", "dash",    2.5, f"目標值 {target2:.{p}f}", "#ede9fe"))
+            lines_to_draw.append((target2,   color_target, "dash",    2.5, f"目標值 {target2:.{p}f}", "#ede9fe"))
         if show_median2:
-            lines_to_draw.append((spc_median,"#0284c7", "dashdot", 2.5, f"中位 {spc_median:.{p}f}","#e0f2fe"))
+            lines_to_draw.append((spc_median,color_median, "dashdot", 2.5, f"中位 {spc_median:.{p}f}","#e0f2fe"))
         if is_both or is_upper:
-            lines_to_draw.append((usl2,      "#ef4444", "solid",   2.5, f"USL {usl2:.{p}f}",      "#fee2e2"))
+            lines_to_draw.append((usl2,      color_usl,    "solid",   2.5, f"USL {usl2:.{p}f}",      "#fee2e2"))
 
         for x_val, color, dash, width, label, bg in lines_to_draw:
             # 密集多點讓整條線都可以 hover
@@ -949,7 +1020,7 @@ with tab2:
                 x=x_val, y=1.01,
                 xref="x", yref="paper",
                 text=f"<b>{label}</b>",
-                font=dict(color=color, size=11),
+                font=dict(color=color, size=fs_label),
                 bgcolor=bg,
                 bordercolor=color, borderwidth=1.5, borderpad=4,
                 showarrow=False,
@@ -963,16 +1034,18 @@ with tab2:
             plot_bgcolor="#fafafa", paper_bgcolor=CHART_BG,
             height=620, font=dict(color=CHART_TEXT, size=15),
             xaxis=dict(
-                gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
-                title=dict(text=selected_param, font=dict(color="#64748b", size=15)),
+                gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=fs_xtick),
+                title=dict(text=selected_param, font=dict(color="#64748b", size=fs_xtitle)),
                 linecolor="#94a3b8", linewidth=1.5, showgrid=True,
-                gridwidth=0.8, zeroline=False
+                gridwidth=0.8, zeroline=False,
+                dtick=x_dtick
             ),
             yaxis=dict(
-                gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=14),
-                title=dict(text="次數 (Frequency)", font=dict(color="#64748b", size=15)),
+                gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=fs_ytick),
+                title=dict(text="次數 (Frequency)", font=dict(color="#64748b", size=fs_ytitle)),
                 linecolor="#94a3b8", linewidth=1.5, gridwidth=0.8,
-                range=[0, y_top * 1.42]
+                range=[0, y_top * 1.42],
+                dtick=y_dtick
             ),
             showlegend=False,
             bargap=0.04, margin=dict(t=70, b=55, l=65, r=30)
