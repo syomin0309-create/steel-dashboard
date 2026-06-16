@@ -368,7 +368,7 @@ with tab1:
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
         <div style="width:4px;height:22px;background:#0ea5e9;border-radius:2px;"></div>
         <span style="font-size:20px;font-weight:700;color:#0f172a;">生產順序異常監控圖</span>
-        <span style="font-size:13px;color:#64748b;margin-left:4px;">SPC ±3σ 管制界限</span>
+        <span style="font-size:13px;color:#64748b;margin-left:4px;">SPC 管制界限</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -392,6 +392,43 @@ with tab1:
                                 type="primary" if is_all else "secondary"):
             st.session_state[hl_key] = "全部"
             st.rerun()
+
+    # ── 管制界限設定（手動輸入，預設值取自 ±3σ）──────────
+    st.markdown("""
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin:14px 0 18px 0;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <div style="width:3px;height:18px;background:#0ea5e9;"></div>
+      <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">管制界限設定</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    ucl_c1, ucl_c2, ucl_c3 = st.columns(3)
+    with ucl_c1:
+        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:15px;font-weight:700;color:#1e293b;">UCL　管制上限</span>
+          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 10px;font-weight:700;">上限</span>
+        </div>""", unsafe_allow_html=True)
+        ucl = st.number_input("", value=float(avg_val + 3*std_val),
+            key=f"spc_trend_ucl_{selected_param}",
+            format="%.3f", label_visibility="collapsed")
+    with ucl_c2:
+        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:15px;font-weight:700;color:#1e293b;">LCL　管制下限</span>
+          <span style="font-size:12px;background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 10px;font-weight:700;">下限</span>
+        </div>""", unsafe_allow_html=True)
+        lcl = st.number_input("", value=float(avg_val - 3*std_val),
+            key=f"spc_trend_lcl_{selected_param}",
+            format="%.3f", label_visibility="collapsed")
+    with ucl_c3:
+        st.markdown("""<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:15px;font-weight:700;color:#1e293b;">目標值</span>
+          <span style="font-size:12px;background:#ede9fe;color:#5b21b6;border-radius:4px;padding:2px 10px;font-weight:700;">目標</span>
+        </div>""", unsafe_allow_html=True)
+        target_trend = st.number_input("", value=float(avg_val),
+            key=f"spc_trend_target_{selected_param}",
+            format="%.3f", label_visibility="collapsed")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
     selected_month = st.session_state.get(hl_key, "全部")
     x_col = "產出鋼捲號碼" if "產出鋼捲號碼" in plot_df.columns else None
@@ -479,8 +516,7 @@ with tab1:
                 hovertemplate=ab_hover
             ))
 
-    ucl = avg_val + 3 * std_val
-    lcl = avg_val - 3 * std_val
+    # ucl / lcl 已由上方「管制界限設定」面板手動輸入取得
 
     # 管制帶背景
     fig_line.add_hrect(y0=lcl, y1=ucl, fillcolor="rgba(14,165,233,0.04)",
@@ -490,11 +526,14 @@ with tab1:
                        annotation_text=f"均值 {avg_val:.3f}", annotation_position="bottom right",
                        annotation_font=dict(color=CHART_AVG, size=13))
     fig_line.add_hline(y=ucl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
-                       annotation_text=f"+3σ  {ucl:.3f}", annotation_position="top right",
+                       annotation_text=f"UCL  {ucl:.3f}", annotation_position="top right",
                        annotation_font=dict(color=CHART_UCL, size=13))
     fig_line.add_hline(y=lcl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
-                       annotation_text=f"−3σ  {lcl:.3f}", annotation_position="bottom right",
+                       annotation_text=f"LCL  {lcl:.3f}", annotation_position="bottom right",
                        annotation_font=dict(color=CHART_UCL, size=13))
+    fig_line.add_hline(y=target_trend, line_dash="dash", line_color="#7c3aed", line_width=1.8,
+                       annotation_text=f"目標值 {target_trend:.3f}", annotation_position="top left",
+                       annotation_font=dict(color="#7c3aed", size=13))
 
     fig_line.update_xaxes(showticklabels=False, title_text="生產順序（依照時間 / 鋼捲號碼）",
                           title_font=dict(size=14))
