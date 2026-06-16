@@ -716,6 +716,18 @@ with tab2:
     # ── 圖表客製化設定（字體 / 顏色 / 刻度間距）──────────
     with st.expander("🎨 圖表客製化設定（字體大小・顏色・刻度間距）", expanded=False):
 
+        st.markdown("<div style='font-size:14px;font-weight:700;color:#475569;margin-bottom:8px;'>軸標題文字</div>", unsafe_allow_html=True)
+        tt1, tt2 = st.columns(2)
+        with tt1:
+            st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:2px;'>X 軸標題文字</div>", unsafe_allow_html=True)
+            xaxis_title_text = st.text_input("", value=selected_param,
+                key=f"xtitle_text_{selected_param}", label_visibility="collapsed")
+        with tt2:
+            st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:2px;'>Y 軸標題文字</div>", unsafe_allow_html=True)
+            yaxis_title_text = st.text_input("", value="次數 (Frequency)",
+                key=f"ytitle_text_{selected_param}", label_visibility="collapsed")
+
+        st.markdown("<hr style='margin:16px 0;border-color:#e2e8f0;'>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:14px;font-weight:700;color:#475569;margin-bottom:8px;'>字體大小</div>", unsafe_allow_html=True)
         fz1, fz2, fz3 = st.columns(3)
         with fz1:
@@ -1029,20 +1041,25 @@ with tab2:
 
 
 
+        # 軸標題字體：英文優先用 Arial，中文找不到對應字符時自動 fallback 標楷體
+        TITLE_FONT_STACK = "Arial, DFKai-SB, Microsoft JhengHei, sans-serif"
+
         fig_h.update_layout(
             template="simple_white",
             plot_bgcolor="#fafafa", paper_bgcolor=CHART_BG,
             height=620, font=dict(color=CHART_TEXT, size=15),
             xaxis=dict(
                 gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=fs_xtick),
-                title=dict(text=selected_param, font=dict(color="#64748b", size=fs_xtitle)),
+                title=dict(text=xaxis_title_text,
+                           font=dict(color="#64748b", size=fs_xtitle, family=TITLE_FONT_STACK)),
                 linecolor="#94a3b8", linewidth=1.5, showgrid=True,
                 gridwidth=0.8, zeroline=False,
                 dtick=x_dtick
             ),
             yaxis=dict(
                 gridcolor="#e2e8f0", tickfont=dict(color=CHART_TEXT, size=fs_ytick),
-                title=dict(text="次數 (Frequency)", font=dict(color="#64748b", size=fs_ytitle)),
+                title=dict(text=yaxis_title_text,
+                           font=dict(color="#64748b", size=fs_ytitle, family=TITLE_FONT_STACK)),
                 linecolor="#94a3b8", linewidth=1.5, gridwidth=0.8,
                 range=[0, y_top * 1.42],
                 dtick=y_dtick
