@@ -449,6 +449,13 @@ with tab1:
             key=f"spc_trend_target_{selected_param}",
             format="%.3f", label_visibility="collapsed")
 
+    st.markdown("<div style='margin-top:10px;'></div>", unsafe_allow_html=True)
+    tgt1, tgt2, tgt3, tgt4 = st.columns(4)
+    show_ucl_trend    = tgt1.toggle("UCL 上限線",  value=True, key=f"spc_trend_show_ucl_{selected_param}")
+    show_lcl_trend    = tgt2.toggle("LCL 下限線",  value=True, key=f"spc_trend_show_lcl_{selected_param}")
+    show_mean_trend   = tgt3.toggle("均值線",      value=True, key=f"spc_trend_show_mean_{selected_param}")
+    show_target_trend = tgt4.toggle("目標值線",    value=True, key=f"spc_trend_show_target_{selected_param}")
+
     st.markdown("</div>", unsafe_allow_html=True)
 
     selected_month = st.session_state.get(hl_key, "全部")
@@ -570,22 +577,27 @@ with tab1:
 
     # ucl / lcl 已由上方「管制界限設定」面板手動輸入取得
 
-    # 管制帶背景
-    fig_line.add_hrect(y0=lcl, y1=ucl, fillcolor="rgba(14,165,233,0.04)",
-                       line_width=0)
+    # 管制帶背景（UCL、LCL 都顯示時才畫）
+    if show_ucl_trend and show_lcl_trend:
+        fig_line.add_hrect(y0=lcl, y1=ucl, fillcolor="rgba(14,165,233,0.04)",
+                           line_width=0)
 
-    fig_line.add_hline(y=avg_val, line_dash="dash", line_color=CHART_AVG, line_width=1.8,
-                       annotation_text=f"均值 {avg_val:.3f}", annotation_position="bottom right",
-                       annotation_font=dict(color=CHART_AVG, size=13))
-    fig_line.add_hline(y=ucl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
-                       annotation_text=f"UCL  {ucl:.3f}", annotation_position="top right",
-                       annotation_font=dict(color=CHART_UCL, size=13))
-    fig_line.add_hline(y=lcl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
-                       annotation_text=f"LCL  {lcl:.3f}", annotation_position="bottom right",
-                       annotation_font=dict(color=CHART_UCL, size=13))
-    fig_line.add_hline(y=target_trend, line_dash="dash", line_color="#7c3aed", line_width=1.8,
-                       annotation_text=f"目標值 {target_trend:.3f}", annotation_position="top left",
-                       annotation_font=dict(color="#7c3aed", size=13))
+    if show_mean_trend:
+        fig_line.add_hline(y=avg_val, line_dash="dash", line_color=CHART_AVG, line_width=1.8,
+                           annotation_text=f"均值 {avg_val:.3f}", annotation_position="bottom right",
+                           annotation_font=dict(color=CHART_AVG, size=13))
+    if show_ucl_trend:
+        fig_line.add_hline(y=ucl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
+                           annotation_text=f"UCL  {ucl:.3f}", annotation_position="top right",
+                           annotation_font=dict(color=CHART_UCL, size=13))
+    if show_lcl_trend:
+        fig_line.add_hline(y=lcl, line_dash="dot", line_color=CHART_UCL, line_width=1.5,
+                           annotation_text=f"LCL  {lcl:.3f}", annotation_position="bottom right",
+                           annotation_font=dict(color=CHART_UCL, size=13))
+    if show_target_trend:
+        fig_line.add_hline(y=target_trend, line_dash="dash", line_color="#7c3aed", line_width=1.8,
+                           annotation_text=f"目標值 {target_trend:.3f}", annotation_position="top left",
+                           annotation_font=dict(color="#7c3aed", size=13))
 
     fig_line.update_xaxes(showticklabels=False, title_text="生產順序（依照時間 / 鋼捲號碼）",
                           title_font=dict(size=14))
