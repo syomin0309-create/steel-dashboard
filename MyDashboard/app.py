@@ -355,34 +355,23 @@ st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
 st.markdown("---")
 
 # ══════════════════════════════════════════════════════
-#  分組比較設定（趨勢圖疊加比較 / CPK 單組檢視 共用）
+#  趨勢圖疊加比較參數
 # ══════════════════════════════════════════════════════
 st.markdown("""
 <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin:4px 0 18px 0;">
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
   <div style="width:3px;height:18px;background:#0ea5e9;"></div>
-  <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">分組比較設定</span>
+  <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:.5px;">趨勢圖疊加比較參數</span>
 </div>
 """, unsafe_allow_html=True)
 
-gf_c1, gf_c2 = st.columns([1, 2])
-with gf_c1:
-    st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:4px;'>分組依據欄位</div>", unsafe_allow_html=True)
-    group_field_options = ["（不分組）"] + [c for c in plot_df.columns if c != selected_param]
-    group_field_sel = st.selectbox("", group_field_options,
-        key=f"group_field_{file_key}_{selected_param}", label_visibility="collapsed")
-    group_field = None if group_field_sel == "（不分組）" else group_field_sel
+st.markdown(f"<div style='font-size:13px;color:#64748b;margin-bottom:4px;'>除了上方選擇的「{selected_param}」，再加選其他參數一起疊加顯示在同一張趨勢圖</div>", unsafe_allow_html=True)
+extra_param_options = [c for c in available_params if c != selected_param]
+extra_params = st.multiselect("", extra_param_options,
+    key=f"trend_extra_params_{file_key}_{selected_param}",
+    placeholder="點選要疊加比較的參數…", label_visibility="collapsed")
 
-with gf_c2:
-    group_values = []
-    if group_field:
-        st.markdown(f"<div style='font-size:13px;color:#64748b;margin-bottom:4px;'>趨勢圖要疊加比較的「{group_field}」分組值</div>", unsafe_allow_html=True)
-        group_opts = sorted(plot_df[group_field].dropna().astype(str).unique().tolist())
-        group_values = st.multiselect("", group_opts,
-            key=f"group_values_{file_key}_{selected_param}_{group_field}",
-            placeholder="點選要比較的分組…", label_visibility="collapsed")
-    else:
-        st.markdown("<div style='font-size:13px;color:#94a3b8;padding-top:22px;'>選擇分組欄位後，可在趨勢圖疊加多組曲線比較</div>", unsafe_allow_html=True)
+trend_params = [selected_param] + extra_params
 
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -502,29 +491,29 @@ with tab1:
                 showarrow=False, yanchor="bottom", xanchor="center"
             )
 
-    group_palette = px.colors.qualitative.Set2
+    param_palette = px.colors.qualitative.Set2
 
-    if group_field and group_values:
-        # ── 分組疊加模式：依「分組依據欄位」畫出多條獨立顏色曲線（不受月份高亮影響）──
-        for i, gval in enumerate(group_values):
-            g_df = plot_df[plot_df[group_field].astype(str) == gval]
-            if g_df.empty:
+    if len(trend_params) > 1:
+        # ── 多參數疊加模式：每個參數一條獨立顏色曲線（不受月份高亮影響）──
+        for i, param in enumerate(trend_params):
+            p_df = plot_df.dropna(subset=[param])
+            if p_df.empty:
                 continue
-            g_df = g_df.sort_values(x_col) if x_col else g_df
-            x_data = g_df[x_col] if x_col else g_df.index
-            color = group_palette[i % len(group_palette)]
+            p_df = p_df.sort_values(x_col) if x_col else p_df
+            x_data = p_df[x_col] if x_col else p_df.index
+            color = param_palette[i % len(param_palette)]
 
-            if '生產日期' in g_df.columns:
-                custom = g_df['生產日期'].astype(str).tolist()
-                hover = (f"<b>{group_field}：{gval}</b><br>鋼捲號碼：%{{x}}<br>數值：%{{y:.3f}}"
+            if '生產日期' in p_df.columns:
+                custom = p_df['生產日期'].astype(str).tolist()
+                hover = (f"<b>{param}</b><br>鋼捲號碼：%{{x}}<br>數值：%{{y:.3f}}"
                          "<br>日期：%{customdata}<extra></extra>")
             else:
                 custom = None
-                hover = f"<b>{group_field}：{gval}</b><br>鋼捲號碼：%{{x}}<br>數值：%{{y:.3f}}<extra></extra>"
+                hover = f"<b>{param}</b><br>鋼捲號碼：%{{x}}<br>數值：%{{y:.3f}}<extra></extra>"
 
             fig_line.add_trace(go.Scatter(
-                x=x_data, y=g_df[selected_param],
-                mode='lines+markers', name=f"{group_field}：{gval}",
+                x=x_data, y=p_df[param],
+                mode='lines+markers', name=param,
                 line=dict(color=color, width=2.5),
                 marker=dict(size=6, color=color),
                 connectgaps=True,
@@ -532,7 +521,7 @@ with tab1:
                 hovertemplate=hover
             ))
     else:
-        # ── 預設模式：依月份分色 + 點選高亮 ──
+        # ── 預設模式：依月份分色 + 點選高亮（單一參數）──
         for i, month in enumerate(months_list if months_list else ["全部"]):
             m_df = plot_df[plot_df['生產年月'] == month] if months_list else plot_df
             if m_df.empty:
@@ -600,10 +589,12 @@ with tab1:
 
     fig_line.update_xaxes(showticklabels=False, title_text="生產順序（依照時間 / 鋼捲號碼）",
                           title_font=dict(size=14))
+    _trend_title = ("【" + "・".join(trend_params) + "】 趨勢比較圖") if len(trend_params) > 1 \
+                   else f"【{selected_param}】 SPC 趨勢管制圖"
     fig_line.update_layout(
         template="simple_white",
         plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
-        title=dict(text=f"【{selected_param}】 SPC 趨勢管制圖",
+        title=dict(text=_trend_title,
                    font=dict(color=CHART_TEXT, size=17), x=0),
         height=500, hovermode="closest",
         font=dict(color=CHART_TEXT, size=14),
@@ -684,18 +675,7 @@ with tab1:
 # ────────────────────────────────────────────────────
 with tab2:
 
-    # ── 分組檢視（只看單一分組的 CPK，不疊加多張）──────
-    cpk_base_df = plot_df
-    if group_field:
-        cpk_group_options = ["全部（不分組）"] + sorted(plot_df[group_field].dropna().astype(str).unique().tolist())
-        st.markdown(f"<div style='font-size:13px;color:#64748b;margin-bottom:4px;'>檢視分組（{group_field}）</div>", unsafe_allow_html=True)
-        cpk_group_sel = st.selectbox("", cpk_group_options,
-            key=f"cpk_group_{file_key}_{selected_param}_{group_field}", label_visibility="collapsed")
-        if cpk_group_sel != "全部（不分組）":
-            cpk_base_df = plot_df[plot_df[group_field].astype(str) == cpk_group_sel]
-        st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
-
-    spc_data = cpk_base_df[selected_param].dropna()
+    spc_data = plot_df[selected_param].dropna()
     if len(spc_data) < 2:
         st.warning("⚠️ 數據不足，請放寬篩選條件。")
         st.stop()
